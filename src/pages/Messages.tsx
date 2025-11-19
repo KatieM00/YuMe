@@ -24,8 +24,8 @@ export default function Messages() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
-      from: 'Sofia',
-      to: 'Alex',
+      from: 'Katie',
+      to: 'Nassos',
       type: 'text',
       content: 'I miss you so much! Can\'t wait until we\'re together again.',
       timestamp: '2024-11-10 14:30',
@@ -35,8 +35,8 @@ export default function Messages() {
     },
     {
       id: 2,
-      from: 'Alex',
-      to: 'Sofia',
+      from: 'Nassos',
+      to: 'Katie',
       type: 'text',
       content: 'Just booked our summer trip! Greece here we come!',
       timestamp: '2024-11-09 18:45',

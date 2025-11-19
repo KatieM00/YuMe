@@ -34,13 +34,13 @@ export default function Dashboard() {
   };
 
   const locations = [
-    { person: 'Alex', city: 'London', country: 'UK', lat: 51.5074, lng: -0.1278 },
-    { person: 'Sofia', city: 'Athens', country: 'Greece', lat: 37.9838, lng: 23.7275 },
+    { person: 'Nassos', city: 'London', country: 'UK', lat: 51.5074, lng: -0.1278 },
+    { person: 'Katie', city: 'Athens', country: 'Greece', lat: 37.9838, lng: 23.7275 },
   ];
 
   const recentMessage = {
-    from: 'Sofia',
-    to: 'Alex',
+    from: 'Katie',
+    to: 'Nassos',
     message: 'Just saw the most beautiful sunset and thought of you...',
     time: '2 hours ago',
   };
