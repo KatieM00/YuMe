@@ -260,13 +260,29 @@ export default function Mixtape() {
 
       if (insertError) throw insertError;
 
-      await fetchPlaylists();
+      // Fetch updated data
+      const { data: updatedData } = await supabase
+        .from('playlists')
+        .select(`
+          *,
+          songs (
+            *,
+            song_comments (*)
+          )
+        `)
+        .eq('id', selectedPlaylist.id)
+        .single();
 
-      // Update selected playlist with new data
-      const updatedPlaylist = playlists.find(p => p.id === selectedPlaylist.id);
-      if (updatedPlaylist) {
-        setSelectedPlaylist(updatedPlaylist);
+      if (updatedData) {
+        // Sort songs by position
+        const playlistWithSortedSongs = {
+          ...updatedData,
+          songs: updatedData.songs.sort((a: Song, b: Song) => a.position - b.position)
+        };
+        setSelectedPlaylist(playlistWithSortedSongs);
       }
+
+      await fetchPlaylists();
 
       setSpotifyInput('');
       setShowAddSong(false);
@@ -293,15 +309,31 @@ export default function Mixtape() {
 
       if (deleteError) throw deleteError;
 
-      await fetchPlaylists();
-
-      // Update selected playlist
+      // Fetch updated data
       if (selectedPlaylist) {
-        const updatedPlaylist = playlists.find(p => p.id === selectedPlaylist.id);
-        if (updatedPlaylist) {
-          setSelectedPlaylist(updatedPlaylist);
+        const { data: updatedData } = await supabase
+          .from('playlists')
+          .select(`
+            *,
+            songs (
+              *,
+              song_comments (*)
+            )
+          `)
+          .eq('id', selectedPlaylist.id)
+          .single();
+
+        if (updatedData) {
+          // Sort songs by position
+          const playlistWithSortedSongs = {
+            ...updatedData,
+            songs: updatedData.songs.sort((a: Song, b: Song) => a.position - b.position)
+          };
+          setSelectedPlaylist(playlistWithSortedSongs);
         }
       }
+
+      await fetchPlaylists();
     } catch (err) {
       console.error('Error deleting song:', err);
       setError('Couldn\'t delete song. Please try again.');
@@ -325,15 +357,31 @@ export default function Mixtape() {
 
       if (insertError) throw insertError;
 
-      await fetchPlaylists();
-
-      // Update selected playlist
+      // Fetch updated data
       if (selectedPlaylist) {
-        const updatedPlaylist = playlists.find(p => p.id === selectedPlaylist.id);
-        if (updatedPlaylist) {
-          setSelectedPlaylist(updatedPlaylist);
+        const { data: updatedData } = await supabase
+          .from('playlists')
+          .select(`
+            *,
+            songs (
+              *,
+              song_comments (*)
+            )
+          `)
+          .eq('id', selectedPlaylist.id)
+          .single();
+
+        if (updatedData) {
+          // Sort songs by position
+          const playlistWithSortedSongs = {
+            ...updatedData,
+            songs: updatedData.songs.sort((a: Song, b: Song) => a.position - b.position)
+          };
+          setSelectedPlaylist(playlistWithSortedSongs);
         }
       }
+
+      await fetchPlaylists();
 
       setNewComment({ ...newComment, [songId]: '' });
     } catch (err) {
@@ -535,8 +583,16 @@ export default function Mixtape() {
                     setShowAddSong(false);
                   }}
                   className="absolute top-4 right-4 w-10 h-10 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center transition"
+                  title="Close"
                 >
                   <X className="w-5 h-5 text-white" />
+                </button>
+                <button
+                  onClick={() => setShowAddSong(true)}
+                  className="absolute bottom-4 right-4 w-12 h-12 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center transition hover:scale-110 shadow-lg"
+                  title="Add song"
+                >
+                  <Plus className="w-6 h-6 text-white" />
                 </button>
               </div>
 
