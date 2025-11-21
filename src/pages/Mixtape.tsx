@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Play, Music, MessageSquare, X, Plus, Trash2, ExternalLink, Loader2, Edit2 } from 'lucide-react';
+import { Play, Music, MessageSquare, X, Plus, Trash2, ExternalLink, Loader2, Edit2, PlayCircle, StopCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 interface SongComment {
@@ -68,6 +68,11 @@ export default function Mixtape() {
   const addSongFormRef = useRef<HTMLDivElement>(null);
   const spotifyInputRef = useRef<HTMLInputElement>(null);
 
+  // Play all functionality
+  const [isPlayingAll, setIsPlayingAll] = useState(false);
+  const [currentPlayingIndex, setCurrentPlayingIndex] = useState(0);
+  const iframeRefs = useRef<{ [key: string]: HTMLIFrameElement | null }>({});
+
   useEffect(() => {
     fetchPlaylists();
   }, []);
@@ -78,6 +83,22 @@ export default function Mixtape() {
       addSongFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       spotifyInputRef.current?.focus();
     }, 100);
+  };
+
+  const handlePlayAll = () => {
+    if (!selectedPlaylist?.songs || selectedPlaylist.songs.length === 0) return;
+
+    // Create a list of Spotify track URIs
+    const trackUris = selectedPlaylist.songs.map(song => `spotify:track:${song.spotify_id}`).join(',');
+
+    // Open Spotify with the playlist of tracks
+    // This will open in the Spotify app if installed, or web player if not
+    const spotifyPlayUrl = `https://open.spotify.com/track/${selectedPlaylist.songs[0].spotify_id}`;
+
+    // Try to open in Spotify app first, fallback to web
+    window.open(spotifyPlayUrl, '_blank');
+
+    setIsPlayingAll(!isPlayingAll);
   };
 
   const fetchPlaylists = async () => {
@@ -593,19 +614,35 @@ export default function Mixtape() {
                   onClick={() => {
                     setSelectedPlaylist(null);
                     setShowAddSong(false);
+                    setIsPlayingAll(false);
                   }}
                   className="absolute top-4 right-4 w-10 h-10 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center transition"
                   title="Close"
                 >
                   <X className="w-5 h-5 text-white" />
                 </button>
-                <button
-                  onClick={scrollToAddSongForm}
-                  className="absolute bottom-4 right-4 w-12 h-12 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center transition hover:scale-110 shadow-lg"
-                  title="Add song"
-                >
-                  <Plus className="w-6 h-6 text-white" />
-                </button>
+                <div className="absolute bottom-4 right-4 flex items-center space-x-2">
+                  {selectedPlaylist.songs && selectedPlaylist.songs.length > 0 && (
+                    <button
+                      onClick={handlePlayAll}
+                      className="w-12 h-12 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center transition hover:scale-110 shadow-lg"
+                      title={isPlayingAll ? "Stop playing" : "Play all"}
+                    >
+                      {isPlayingAll ? (
+                        <StopCircle className="w-6 h-6 text-white" />
+                      ) : (
+                        <PlayCircle className="w-6 h-6 text-white" />
+                      )}
+                    </button>
+                  )}
+                  <button
+                    onClick={scrollToAddSongForm}
+                    className="w-12 h-12 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center transition hover:scale-110 shadow-lg"
+                    title="Add song"
+                  >
+                    <Plus className="w-6 h-6 text-white" />
+                  </button>
+                </div>
               </div>
 
               <div className="p-6 overflow-y-auto max-h-[calc(90vh-250px)]">
