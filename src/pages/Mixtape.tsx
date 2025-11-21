@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Play, Music, MessageSquare, X, Plus, Trash2, ExternalLink, Loader2, Edit2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
@@ -64,9 +64,21 @@ export default function Mixtape() {
   const [newComment, setNewComment] = useState<{ [key: string]: string }>({});
   const [addingComment, setAddingComment] = useState<string | null>(null);
 
+  // Ref for add song form
+  const addSongFormRef = useRef<HTMLDivElement>(null);
+  const spotifyInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     fetchPlaylists();
   }, []);
+
+  const scrollToAddSongForm = () => {
+    setShowAddSong(true);
+    setTimeout(() => {
+      addSongFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      spotifyInputRef.current?.focus();
+    }, 100);
+  };
 
   const fetchPlaylists = async () => {
     try {
@@ -588,7 +600,7 @@ export default function Mixtape() {
                   <X className="w-5 h-5 text-white" />
                 </button>
                 <button
-                  onClick={() => setShowAddSong(true)}
+                  onClick={scrollToAddSongForm}
                   className="absolute bottom-4 right-4 w-12 h-12 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center transition hover:scale-110 shadow-lg"
                   title="Add song"
                 >
@@ -602,7 +614,7 @@ export default function Mixtape() {
                     <Music className="w-16 h-16 text-gray-600 mx-auto mb-4" />
                     <p className="text-gray-400 mb-4">No songs yet. Add your first song!</p>
                     <button
-                      onClick={() => setShowAddSong(true)}
+                      onClick={scrollToAddSongForm}
                       className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition inline-flex items-center space-x-2"
                     >
                       <Plus className="w-4 h-4" />
@@ -709,7 +721,7 @@ export default function Mixtape() {
 
                     {/* Add Song Form */}
                     {showAddSong ? (
-                      <div className="bg-gray-800/50 rounded-lg p-4 border border-blue-500/50">
+                      <div ref={addSongFormRef} className="bg-gray-800/50 rounded-lg p-4 border border-blue-500/50">
                         <h3 className="text-white font-medium mb-3">Add a Song</h3>
                         {addSongError && (
                           <div className="mb-3 p-2 bg-red-500/10 border border-red-500/50 rounded text-red-400 text-sm">
@@ -719,6 +731,7 @@ export default function Mixtape() {
                         <div className="space-y-3">
                           <div>
                             <input
+                              ref={spotifyInputRef}
                               type="text"
                               value={spotifyInput}
                               onChange={(e) => {
@@ -764,7 +777,7 @@ export default function Mixtape() {
                       </div>
                     ) : (
                       <button
-                        onClick={() => setShowAddSong(true)}
+                        onClick={scrollToAddSongForm}
                         className="w-full px-4 py-3 bg-gray-800/50 hover:bg-gray-800 border border-gray-700 border-dashed rounded-lg text-gray-400 hover:text-white transition flex items-center justify-center space-x-2"
                       >
                         <Plus className="w-5 h-5" />
