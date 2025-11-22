@@ -269,6 +269,9 @@ export default function Mixtape() {
       const title = titleParts[0] || 'Unknown';
       const artist = titleParts.slice(1).join(' by ') || 'Unknown';
 
+      // Extract album art from thumbnail_url
+      const albumArt = data.thumbnail_url || null;
+
       // Get max position for ordering
       const { data: existingSongs } = await supabase
         .from('songs')
@@ -288,6 +291,7 @@ export default function Mixtape() {
           artist,
           spotify_id: trackId,
           duration: '0:00',
+          album_art: albumArt,
           position: nextPosition,
         });
 
@@ -480,24 +484,25 @@ export default function Mixtape() {
                 className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-4 border border-gray-700 hover:bg-gray-800/70 hover:scale-105 transition-all cursor-pointer group relative"
               >
                 <button
-                  onClick={(e) => handleDeletePlaylist(playlist.id, e)}
-                  className="absolute top-2 right-2 w-8 h-8 bg-red-500/80 hover:bg-red-600 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition z-10"
-                  title="Delete playlist"
-                >
-                  <Trash2 className="w-4 h-4 text-white" />
-                </button>
-                <button
                   onClick={(e) => {
                     e.stopPropagation();
                     openEditModal(playlist);
                   }}
-                  className="absolute top-2 right-12 w-8 h-8 bg-blue-500/80 hover:bg-blue-600 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition z-10"
+                  className="absolute top-2 right-2 w-8 h-8 bg-blue-500/80 hover:bg-blue-600 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition z-10"
                   title="Edit playlist"
                 >
                   <Edit2 className="w-4 h-4 text-white" />
                 </button>
-                <div className={`w-full aspect-square ${playlist.cover} rounded-xl mb-4 flex items-center justify-center relative overflow-hidden`}>
-                  <Music className="w-16 h-16 text-white/50" />
+                <div className={`w-full aspect-square rounded-xl mb-4 flex items-center justify-center relative overflow-hidden ${playlist.cover.startsWith('http') ? '' : playlist.cover}`}>
+                  {playlist.cover.startsWith('http') ? (
+                    <img
+                      src={playlist.cover}
+                      alt={playlist.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <Music className="w-16 h-16 text-white/50" />
+                  )}
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
                     <Play className="w-12 h-12 text-white" />
                   </div>
@@ -548,20 +553,39 @@ export default function Mixtape() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-3">
-                      Cover Color
+                      Cover
                     </label>
-                    <div className="grid grid-cols-5 gap-3">
-                      {coverGradients.map((gradient) => (
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-5 gap-3">
+                        {coverGradients.map((gradient) => (
+                          <button
+                            key={gradient}
+                            onClick={() => setSelectedCover(gradient)}
+                            className={`w-full aspect-square ${gradient} rounded-lg transition ${
+                              selectedCover === gradient && !selectedCover.startsWith('http')
+                                ? 'ring-4 ring-white scale-110'
+                                : 'hover:scale-105'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      {editingPlaylist && editingPlaylist.songs && editingPlaylist.songs.length > 0 && editingPlaylist.songs[0].album_art && (
                         <button
-                          key={gradient}
-                          onClick={() => setSelectedCover(gradient)}
-                          className={`w-full aspect-square ${gradient} rounded-lg transition ${
-                            selectedCover === gradient
-                              ? 'ring-4 ring-white scale-110'
-                              : 'hover:scale-105'
+                          onClick={() => setSelectedCover(editingPlaylist.songs[0].album_art!)}
+                          className={`w-full px-4 py-3 rounded-lg border-2 transition flex items-center space-x-3 ${
+                            selectedCover === editingPlaylist.songs[0].album_art
+                              ? 'border-white bg-gray-700'
+                              : 'border-gray-700 bg-gray-800 hover:bg-gray-700'
                           }`}
-                        />
-                      ))}
+                        >
+                          <img
+                            src={editingPlaylist.songs[0].album_art}
+                            alt="Album art"
+                            className="w-12 h-12 rounded object-cover"
+                          />
+                          <span className="text-white text-sm">Use first song's album art</span>
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -589,6 +613,36 @@ export default function Mixtape() {
                     )}
                   </button>
                 </div>
+
+                {editingPlaylist && (
+                  <div className="mt-4 pt-4 border-t border-gray-700">
+                    <button
+                      onClick={async () => {
+                        if (window.confirm(`Are you sure you want to delete "${editingPlaylist.title}"? This action cannot be undone.`)) {
+                          try {
+                            const { error } = await supabase
+                              .from('playlists')
+                              .delete()
+                              .eq('id', editingPlaylist.id);
+
+                            if (error) throw error;
+
+                            await fetchPlaylists();
+                            setShowCreateModal(false);
+                            setEditingPlaylist(null);
+                          } catch (error) {
+                            console.error('Error deleting playlist:', error);
+                            alert('Failed to delete playlist');
+                          }
+                        }
+                      }}
+                      className="w-full px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition flex items-center justify-center space-x-2 border border-red-500/30"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      <span>Delete Playlist</span>
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -599,11 +653,28 @@ export default function Mixtape() {
           <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div className="bg-gray-900 rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden border border-gray-700">
               <div className="relative">
-                <div className={`${selectedPlaylist.cover} p-8 flex items-center space-x-6`}>
-                  <div className="w-32 h-32 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center flex-shrink-0">
-                    <Music className="w-16 h-16 text-white" />
+                <div className={`${selectedPlaylist.cover.startsWith('http') ? 'bg-gradient-to-br from-gray-800 to-gray-900' : selectedPlaylist.cover} p-8 flex items-center space-x-6 relative`}>
+                  {selectedPlaylist.cover.startsWith('http') && (
+                    <div className="absolute inset-0 opacity-30">
+                      <img
+                        src={selectedPlaylist.cover}
+                        alt={selectedPlaylist.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
+                  <div className="w-32 h-32 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center flex-shrink-0 relative z-10 overflow-hidden">
+                    {selectedPlaylist.cover.startsWith('http') ? (
+                      <img
+                        src={selectedPlaylist.cover}
+                        alt={selectedPlaylist.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Music className="w-16 h-16 text-white" />
+                    )}
                   </div>
-                  <div className="flex-1 min-w-0">
+                  <div className="flex-1 min-w-0 relative z-10">
                     <p className="text-white/80 text-sm font-medium mb-2">PLAYLIST</p>
                     <h2 className="text-3xl font-bold text-white mb-2">{selectedPlaylist.title}</h2>
                     <p className="text-white/90">{selectedPlaylist.description}</p>
