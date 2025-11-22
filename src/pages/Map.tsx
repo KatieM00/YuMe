@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { MapPin, Plus, Trash2, Loader } from 'lucide-react';
+import { MapPin, Plus, Trash2, Loader, Check, Search } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 // Declare mapboxgl as a global variable (loaded from CDN)
@@ -17,6 +17,11 @@ interface Location {
   notes?: string;
   created_at?: string;
   updated_at?: string;
+}
+
+interface GeocodingSuggestion {
+  place_name: string;
+  center: [number, number]; // [lng, lat]
 }
 
 export default function Map() {
@@ -37,12 +42,83 @@ export default function Map() {
     lng: 0,
     type: 'visited',
     visit_date: '',
-    notes: '',
   });
+
+  // Geocoding state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [suggestions, setSuggestions] = useState<GeocodingSuggestion[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   // Check if Mapbox token is available
   const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN;
   const hasMapboxToken = mapboxToken && mapboxToken !== '';
+
+  // Geocoding search function
+  const searchLocation = async (query: string) => {
+    if (!query.trim() || !hasMapboxToken) {
+      setSuggestions([]);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const response = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
+          query
+        )}.json?access_token=${mapboxToken}&limit=5&types=place,locality,region,country`
+      );
+      const data = await response.json();
+
+      if (data.features) {
+        setSuggestions(
+          data.features.map((feature: any) => ({
+            place_name: feature.place_name,
+            center: feature.center,
+          }))
+        );
+        setShowSuggestions(true);
+      }
+    } catch (err) {
+      console.error('Geocoding error:', err);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchQuery) {
+        searchLocation(searchQuery);
+      } else {
+        setSuggestions([]);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Select a suggestion
+  const selectSuggestion = (suggestion: GeocodingSuggestion) => {
+    const [lng, lat] = suggestion.center;
+    setNewLocation({
+      ...newLocation,
+      name: suggestion.place_name.split(',')[0], // Use just the city name
+      lat,
+      lng,
+    });
+    setSearchQuery(suggestion.place_name);
+    setShowSuggestions(false);
+
+    // Center map on selected location
+    if (mapRef.current) {
+      mapRef.current.flyTo({
+        center: [lng, lat],
+        zoom: 8,
+      });
+    }
+  };
 
   // Fetch locations from Supabase
   const fetchLocations = async () => {
@@ -68,8 +144,8 @@ export default function Map() {
 
   // Add a new location
   const addLocation = async () => {
-    if (!newLocation.name || !newLocation.lat || !newLocation.lng) {
-      alert('Please fill in all required fields');
+    if (!newLocation.name || newLocation.lat === 0 || newLocation.lng === 0) {
+      alert('Please search for and select a location from the suggestions');
       return;
     }
 
@@ -82,7 +158,6 @@ export default function Map() {
           lng: newLocation.lng,
           type: newLocation.type || 'visited',
           visit_date: newLocation.visit_date || null,
-          notes: newLocation.notes || null,
         })
         .select()
         .single();
@@ -97,8 +172,9 @@ export default function Map() {
         lng: 0,
         type: 'visited',
         visit_date: '',
-        notes: '',
       });
+      setSearchQuery('');
+      setSuggestions([]);
     } catch (err: any) {
       console.error('Error adding location:', err);
       alert('Failed to add location: ' + err.message);
@@ -139,7 +215,7 @@ export default function Map() {
 
       const map = new mapboxgl.Map({
         container: mapContainerRef.current,
-        style: 'mapbox://styles/mapbox/dark-v11',
+        style: 'mapbox://styles/mapbox/outdoors-v12',
         center: [0, 20],
         zoom: 1.5,
         projection: 'mercator',
@@ -147,17 +223,6 @@ export default function Map() {
 
       map.on('load', () => {
         setMapLoaded(true);
-      });
-
-      // Add click handler to get coordinates
-      map.on('click', (e: any) => {
-        const { lng, lat } = e.lngLat;
-        setNewLocation((prev) => ({
-          ...prev,
-          lat: parseFloat(lat.toFixed(6)),
-          lng: parseFloat(lng.toFixed(6)),
-        }));
-        setShowAddForm(true);
       });
 
       mapRef.current = map;
@@ -186,13 +251,13 @@ export default function Map() {
 
       const el = document.createElement('div');
       el.className = 'custom-marker';
-      el.style.width = '24px';
-      el.style.height = '24px';
+      el.style.width = '32px';
+      el.style.height = '32px';
       el.style.cursor = 'pointer';
       el.innerHTML = `
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="${
-          location.type === 'visited' ? '#4ade80' : '#f87171'
-        }" stroke="white" stroke-width="2">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="${
+          location.type === 'visited' ? '#10b981' : '#ef4444'
+        }" stroke="white" stroke-width="1.5">
           <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
           <circle cx="12" cy="10" r="3" fill="white"></circle>
         </svg>
@@ -201,9 +266,7 @@ export default function Map() {
       const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(`
         <div style="color: #000; padding: 8px;">
           <h3 style="font-weight: bold; margin-bottom: 4px;">${location.name}</h3>
-          ${location.visit_date ? `<p style="font-size: 12px; color: #666;">${location.visit_date}</p>` : ''}
-          ${location.notes ? `<p style="font-size: 12px; margin-top: 4px;">${location.notes}</p>` : ''}
-          <p style="font-size: 11px; color: #999; margin-top: 4px;">${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}</p>
+          ${location.visit_date ? `<p style="font-size: 12px; color: #666;">📅 ${location.visit_date}</p>` : ''}
         </div>
       `);
 
@@ -221,25 +284,13 @@ export default function Map() {
     fetchLocations();
   }, []);
 
-  const visitedCount = locations.filter((loc) => loc.type === 'visited').length;
-  const wishlistCount = locations.filter((loc) => loc.type === 'wishlist').length;
+  const visitedLocations = locations.filter((loc) => loc.type === 'visited');
+  const wishlistLocations = locations.filter((loc) => loc.type === 'wishlist');
 
   return (
     <div className="min-h-screen p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-white">Our Map</h1>
-          <div className="flex items-center space-x-4 text-sm">
-            <div className="flex items-center space-x-2">
-              <MapPin className="w-4 h-4 text-green-400" />
-              <span className="text-gray-400">Visited: {visitedCount}</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <MapPin className="w-4 h-4 text-red-400" />
-              <span className="text-gray-400">Wishlist: {wishlistCount}</span>
-            </div>
-          </div>
-        </div>
+        <h1 className="text-3xl md:text-4xl font-bold text-white mb-8">Our Map</h1>
 
         {error && (
           <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-4 mb-6">
@@ -271,117 +322,122 @@ export default function Map() {
                 <div
                   ref={mapContainerRef}
                   className="aspect-video rounded-xl overflow-hidden"
-                  style={{ minHeight: '400px' }}
+                  style={{ minHeight: '500px' }}
                 />
               )}
 
               {hasMapboxToken && (
-                <div className="mt-4 text-xs text-gray-500">
-                  💡 Click anywhere on the map to add a new location
+                <div className="mt-4 flex items-center justify-between">
+                  <div className="flex items-center space-x-6 text-sm">
+                    <div className="flex items-center space-x-2">
+                      <MapPin className="w-4 h-4 text-green-500" />
+                      <span className="text-gray-400">Visited: {visitedLocations.length}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <MapPin className="w-4 h-4 text-red-500" />
+                      <span className="text-gray-400">Wishlist: {wishlistLocations.length}</span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500">💡 Use the form to search and add locations</p>
                 </div>
               )}
             </div>
-          </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Add Location Form */}
-            {showAddForm && (
-              <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 shadow-xl">
-                <h2 className="text-xl font-semibold text-white mb-4">Add Location</h2>
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-sm text-gray-400 mb-1 block">Name *</label>
-                    <input
-                      type="text"
-                      value={newLocation.name}
-                      onChange={(e) => setNewLocation({ ...newLocation, name: e.target.value })}
-                      className="w-full px-3 py-2 bg-gray-900/50 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="e.g., Paris, Tokyo"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-sm text-gray-400 mb-1 block">Latitude *</label>
-                      <input
-                        type="number"
-                        step="0.000001"
-                        value={newLocation.lat}
-                        onChange={(e) => setNewLocation({ ...newLocation, lat: parseFloat(e.target.value) })}
-                        className="w-full px-3 py-2 bg-gray-900/50 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-sm text-gray-400 mb-1 block">Longitude *</label>
-                      <input
-                        type="number"
-                        step="0.000001"
-                        value={newLocation.lng}
-                        onChange={(e) => setNewLocation({ ...newLocation, lng: parseFloat(e.target.value) })}
-                        className="w-full px-3 py-2 bg-gray-900/50 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      />
+            {/* Locations List under map */}
+            {!loading && locations.length > 0 && (
+              <div className="mt-6 bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 shadow-xl">
+                <h2 className="text-xl font-semibold text-white mb-4">All Locations</h2>
+
+                {visitedLocations.length > 0 && (
+                  <div className="mb-6">
+                    <h3 className="text-sm font-semibold text-green-400 mb-3 flex items-center">
+                      <Check className="w-4 h-4 mr-2" />
+                      Visited ({visitedLocations.length})
+                    </h3>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {visitedLocations.map((location) => (
+                        <div
+                          key={location.id}
+                          className="group relative bg-green-500/10 border border-green-500/30 rounded-lg p-3 hover:bg-green-500/20 transition"
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <p className="text-white font-medium text-sm">{location.name}</p>
+                              {location.visit_date && (
+                                <p className="text-gray-400 text-xs mt-1">{location.visit_date}</p>
+                              )}
+                            </div>
+                            <button
+                              onClick={() => location.id && deleteLocation(location.id)}
+                              className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-400 transition"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
+                )}
+
+                {wishlistLocations.length > 0 && (
                   <div>
-                    <label className="text-sm text-gray-400 mb-1 block">Type *</label>
-                    <select
-                      value={newLocation.type}
-                      onChange={(e) => setNewLocation({ ...newLocation, type: e.target.value as 'visited' | 'wishlist' })}
-                      className="w-full px-3 py-2 bg-gray-900/50 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="visited">Visited</option>
-                      <option value="wishlist">Wishlist</option>
-                    </select>
+                    <h3 className="text-sm font-semibold text-red-400 mb-3 flex items-center">
+                      <MapPin className="w-4 h-4 mr-2" />
+                      Want to Visit ({wishlistLocations.length})
+                    </h3>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {wishlistLocations.map((location) => (
+                        <div
+                          key={location.id}
+                          className="group relative bg-red-500/10 border border-red-500/30 rounded-lg p-3 hover:bg-red-500/20 transition"
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <p className="text-white font-medium text-sm">{location.name}</p>
+                            </div>
+                            <button
+                              onClick={() => location.id && deleteLocation(location.id)}
+                              className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-400 transition"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <div>
-                    <label className="text-sm text-gray-400 mb-1 block">Visit Date</label>
-                    <input
-                      type="month"
-                      value={newLocation.visit_date}
-                      onChange={(e) => setNewLocation({ ...newLocation, visit_date: e.target.value })}
-                      className="w-full px-3 py-2 bg-gray-900/50 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm text-gray-400 mb-1 block">Notes</label>
-                    <textarea
-                      value={newLocation.notes}
-                      onChange={(e) => setNewLocation({ ...newLocation, notes: e.target.value })}
-                      className="w-full px-3 py-2 bg-gray-900/50 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      rows={2}
-                      placeholder="Optional notes..."
-                    />
-                  </div>
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={addLocation}
-                      className="flex-1 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm transition"
-                    >
-                      Add
-                    </button>
-                    <button
-                      onClick={() => {
-                        setShowAddForm(false);
-                        setNewLocation({ name: '', lat: 0, lng: 0, type: 'visited', visit_date: '', notes: '' });
-                      }}
-                      className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm transition"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
+                )}
               </div>
             )}
+          </div>
 
-            {/* Locations List */}
-            <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 shadow-xl">
+          {/* Sidebar - Add Location Form */}
+          <div>
+            <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 shadow-xl sticky top-8">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-white">Locations</h2>
+                <h2 className="text-xl font-semibold text-white">
+                  {showAddForm ? 'Add Location' : 'Locations'}
+                </h2>
                 <button
-                  onClick={() => setShowAddForm(!showAddForm)}
+                  onClick={() => {
+                    setShowAddForm(!showAddForm);
+                    if (showAddForm) {
+                      setSearchQuery('');
+                      setSuggestions([]);
+                      setNewLocation({
+                        name: '',
+                        lat: 0,
+                        lng: 0,
+                        type: 'visited',
+                        visit_date: '',
+                      });
+                    }
+                  }}
                   className="p-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition"
+                  title={showAddForm ? 'Cancel' : 'Add location'}
                 >
-                  <Plus className="w-4 h-4" />
+                  {showAddForm ? '✕' : <Plus className="w-4 h-4" />}
                 </button>
               </div>
 
@@ -389,40 +445,98 @@ export default function Map() {
                 <div className="flex items-center justify-center py-8">
                   <Loader className="w-6 h-6 text-gray-400 animate-spin" />
                 </div>
-              ) : locations.length === 0 ? (
-                <div className="text-center py-8">
-                  <MapPin className="w-12 h-12 text-gray-600 mx-auto mb-2" />
-                  <p className="text-gray-500 text-sm">No locations yet</p>
-                  <p className="text-gray-600 text-xs mt-1">Click the map or + button to add one</p>
+              ) : showAddForm ? (
+                <div className="space-y-4">
+                  {/* Search location */}
+                  <div className="relative">
+                    <label className="text-sm text-gray-400 mb-1 block">Search Location</label>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                      <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onFocus={() => {
+                          if (suggestions.length > 0) setShowSuggestions(true);
+                        }}
+                        className="w-full pl-10 pr-3 py-2 bg-gray-900/50 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="e.g., Paris, Tokyo, Athens"
+                      />
+                      {isSearching && (
+                        <Loader className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 animate-spin" />
+                      )}
+                    </div>
+
+                    {/* Suggestions dropdown */}
+                    {showSuggestions && suggestions.length > 0 && (
+                      <div className="absolute z-10 w-full mt-1 bg-gray-900 border border-gray-700 rounded-lg shadow-xl max-h-60 overflow-y-auto">
+                        {suggestions.map((suggestion, index) => (
+                          <button
+                            key={index}
+                            onClick={() => selectSuggestion(suggestion)}
+                            className="w-full text-left px-3 py-2 hover:bg-gray-800 text-white text-sm border-b border-gray-800 last:border-b-0"
+                          >
+                            <MapPin className="inline w-3 h-3 mr-2 text-gray-500" />
+                            {suggestion.place_name}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="text-sm text-gray-400 mb-1 block">Type</label>
+                    <select
+                      value={newLocation.type}
+                      onChange={(e) => setNewLocation({ ...newLocation, type: e.target.value as 'visited' | 'wishlist' })}
+                      className="w-full px-3 py-2 bg-gray-900/50 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="visited">✓ Visited</option>
+                      <option value="wishlist">★ Want to Visit</option>
+                    </select>
+                  </div>
+
+                  {newLocation.type === 'visited' && (
+                    <div>
+                      <label className="text-sm text-gray-400 mb-1 block">Visit Date (optional)</label>
+                      <input
+                        type="month"
+                        value={newLocation.visit_date}
+                        onChange={(e) => setNewLocation({ ...newLocation, visit_date: e.target.value })}
+                        className="w-full px-3 py-2 bg-gray-900/50 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  )}
+
+                  {newLocation.lat !== 0 && newLocation.lng !== 0 && (
+                    <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3">
+                      <p className="text-green-400 text-xs font-medium">✓ Location selected: {newLocation.name}</p>
+                    </div>
+                  )}
+
+                  {newLocation.lat === 0 && searchQuery && (
+                    <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3">
+                      <p className="text-yellow-400 text-xs">⚠️ Select a location from the suggestions</p>
+                    </div>
+                  )}
+
+                  <button
+                    onClick={addLocation}
+                    disabled={newLocation.lat === 0}
+                    className="w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg text-sm transition font-medium"
+                  >
+                    Add Location
+                  </button>
                 </div>
               ) : (
-                <div className="space-y-2 max-h-[600px] overflow-y-auto">
-                  {locations.map((location) => (
-                    <div
-                      key={location.id}
-                      className={`flex items-start space-x-3 p-3 rounded-lg border transition ${
-                        location.type === 'visited'
-                          ? 'bg-green-500/10 border-green-500/30'
-                          : 'bg-red-500/10 border-red-500/30'
-                      }`}
-                    >
-                      <MapPin className={`w-5 h-5 mt-0.5 flex-shrink-0 ${location.type === 'visited' ? 'text-green-400' : 'text-red-400'}`} />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-white font-medium">{location.name}</p>
-                        {location.visit_date && <p className="text-gray-400 text-xs">Visited: {location.visit_date}</p>}
-                        {location.notes && <p className="text-gray-500 text-xs mt-1">{location.notes}</p>}
-                        <p className="text-gray-600 text-xs mt-1">
-                          {location.lat.toFixed(4)}, {location.lng.toFixed(4)}
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => location.id && deleteLocation(location.id)}
-                        className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-red-500/10 rounded transition flex-shrink-0"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
+                <div className="text-center py-8">
+                  <MapPin className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+                  <p className="text-gray-400 text-sm mb-2">
+                    {locations.length === 0 ? 'No locations yet' : `${locations.length} location${locations.length !== 1 ? 's' : ''}`}
+                  </p>
+                  <p className="text-gray-600 text-xs">
+                    Click <span className="text-blue-400">+</span> to add a location
+                  </p>
                 </div>
               )}
             </div>
