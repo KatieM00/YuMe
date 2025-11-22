@@ -424,159 +424,60 @@ export default function Map() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:h-[calc(100vh-180px)]">
+        {/* Mobile view - same as before */}
+        <div className="lg:hidden space-y-6">
           {/* Map Section */}
-          <div className="lg:col-span-2 lg:h-full">
-            <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-4 md:p-6 border border-gray-700 shadow-xl h-full flex flex-col">
-              {!hasMapboxToken ? (
-                <div className="w-full h-64 md:h-96 lg:flex-1 bg-gradient-to-br from-blue-900/30 via-gray-900/50 to-green-900/30 rounded-xl flex items-center justify-center">
-                  <div className="text-center p-4 md:p-8">
-                    <MapPin className="w-12 h-12 md:w-16 md:h-16 text-gray-600 mx-auto mb-4" />
-                    <p className="text-gray-400 text-base md:text-lg font-semibold mb-2">Map Not Configured</p>
-                    <p className="text-gray-500 text-xs md:text-sm mb-4">
-                      Add <code className="bg-gray-800 px-2 py-1 rounded text-xs">VITE_MAPBOX_TOKEN</code> to Netlify
-                    </p>
-                    <p className="text-gray-600 text-xs">
-                      Get a free token at{' '}
-                      <a href="https://account.mapbox.com/" target="_blank" rel="noopener noreferrer" className="text-blue-400 underline">
-                        mapbox.com
-                      </a>
-                    </p>
-                  </div>
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-4 border border-gray-700 shadow-xl">
+            {!hasMapboxToken ? (
+              <div className="w-full h-64 bg-gradient-to-br from-blue-900/30 via-gray-900/50 to-green-900/30 rounded-xl flex items-center justify-center">
+                <div className="text-center p-4">
+                  <MapPin className="w-12 h-12 text-gray-600 mx-auto mb-4" />
+                  <p className="text-gray-400 text-base font-semibold mb-2">Map Not Configured</p>
+                  <p className="text-gray-500 text-xs mb-4">
+                    Add <code className="bg-gray-800 px-2 py-1 rounded text-xs">VITE_MAPBOX_TOKEN</code> to Netlify
+                  </p>
+                  <p className="text-gray-600 text-xs">
+                    Get a free token at{' '}
+                    <a href="https://account.mapbox.com/" target="_blank" rel="noopener noreferrer" className="text-blue-400 underline">
+                      mapbox.com
+                    </a>
+                  </p>
                 </div>
-              ) : (
-                <div
-                  ref={mapContainerRef}
-                  className="w-full h-64 md:h-96 lg:flex-1 rounded-xl overflow-hidden"
-                />
-              )}
-
-              <div className="mt-3 md:mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-sm">
-                <div className="flex items-center space-x-4 md:space-x-6">
-                  <div className="flex items-center space-x-2">
-                    <MapPin className="w-4 h-4 text-green-500" />
-                    <span className="text-gray-400 text-xs md:text-sm">Visited: {visitedLocations.length}</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <MapPin className="w-4 h-4 text-red-500" />
-                    <span className="text-gray-400 text-xs md:text-sm">Wishlist: {wishlistLocations.length}</span>
-                  </div>
-                </div>
-                {hasMapboxToken && (
-                  <p className="text-xs text-gray-500 hidden lg:block">💡 Use the form to add locations</p>
-                )}
               </div>
-            </div>
+            ) : (
+              <div ref={mapContainerRef} className="w-full h-64 rounded-xl overflow-hidden" />
+            )}
 
-            {/* Mobile Locations List */}
-            <div className="lg:hidden mt-6 bg-gray-800/50 backdrop-blur-sm rounded-2xl p-4 border border-gray-700 shadow-xl">
-              <h2 className="text-lg font-semibold text-white mb-4">Your Locations</h2>
-
-              {loading ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader className="w-6 h-6 text-gray-400 animate-spin" />
+            <div className="mt-3 flex items-center justify-between text-sm">
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <MapPin className="w-4 h-4 text-green-500" />
+                  <span className="text-gray-400 text-xs">Visited: {visitedLocations.length}</span>
                 </div>
-              ) : locations.length === 0 ? (
-                <div className="text-center py-8">
-                  <MapPin className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-                  <p className="text-gray-400 text-sm mb-3">No locations yet</p>
-                  <p className="text-gray-500 text-xs">Tap the + button to add your first location</p>
+                <div className="flex items-center space-x-2">
+                  <MapPin className="w-4 h-4 text-red-500" />
+                  <span className="text-gray-400 text-xs">Wishlist: {wishlistLocations.length}</span>
                 </div>
-              ) : (
-                <div className="space-y-4">
-                  {/* Visited Locations */}
-                  {visitedLocations.length > 0 && (
-                    <div>
-                      <h3 className="text-sm font-semibold text-green-400 mb-2 flex items-center">
-                        <Check className="w-4 h-4 mr-1" />
-                        Visited ({visitedLocations.length})
-                      </h3>
-                      <div className="space-y-2">
-                        {visitedLocations.map((location) => (
-                          <div
-                            key={location.id}
-                            className="group bg-green-500/10 border border-green-500/30 rounded-lg p-3 hover:bg-green-500/20 transition"
-                          >
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1 min-w-0">
-                                <p className="text-white font-medium text-sm truncate">{location.name}</p>
-                                {location.visit_date && (
-                                  <p className="text-gray-400 text-xs mt-0.5">{location.visit_date}</p>
-                                )}
-                                {location.notes && (
-                                  <p className="text-gray-500 text-xs mt-1 line-clamp-2">{location.notes}</p>
-                                )}
-                              </div>
-                              <button
-                                onClick={() => location.id && deleteLocation(location.id)}
-                                className="ml-2 p-1.5 text-gray-400 hover:text-red-400 transition flex-shrink-0"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Wishlist Locations */}
-                  {wishlistLocations.length > 0 && (
-                    <div>
-                      <h3 className="text-sm font-semibold text-red-400 mb-2 flex items-center">
-                        <MapPin className="w-4 h-4 mr-1" />
-                        Want to Visit ({wishlistLocations.length})
-                      </h3>
-                      <div className="space-y-2">
-                        {wishlistLocations.map((location) => (
-                          <div
-                            key={location.id}
-                            className="group bg-red-500/10 border border-red-500/30 rounded-lg p-3 hover:bg-red-500/20 transition"
-                          >
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1 min-w-0">
-                                <p className="text-white font-medium text-sm truncate">{location.name}</p>
-                                {location.notes && (
-                                  <p className="text-gray-500 text-xs mt-1 line-clamp-2">{location.notes}</p>
-                                )}
-                              </div>
-                              <button
-                                onClick={() => location.id && deleteLocation(location.id)}
-                                className="ml-2 p-1.5 text-gray-400 hover:text-red-400 transition flex-shrink-0"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
+              </div>
             </div>
           </div>
 
-          {/* Locations List Sidebar - Desktop only */}
-          <div className="hidden lg:block lg:col-span-1 lg:h-full">
-            <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-4 md:p-6 border border-gray-700 shadow-xl h-full overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg md:text-xl font-semibold text-white">Locations</h2>
-              <button
-                onClick={scrollToAddLocationForm}
-                className="p-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition flex-shrink-0"
-                title="Add location"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
-            </div>
+          {/* Mobile Locations List */}
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-4 border border-gray-700 shadow-xl">
+            <h2 className="text-lg font-semibold text-white mb-4">Your Locations</h2>
 
             {loading ? (
               <div className="flex items-center justify-center py-8">
                 <Loader className="w-6 h-6 text-gray-400 animate-spin" />
               </div>
+            ) : locations.length === 0 ? (
+              <div className="text-center py-8">
+                <MapPin className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+                <p className="text-gray-400 text-sm mb-3">No locations yet</p>
+                <p className="text-gray-500 text-xs">Tap the + button to add your first location</p>
+              </div>
             ) : (
-              <div className="space-y-4 overflow-y-auto flex-1">
+              <div className="space-y-4">
                 {/* Visited Locations */}
                 {visitedLocations.length > 0 && (
                   <div>
@@ -602,7 +503,7 @@ export default function Map() {
                             </div>
                             <button
                               onClick={() => location.id && deleteLocation(location.id)}
-                              className="ml-2 opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-400 transition flex-shrink-0"
+                              className="ml-2 p-1.5 text-gray-400 hover:text-red-400 transition flex-shrink-0"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
@@ -635,6 +536,205 @@ export default function Map() {
                             </div>
                             <button
                               onClick={() => location.id && deleteLocation(location.id)}
+                              className="ml-2 p-1.5 text-gray-400 hover:text-red-400 transition flex-shrink-0"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Desktop view - Map + Add Form on top, Locations below */}
+        <div className="hidden lg:block space-y-6">
+          {/* Top row: Map (2/3) + Add Form (1/3) */}
+          <div className="grid grid-cols-3 gap-6 h-[calc(100vh-24rem)]">
+            {/* Map - 2/3 width */}
+            <div className="col-span-2">
+              <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 shadow-xl h-full flex flex-col">
+                {!hasMapboxToken ? (
+                  <div className="flex-1 bg-gradient-to-br from-blue-900/30 via-gray-900/50 to-green-900/30 rounded-xl flex items-center justify-center">
+                    <div className="text-center p-8">
+                      <MapPin className="w-16 h-16 text-gray-600 mx-auto mb-4" />
+                      <p className="text-gray-400 text-lg font-semibold mb-2">Map Not Configured</p>
+                      <p className="text-gray-500 text-sm mb-4">
+                        Add <code className="bg-gray-800 px-2 py-1 rounded text-xs">VITE_MAPBOX_TOKEN</code> to Netlify
+                      </p>
+                      <p className="text-gray-600 text-xs">
+                        Get a free token at{' '}
+                        <a href="https://account.mapbox.com/" target="_blank" rel="noopener noreferrer" className="text-blue-400 underline">
+                          mapbox.com
+                        </a>
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div ref={mapContainerRef} className="flex-1 rounded-xl overflow-hidden" />
+                )}
+
+                <div className="mt-4 flex items-center justify-between text-sm">
+                  <div className="flex items-center space-x-6">
+                    <div className="flex items-center space-x-2">
+                      <MapPin className="w-4 h-4 text-green-500" />
+                      <span className="text-gray-400 text-sm">Visited: {visitedLocations.length}</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <MapPin className="w-4 h-4 text-red-500" />
+                      <span className="text-gray-400 text-sm">Wishlist: {wishlistLocations.length}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Add Location Form - 1/3 width */}
+            <div className="col-span-1">
+              <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 shadow-xl h-full flex flex-col">
+                <h2 className="text-xl font-semibold text-white mb-4 flex items-center">
+                  <Plus className="w-5 h-5 mr-2" />
+                  Add Location
+                </h2>
+
+                <div className="space-y-4 flex-1 overflow-y-auto">
+                  {/* Search location */}
+                  <div className="relative">
+                    <label className="text-sm text-gray-400 mb-2 block">Search Location</label>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                      <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onFocus={() => {
+                          if (suggestions.length > 0) setShowSuggestions(true);
+                        }}
+                        className="w-full pl-10 pr-3 py-2 bg-gray-900/50 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="e.g., Paris, Tokyo"
+                      />
+                      {isSearching && (
+                        <Loader className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 animate-spin" />
+                      )}
+                    </div>
+
+                    {/* Suggestions dropdown */}
+                    {showSuggestions && suggestions.length > 0 && (
+                      <div className="absolute z-10 w-full mt-1 bg-gray-900 border border-gray-700 rounded-lg shadow-xl max-h-48 overflow-y-auto">
+                        {suggestions.map((suggestion, index) => (
+                          <button
+                            key={index}
+                            onClick={() => selectSuggestion(suggestion)}
+                            className="w-full text-left px-3 py-2 hover:bg-gray-800 text-white text-sm border-b border-gray-800 last:border-b-0"
+                          >
+                            <MapPin className="inline w-3 h-3 mr-2 text-gray-500" />
+                            {suggestion.place_name}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="text-sm text-gray-400 mb-2 block">Type</label>
+                    <select
+                      value={newLocation.type}
+                      onChange={(e) => setNewLocation({ ...newLocation, type: e.target.value as 'visited' | 'wishlist' })}
+                      className="w-full px-3 py-2 bg-gray-900/50 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="visited">✓ Visited</option>
+                      <option value="wishlist">★ Want to Visit</option>
+                    </select>
+                  </div>
+
+                  {newLocation.type === 'visited' && (
+                    <div>
+                      <label className="text-sm text-gray-400 mb-2 block">Visit Date (optional)</label>
+                      <input
+                        type="month"
+                        value={newLocation.visit_date}
+                        onChange={(e) => setNewLocation({ ...newLocation, visit_date: e.target.value })}
+                        className="w-full px-3 py-2 bg-gray-900/50 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="text-sm text-gray-400 mb-2 block">Notes (optional)</label>
+                    <textarea
+                      value={newLocation.notes}
+                      onChange={(e) => setNewLocation({ ...newLocation, notes: e.target.value })}
+                      className="w-full px-3 py-2 bg-gray-900/50 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                      rows={3}
+                      placeholder="Add a note..."
+                    />
+                  </div>
+
+                  {newLocation.lat !== 0 && newLocation.lng !== 0 && (
+                    <div className="bg-green-500/10 border border-green-500/30 rounded p-3">
+                      <p className="text-green-400 text-sm">✓ {newLocation.name}</p>
+                    </div>
+                  )}
+
+                  <button
+                    onClick={addLocation}
+                    disabled={newLocation.lat === 0}
+                    className="w-full px-4 py-3 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg text-sm transition font-medium"
+                  >
+                    Add Location
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom row: Locations List (full width) */}
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 shadow-xl">
+            <h2 className="text-xl font-semibold text-white mb-4 flex items-center">
+              <MapPin className="w-5 h-5 mr-2" />
+              Your Locations
+            </h2>
+
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader className="w-6 h-6 text-gray-400 animate-spin" />
+              </div>
+            ) : locations.length === 0 ? (
+              <div className="text-center py-8">
+                <MapPin className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+                <p className="text-gray-400 text-sm">No locations yet. Use the form above to add your first location!</p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {/* Visited Locations */}
+                {visitedLocations.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-green-400 mb-3 flex items-center">
+                      <Check className="w-4 h-4 mr-1" />
+                      Visited ({visitedLocations.length})
+                    </h3>
+                    <div className="grid grid-cols-3 gap-3">
+                      {visitedLocations.map((location) => (
+                        <div
+                          key={location.id}
+                          className="group bg-green-500/10 border border-green-500/30 rounded-lg p-4 hover:bg-green-500/20 transition"
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-white font-medium text-sm truncate">{location.name}</p>
+                              {location.visit_date && (
+                                <p className="text-gray-400 text-xs mt-1">{location.visit_date}</p>
+                              )}
+                              {location.notes && (
+                                <p className="text-gray-500 text-xs mt-2 line-clamp-2">{location.notes}</p>
+                              )}
+                            </div>
+                            <button
+                              onClick={() => location.id && deleteLocation(location.id)}
                               className="ml-2 opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-400 transition flex-shrink-0"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -646,127 +746,40 @@ export default function Map() {
                   </div>
                 )}
 
-                {/* Add Location Form (inline like Mixtape) */}
-                {showAddForm ? (
-                  <div ref={addLocationFormRef} className="bg-gray-800/50 rounded-lg p-4 border border-blue-500/50">
-                    <h3 className="text-white font-medium mb-3">Add a Location</h3>
-                    <div className="space-y-3">
-                      {/* Search location */}
-                      <div className="relative">
-                        <label className="text-xs text-gray-400 mb-1 block">Search Location</label>
-                        <div className="relative">
-                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                          <input
-                            type="text"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            onFocus={() => {
-                              if (suggestions.length > 0) setShowSuggestions(true);
-                            }}
-                            className="w-full pl-10 pr-3 py-2 bg-gray-900/50 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="e.g., Paris, Tokyo"
-                          />
-                          {isSearching && (
-                            <Loader className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 animate-spin" />
-                          )}
-                        </div>
-
-                        {/* Suggestions dropdown */}
-                        {showSuggestions && suggestions.length > 0 && (
-                          <div className="absolute z-10 w-full mt-1 bg-gray-900 border border-gray-700 rounded-lg shadow-xl max-h-48 overflow-y-auto">
-                            {suggestions.map((suggestion, index) => (
-                              <button
-                                key={index}
-                                onClick={() => selectSuggestion(suggestion)}
-                                className="w-full text-left px-3 py-2 hover:bg-gray-800 text-white text-xs border-b border-gray-800 last:border-b-0"
-                              >
-                                <MapPin className="inline w-3 h-3 mr-2 text-gray-500" />
-                                {suggestion.place_name}
-                              </button>
-                            ))}
+                {/* Wishlist Locations */}
+                {wishlistLocations.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-red-400 mb-3 flex items-center">
+                      <MapPin className="w-4 h-4 mr-1" />
+                      Want to Visit ({wishlistLocations.length})
+                    </h3>
+                    <div className="grid grid-cols-3 gap-3">
+                      {wishlistLocations.map((location) => (
+                        <div
+                          key={location.id}
+                          className="group bg-red-500/10 border border-red-500/30 rounded-lg p-4 hover:bg-red-500/20 transition"
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-white font-medium text-sm truncate">{location.name}</p>
+                              {location.notes && (
+                                <p className="text-gray-500 text-xs mt-2 line-clamp-2">{location.notes}</p>
+                              )}
+                            </div>
+                            <button
+                              onClick={() => location.id && deleteLocation(location.id)}
+                              className="ml-2 opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-400 transition flex-shrink-0"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
                           </div>
-                        )}
-                      </div>
-
-                      <div>
-                        <label className="text-xs text-gray-400 mb-1 block">Type</label>
-                        <select
-                          value={newLocation.type}
-                          onChange={(e) => setNewLocation({ ...newLocation, type: e.target.value as 'visited' | 'wishlist' })}
-                          className="w-full px-3 py-2 bg-gray-900/50 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                          <option value="visited">✓ Visited</option>
-                          <option value="wishlist">★ Want to Visit</option>
-                        </select>
-                      </div>
-
-                      {newLocation.type === 'visited' && (
-                        <div>
-                          <label className="text-xs text-gray-400 mb-1 block">Visit Date (optional)</label>
-                          <input
-                            type="month"
-                            value={newLocation.visit_date}
-                            onChange={(e) => setNewLocation({ ...newLocation, visit_date: e.target.value })}
-                            className="w-full px-3 py-2 bg-gray-900/50 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          />
                         </div>
-                      )}
-
-                      <div>
-                        <label className="text-xs text-gray-400 mb-1 block">Notes (optional)</label>
-                        <textarea
-                          value={newLocation.notes}
-                          onChange={(e) => setNewLocation({ ...newLocation, notes: e.target.value })}
-                          className="w-full px-3 py-2 bg-gray-900/50 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                          rows={2}
-                          placeholder="Add a note..."
-                        />
-                      </div>
-
-                      {newLocation.lat !== 0 && newLocation.lng !== 0 && (
-                        <div className="bg-green-500/10 border border-green-500/30 rounded p-2">
-                          <p className="text-green-400 text-xs">✓ {newLocation.name}</p>
-                        </div>
-                      )}
-
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={addLocation}
-                          disabled={newLocation.lat === 0}
-                          className="flex-1 px-3 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg text-sm transition font-medium"
-                        >
-                          Add
-                        </button>
-                        <button
-                          onClick={() => {
-                            setShowAddForm(false);
-                            setSearchQuery('');
-                            setSuggestions([]);
-                            setNewLocation({ name: '', lat: 0, lng: 0, type: 'visited', visit_date: '', notes: '' });
-                          }}
-                          className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm transition"
-                        >
-                          Cancel
-                        </button>
-                      </div>
+                      ))}
                     </div>
                   </div>
-                ) : locations.length === 0 ? (
-                  <div className="text-center py-8">
-                    <MapPin className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-                    <p className="text-gray-400 text-sm mb-3">No locations yet</p>
-                    <button
-                      onClick={scrollToAddLocationForm}
-                      className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm transition inline-flex items-center space-x-2"
-                    >
-                      <Plus className="w-4 h-4" />
-                      <span>Add Location</span>
-                    </button>
-                  </div>
-                ) : null}
+                )}
               </div>
             )}
-            </div>
           </div>
         </div>
       </div>

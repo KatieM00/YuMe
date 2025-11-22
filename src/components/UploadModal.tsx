@@ -49,6 +49,10 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
   };
 
   const handleUpload = async () => {
+    console.log('[UploadModal] Starting upload process');
+    console.log('[UploadModal] Upload method:', uploadMethod);
+    console.log('[UploadModal] Selected files count:', selectedFiles.length);
+
     setIsUploading(true);
     setError(null);
     setStep('upload');
@@ -57,9 +61,15 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
       const uploaded: UploadedFile[] = [];
 
       if (uploadMethod === 'device') {
+        console.log('[UploadModal] Uploading from device...');
         // Upload files from device
-        for (const file of selectedFiles) {
+        for (let i = 0; i < selectedFiles.length; i++) {
+          const file = selectedFiles[i];
+          console.log(`[UploadModal] Uploading file ${i + 1}/${selectedFiles.length}:`, file.name);
+
           const { path, url } = await uploadFile(file);
+          console.log(`[UploadModal] File uploaded successfully:`, { path, url });
+
           uploaded.push({
             file,
             storagePath: path,
@@ -72,16 +82,22 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
           });
         }
       } else {
+        console.log('[UploadModal] Uploading from Google Photos URLs...');
         // Upload from Google Photos URLs
         const urls = googlePhotosUrls
           .split('\n')
           .map((url) => url.trim())
           .filter((url) => url.length > 0);
 
+        console.log('[UploadModal] URLs to process:', urls.length);
+
         for (let i = 0; i < urls.length; i++) {
           const url = urls[i];
           const fileName = `google-photos-${Date.now()}-${i}.jpg`;
+          console.log(`[UploadModal] Uploading URL ${i + 1}/${urls.length}:`, url);
+
           const { path, url: publicUrl } = await uploadFromUrl(url, fileName);
+          console.log(`[UploadModal] URL uploaded successfully:`, { path, publicUrl });
 
           uploaded.push({
             url,
@@ -96,10 +112,12 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
         }
       }
 
+      console.log('[UploadModal] All files uploaded successfully:', uploaded.length);
       setUploadedFiles(uploaded);
       setStep('metadata');
       setCurrentMetadataIndex(0);
     } catch (err) {
+      console.error('[UploadModal] Upload failed:', err);
       setError(err instanceof Error ? err.message : 'Upload failed');
       setStep('select');
     } finally {
@@ -140,11 +158,16 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
   };
 
   const saveAllMedia = async () => {
+    console.log('[UploadModal] Saving all media to database...');
     setIsUploading(true);
     setError(null);
 
     try {
-      for (const file of uploadedFiles) {
+      for (let i = 0; i < uploadedFiles.length; i++) {
+        const file = uploadedFiles[i];
+        console.log(`[UploadModal] Saving media ${i + 1}/${uploadedFiles.length}:`, file.fileName);
+        console.log('[UploadModal] Metadata:', file.metadata);
+
         await createMediaItem(
           file.storagePath,
           file.publicUrl,
@@ -154,14 +177,19 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
           file.fileSize,
           file.metadata
         );
+
+        console.log(`[UploadModal] Media ${i + 1} saved successfully`);
       }
 
+      console.log('[UploadModal] All media saved successfully!');
       setStep('complete');
       setTimeout(() => {
+        console.log('[UploadModal] Closing modal and refreshing media list');
         handleClose();
         onUploadComplete();
       }, 1500);
     } catch (err) {
+      console.error('[UploadModal] Failed to save media:', err);
       setError(err instanceof Error ? err.message : 'Failed to save media');
     } finally {
       setIsUploading(false);
@@ -212,88 +240,45 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
           {/* Step 1: Select Upload Method */}
           {step === 'select' && (
             <div className="space-y-6">
-              <div className="flex gap-4">
-                <button
-                  onClick={() => setUploadMethod('device')}
-                  className={`flex-1 p-4 border-2 rounded-lg transition-all ${
-                    uploadMethod === 'device'
-                      ? 'border-blue-500 bg-blue-500/10'
-                      : 'border-gray-700 hover:border-gray-600'
-                  }`}
-                >
-                  <Upload className="w-8 h-8 mx-auto mb-2 text-blue-500" />
-                  <p className="font-medium text-white">Upload from Device</p>
-                </button>
-                <button
-                  onClick={() => setUploadMethod('url')}
-                  className={`flex-1 p-4 border-2 rounded-lg transition-all ${
-                    uploadMethod === 'url'
-                      ? 'border-blue-500 bg-blue-500/10'
-                      : 'border-gray-700 hover:border-gray-600'
-                  }`}
-                >
-                  <LinkIcon className="w-8 h-8 mx-auto mb-2 text-blue-500" />
-                  <p className="font-medium text-white">Google Photos URL</p>
-                </button>
-              </div>
+              <p className="text-gray-400 text-sm">
+                Upload images or videos from your device. Google Photos integration coming soon!
+              </p>
 
-              {uploadMethod === 'device' ? (
-                <div>
-                  <label className="block w-full p-8 border-2 border-dashed border-gray-700 rounded-lg hover:border-blue-500 transition-colors cursor-pointer bg-gray-800/30">
-                    <input
-                      type="file"
-                      multiple
-                      accept="image/*,video/*"
-                      onChange={handleFileSelect}
-                      className="hidden"
-                    />
-                    <Upload className="w-12 h-12 mx-auto mb-4 text-gray-500" />
-                    <p className="text-center text-gray-300">
-                      Click to select files or drag and drop
-                    </p>
-                    <p className="text-center text-sm text-gray-500 mt-2">
-                      Images and videos supported
-                    </p>
-                  </label>
-                  {selectedFiles.length > 0 && (
-                    <div className="mt-4">
-                      <p className="text-sm font-medium text-gray-300 mb-2">
-                        Selected {selectedFiles.length} file(s):
-                      </p>
-                      <ul className="space-y-1">
-                        {selectedFiles.map((file, index) => (
-                          <li key={index} className="text-sm text-gray-400 truncate">
-                            {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-300">
-                    Google Photos URLs (one per line)
-                  </label>
-                  <textarea
-                    value={googlePhotosUrls}
-                    onChange={(e) => setGooglePhotosUrls(e.target.value)}
-                    placeholder="https://lh3.googleusercontent.com/..."
-                    className="w-full h-32 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <p className="mt-2 text-sm text-gray-500">
-                    Paste Google Photos share URLs, one per line
+              <label className="block w-full p-8 border-2 border-dashed border-gray-700 rounded-lg hover:border-blue-500 transition-colors cursor-pointer bg-gray-800/30">
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*,video/*"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+                <Upload className="w-12 h-12 mx-auto mb-4 text-gray-500" />
+                <p className="text-center text-gray-300">
+                  Click to select files or drag and drop
+                </p>
+                <p className="text-center text-sm text-gray-500 mt-2">
+                  Images and videos supported
+                </p>
+              </label>
+
+              {selectedFiles.length > 0 && (
+                <div className="mt-4">
+                  <p className="text-sm font-medium text-gray-300 mb-2">
+                    Selected {selectedFiles.length} file(s):
                   </p>
+                  <ul className="space-y-1">
+                    {selectedFiles.map((file, index) => (
+                      <li key={index} className="text-sm text-gray-400 truncate">
+                        {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               )}
 
               <button
                 onClick={handleUpload}
-                disabled={
-                  isUploading ||
-                  (uploadMethod === 'device' && selectedFiles.length === 0) ||
-                  (uploadMethod === 'url' && googlePhotosUrls.trim().length === 0)
-                }
+                disabled={isUploading || selectedFiles.length === 0}
                 className="w-full px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed font-medium"
               >
                 {isUploading ? 'Uploading...' : 'Upload'}

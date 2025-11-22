@@ -34,9 +34,13 @@ export interface MediaMetadata {
  * Upload a file to Supabase Storage
  */
 export async function uploadFile(file: File): Promise<{ path: string; url: string }> {
+  console.log('[mediaService] uploadFile called:', { name: file.name, size: file.size, type: file.type });
+
   const fileExt = file.name.split('.').pop();
   const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
   const filePath = fileName;
+
+  console.log('[mediaService] Uploading to Supabase Storage:', filePath);
 
   const { data, error } = await supabase.storage
     .from('media')
@@ -46,12 +50,17 @@ export async function uploadFile(file: File): Promise<{ path: string; url: strin
     });
 
   if (error) {
+    console.error('[mediaService] Upload failed:', error);
     throw new Error(`Upload failed: ${error.message}`);
   }
+
+  console.log('[mediaService] Upload successful:', data);
 
   const { data: { publicUrl } } = supabase.storage
     .from('media')
     .getPublicUrl(data.path);
+
+  console.log('[mediaService] Public URL generated:', publicUrl);
 
   return { path: data.path, url: publicUrl };
 }
@@ -84,6 +93,16 @@ export async function createMediaItem(
   fileSize: number | null,
   metadata: MediaMetadata
 ): Promise<MediaItem> {
+  console.log('[mediaService] createMediaItem called:', {
+    storagePath,
+    publicUrl,
+    fileName,
+    fileType,
+    mimeType,
+    fileSize,
+    metadata
+  });
+
   const { data, error } = await supabase
     .from('media_items')
     .insert({
@@ -101,8 +120,11 @@ export async function createMediaItem(
     .single();
 
   if (error) {
+    console.error('[mediaService] Failed to create media item:', error);
     throw new Error(`Failed to create media item: ${error.message}`);
   }
+
+  console.log('[mediaService] Media item created successfully:', data);
 
   return data;
 }
@@ -111,14 +133,19 @@ export async function createMediaItem(
  * Get all media items with their comments
  */
 export async function getAllMedia(): Promise<MediaItem[]> {
+  console.log('[mediaService] getAllMedia called');
+
   const { data: mediaItems, error: mediaError } = await supabase
     .from('media_items')
     .select('*')
     .order('created_at', { ascending: false });
 
   if (mediaError) {
+    console.error('[mediaService] Failed to fetch media items:', mediaError);
     throw new Error(`Failed to fetch media: ${mediaError.message}`);
   }
+
+  console.log('[mediaService] Fetched media items:', mediaItems?.length || 0);
 
   // Fetch comments for all media items
   const { data: comments, error: commentsError } = await supabase
@@ -127,7 +154,9 @@ export async function getAllMedia(): Promise<MediaItem[]> {
     .order('created_at', { ascending: true });
 
   if (commentsError) {
-    console.error('Failed to fetch comments:', commentsError);
+    console.error('[mediaService] Failed to fetch comments:', commentsError);
+  } else {
+    console.log('[mediaService] Fetched comments:', comments?.length || 0);
   }
 
   // Group comments by media_id
@@ -140,10 +169,14 @@ export async function getAllMedia(): Promise<MediaItem[]> {
   });
 
   // Attach comments to media items
-  return mediaItems.map((item) => ({
+  const result = mediaItems.map((item) => ({
     ...item,
     comments: commentsMap.get(item.id) || [],
   }));
+
+  console.log('[mediaService] Returning media items with comments');
+
+  return result;
 }
 
 /**
