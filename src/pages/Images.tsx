@@ -1,105 +1,124 @@
 import { useState, useEffect } from 'react';
-import { Plus, MapPin, Calendar, MessageSquare, X } from 'lucide-react';
-
-interface ImageItem {
-  id: number;
-  url: string;
-  type: 'image' | 'video';
-  location: string;
-  date: string;
-  description: string;
-  comments: string[];
-}
+import { Plus, MapPin, Calendar, MessageSquare, X, Trash2, Loader } from 'lucide-react';
+import { UploadModal } from '../components/UploadModal';
+import {
+  MediaItem,
+  getAllMedia,
+  deleteMediaItem,
+  addComment,
+  deleteComment,
+} from '../lib/mediaService';
 
 export default function Images() {
-  const [images, setImages] = useState<ImageItem[]>([
-    {
-      id: 1,
-      url: 'bg-gradient-to-br from-blue-400 to-cyan-500',
-      type: 'image',
-      location: 'Santorini, Greece',
-      date: '2024-07-15',
-      description: 'Sunset at Oia',
-      comments: ['This was magical', 'Best day ever'],
-    },
-    {
-      id: 2,
-      url: 'bg-gradient-to-br from-pink-400 to-red-500',
-      type: 'image',
-      location: 'London, UK',
-      date: '2024-02-10',
-      description: 'Tower Bridge at night',
-      comments: ['So beautiful!'],
-    },
-    {
-      id: 3,
-      url: 'bg-gradient-to-br from-green-400 to-teal-500',
-      type: 'image',
-      location: 'Athens, Greece',
-      date: '2024-03-22',
-      description: 'Acropolis view',
-      comments: [],
-    },
-    {
-      id: 4,
-      url: 'bg-gradient-to-br from-yellow-400 to-orange-500',
-      type: 'video',
-      location: 'Rome, Italy',
-      date: '2023-09-05',
-      description: 'Walking through the streets',
-      comments: ['I miss this place'],
-    },
-    {
-      id: 5,
-      url: 'bg-gradient-to-br from-purple-400 to-pink-500',
-      type: 'image',
-      location: 'Paris, France',
-      date: '2024-05-01',
-      description: 'Eiffel Tower',
-      comments: [],
-    },
-    {
-      id: 6,
-      url: 'bg-gradient-to-br from-indigo-400 to-blue-500',
-      type: 'image',
-      location: 'Barcelona, Spain',
-      date: '2024-06-12',
-      description: 'La Sagrada Familia',
-      comments: ['Incredible architecture'],
-    },
-  ]);
-
-  const [selectedImage, setSelectedImage] = useState<ImageItem | null>(null);
+  const [images, setImages] = useState<MediaItem[]>([]);
+  const [selectedImage, setSelectedImage] = useState<MediaItem | null>(null);
   const [newComment, setNewComment] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadMedia = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const media = await getAllMedia();
+      setImages(media);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load media');
+      console.error('Failed to load media:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const saved = localStorage.getItem('yumeImages');
-    if (saved) {
-      setImages(JSON.parse(saved));
-    }
+    loadMedia();
   }, []);
 
-  const saveToStorage = (updatedImages: ImageItem[]) => {
-    localStorage.setItem('yumeImages', JSON.stringify(updatedImages));
-  };
-
-  const addComment = () => {
+  const handleAddComment = async () => {
     if (selectedImage && newComment.trim()) {
-      const updatedImages = images.map((img) =>
-        img.id === selectedImage.id
-          ? { ...img, comments: [...img.comments, newComment] }
-          : img
-      );
-      setImages(updatedImages);
-      saveToStorage(updatedImages);
-      setSelectedImage({
-        ...selectedImage,
-        comments: [...selectedImage.comments, newComment],
-      });
-      setNewComment('');
+      try {
+        const comment = await addComment(selectedImage.id, newComment);
+
+        // Update local state
+        const updatedImages = images.map((img) =>
+          img.id === selectedImage.id
+            ? { ...img, comments: [...(img.comments || []), comment] }
+            : img
+        );
+        setImages(updatedImages);
+
+        setSelectedImage({
+          ...selectedImage,
+          comments: [...(selectedImage.comments || []), comment],
+        });
+
+        setNewComment('');
+      } catch (err) {
+        console.error('Failed to add comment:', err);
+        alert('Failed to add comment. Please try again.');
+      }
     }
   };
+
+  const handleDeleteComment = async (commentId: string) => {
+    if (!selectedImage) return;
+
+    try {
+      await deleteComment(commentId);
+
+      // Update local state
+      const updatedComments = selectedImage.comments?.filter(c => c.id !== commentId) || [];
+      const updatedImages = images.map((img) =>
+        img.id === selectedImage.id
+          ? { ...img, comments: updatedComments }
+          : img
+      );
+
+      setImages(updatedImages);
+      setSelectedImage({
+        ...selectedImage,
+        comments: updatedComments,
+      });
+    } catch (err) {
+      console.error('Failed to delete comment:', err);
+      alert('Failed to delete comment. Please try again.');
+    }
+  };
+
+  const handleDeleteMedia = async (mediaId: string, storagePath: string) => {
+    if (!confirm('Are you sure you want to delete this media?')) return;
+
+    try {
+      await deleteMediaItem(mediaId, storagePath);
+
+      // Update local state
+      const updatedImages = images.filter((img) => img.id !== mediaId);
+      setImages(updatedImages);
+
+      if (selectedImage?.id === mediaId) {
+        setSelectedImage(null);
+      }
+    } catch (err) {
+      console.error('Failed to delete media:', err);
+      alert('Failed to delete media. Please try again.');
+    }
+  };
+
+  const handleUploadComplete = () => {
+    loadMedia();
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen p-4 md:p-8 flex items-center justify-center">
+        <div className="text-center">
+          <Loader className="w-12 h-12 mx-auto mb-4 text-blue-500 animate-spin" />
+          <p className="text-gray-400">Loading media...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen p-4 md:p-8">
@@ -115,30 +134,62 @@ export default function Images() {
           </button>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {images.map((image) => (
-            <div
-              key={image.id}
-              onClick={() => setSelectedImage(image)}
-              className="relative group cursor-pointer aspect-square rounded-xl overflow-hidden"
-            >
-              <div className={`w-full h-full ${image.url}`}>
+        {error && (
+          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400">
+            {error}
+          </div>
+        )}
+
+        {images.length === 0 ? (
+          <div className="text-center py-16">
+            <div className="w-20 h-20 bg-gray-800/50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Plus className="w-10 h-10 text-gray-600" />
+            </div>
+            <p className="text-gray-400 text-lg mb-2">No media yet</p>
+            <p className="text-gray-500 text-sm">Click "Add Media" to upload your first photo or video</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {images.map((image) => (
+              <div
+                key={image.id}
+                onClick={() => setSelectedImage(image)}
+                className="relative group cursor-pointer aspect-square rounded-xl overflow-hidden bg-gray-800"
+              >
+                {image.file_type === 'image' ? (
+                  <img
+                    src={image.public_url}
+                    alt={image.description || image.file_name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <video
+                    src={image.public_url}
+                    className="w-full h-full object-cover"
+                  />
+                )}
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition flex items-center justify-center">
                   <div className="opacity-0 group-hover:opacity-100 transition text-white text-center p-4">
-                    <MapPin className="w-5 h-5 mx-auto mb-2" />
-                    <p className="text-sm font-medium">{image.location}</p>
-                    <p className="text-xs text-gray-300 mt-1">{image.date}</p>
+                    {image.location && (
+                      <>
+                        <MapPin className="w-5 h-5 mx-auto mb-2" />
+                        <p className="text-sm font-medium">{image.location}</p>
+                      </>
+                    )}
+                    {image.taken_date && (
+                      <p className="text-xs text-gray-300 mt-1">{image.taken_date}</p>
+                    )}
                   </div>
                 </div>
+                {image.file_type === 'video' && (
+                  <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm px-2 py-1 rounded text-xs text-white">
+                    VIDEO
+                  </div>
+                )}
               </div>
-              {image.type === 'video' && (
-                <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm px-2 py-1 rounded text-xs text-white">
-                  VIDEO
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         {selectedImage && (
           <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
