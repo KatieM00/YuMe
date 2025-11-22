@@ -424,12 +424,12 @@ export default function Map() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:h-[calc(100vh-180px)]">
           {/* Map Section */}
-          <div className="lg:col-span-2">
-            <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-4 md:p-6 border border-gray-700 shadow-xl h-full">
+          <div className="lg:col-span-2 lg:h-full">
+            <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-4 md:p-6 border border-gray-700 shadow-xl h-full flex flex-col">
               {!hasMapboxToken ? (
-                <div className="w-full h-64 md:h-96 lg:h-[600px] bg-gradient-to-br from-blue-900/30 via-gray-900/50 to-green-900/30 rounded-xl flex items-center justify-center">
+                <div className="w-full h-64 md:h-96 lg:flex-1 bg-gradient-to-br from-blue-900/30 via-gray-900/50 to-green-900/30 rounded-xl flex items-center justify-center">
                   <div className="text-center p-4 md:p-8">
                     <MapPin className="w-12 h-12 md:w-16 md:h-16 text-gray-600 mx-auto mb-4" />
                     <p className="text-gray-400 text-base md:text-lg font-semibold mb-2">Map Not Configured</p>
@@ -447,7 +447,7 @@ export default function Map() {
               ) : (
                 <div
                   ref={mapContainerRef}
-                  className="w-full h-64 md:h-96 lg:h-[600px] rounded-xl overflow-hidden"
+                  className="w-full h-64 md:h-96 lg:flex-1 rounded-xl overflow-hidden"
                 />
               )}
 
@@ -558,8 +558,8 @@ export default function Map() {
           </div>
 
           {/* Locations List Sidebar - Desktop only */}
-          <div className="hidden lg:block lg:col-span-1">
-            <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-4 md:p-6 border border-gray-700 shadow-xl lg:sticky lg:top-8 lg:max-h-[calc(100vh-100px)] lg:overflow-hidden lg:flex lg:flex-col">
+          <div className="hidden lg:block lg:col-span-1 lg:h-full">
+            <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-4 md:p-6 border border-gray-700 shadow-xl h-full overflow-hidden flex flex-col">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg md:text-xl font-semibold text-white">Locations</h2>
               <button
@@ -576,7 +576,7 @@ export default function Map() {
                 <Loader className="w-6 h-6 text-gray-400 animate-spin" />
               </div>
             ) : (
-              <div className="space-y-4 lg:overflow-y-auto lg:flex-1">
+              <div className="space-y-4 overflow-y-auto flex-1">
                 {/* Visited Locations */}
                 {visitedLocations.length > 0 && (
                   <div>
