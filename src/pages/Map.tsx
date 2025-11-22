@@ -310,59 +310,56 @@ export default function Map() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="space-y-6">
           {/* Map Section */}
-          <div className="lg:col-span-2">
-            <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 shadow-xl">
-              {!hasMapboxToken ? (
-                <div className="aspect-video bg-gradient-to-br from-blue-900/30 via-gray-900/50 to-green-900/30 rounded-xl flex items-center justify-center">
-                  <div className="text-center p-8">
-                    <MapPin className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                    <p className="text-gray-400 text-lg font-semibold mb-2">Map Not Configured</p>
-                    <p className="text-gray-500 text-sm mb-4">
-                      Add <code className="bg-gray-800 px-2 py-1 rounded">VITE_MAPBOX_TOKEN</code> to your Netlify environment variables
-                    </p>
-                    <p className="text-gray-600 text-xs">
-                      Get a free token at{' '}
-                      <a href="https://account.mapbox.com/" target="_blank" rel="noopener noreferrer" className="text-blue-400 underline">
-                        mapbox.com
-                      </a>
-                    </p>
-                  </div>
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-4 md:p-6 border border-gray-700 shadow-xl">
+            {!hasMapboxToken ? (
+              <div className="w-full h-64 md:h-96 bg-gradient-to-br from-blue-900/30 via-gray-900/50 to-green-900/30 rounded-xl flex items-center justify-center">
+                <div className="text-center p-4 md:p-8">
+                  <MapPin className="w-12 h-12 md:w-16 md:h-16 text-gray-600 mx-auto mb-4" />
+                  <p className="text-gray-400 text-base md:text-lg font-semibold mb-2">Map Not Configured</p>
+                  <p className="text-gray-500 text-xs md:text-sm mb-4">
+                    Add <code className="bg-gray-800 px-2 py-1 rounded text-xs">VITE_MAPBOX_TOKEN</code> to Netlify
+                  </p>
+                  <p className="text-gray-600 text-xs">
+                    Get a free token at{' '}
+                    <a href="https://account.mapbox.com/" target="_blank" rel="noopener noreferrer" className="text-blue-400 underline">
+                      mapbox.com
+                    </a>
+                  </p>
                 </div>
-              ) : (
-                <div
-                  ref={mapContainerRef}
-                  className="aspect-video rounded-xl overflow-hidden"
-                  style={{ minHeight: '500px' }}
-                />
-              )}
-
-              <div className="mt-4 flex items-center justify-between text-sm">
-                <div className="flex items-center space-x-6">
-                  <div className="flex items-center space-x-2">
-                    <MapPin className="w-4 h-4 text-green-500" />
-                    <span className="text-gray-400">Visited: {visitedLocations.length}</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <MapPin className="w-4 h-4 text-red-500" />
-                    <span className="text-gray-400">Wishlist: {wishlistLocations.length}</span>
-                  </div>
-                </div>
-                {hasMapboxToken && (
-                  <p className="text-xs text-gray-500">💡 Use the form to search and add locations</p>
-                )}
               </div>
+            ) : (
+              <div
+                ref={mapContainerRef}
+                className="w-full h-64 md:h-96 lg:h-[500px] rounded-xl overflow-hidden"
+              />
+            )}
+
+            <div className="mt-3 md:mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-sm">
+              <div className="flex items-center space-x-4 md:space-x-6">
+                <div className="flex items-center space-x-2">
+                  <MapPin className="w-4 h-4 text-green-500" />
+                  <span className="text-gray-400 text-xs md:text-sm">Visited: {visitedLocations.length}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <MapPin className="w-4 h-4 text-red-500" />
+                  <span className="text-gray-400 text-xs md:text-sm">Wishlist: {wishlistLocations.length}</span>
+                </div>
+              </div>
+              {hasMapboxToken && (
+                <p className="text-xs text-gray-500">💡 Use the form below to add locations</p>
+              )}
             </div>
           </div>
 
-          {/* Sidebar - Locations List */}
-          <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 shadow-xl">
+          {/* Locations List */}
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-4 md:p-6 border border-gray-700 shadow-xl">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-white">Locations</h2>
+              <h2 className="text-lg md:text-xl font-semibold text-white">Locations</h2>
               <button
                 onClick={scrollToAddLocationForm}
-                className="p-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition"
+                className="p-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition flex-shrink-0"
                 title="Add location"
               >
                 <Plus className="w-4 h-4" />
@@ -374,7 +371,7 @@ export default function Map() {
                 <Loader className="w-6 h-6 text-gray-400 animate-spin" />
               </div>
             ) : (
-              <div className="space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto">
+              <div className="space-y-4">
                 {/* Visited Locations */}
                 {visitedLocations.length > 0 && (
                   <div>
