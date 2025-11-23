@@ -28,6 +28,7 @@ export default function Map() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
+  const [isMobile, setIsMobile] = useState(false);
 
   const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(true);
@@ -547,7 +548,7 @@ export default function Map() {
         {/* Desktop view - Map + Add Form on top, Locations below */}
         <div className="hidden lg:block space-y-6">
           {/* Top row: Map (2/3) + Add Form (1/3) */}
-          <div className="grid grid-cols-3 gap-6 h-[calc(100vh-24rem)]">
+          <div className="grid grid-cols-3 gap-6 h-[500px]">
             {/* Map - 2/3 width */}
             <div className="col-span-2">
               <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 shadow-xl h-full flex flex-col">
