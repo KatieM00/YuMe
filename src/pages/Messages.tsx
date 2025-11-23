@@ -40,6 +40,7 @@ export default function Messages() {
   const [recordedUrl, setRecordedUrl] = useState<string | null>(null);
   const [permissionError, setPermissionError] = useState<string | null>(null);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
+  const [countdown, setCountdown] = useState<number | null>(null);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -168,6 +169,24 @@ export default function Messages() {
       setPermissionError(null);
       const isVideo = newMessageType === 'video';
 
+      // For video recording, show countdown first
+      if (isVideo) {
+        setCountdown(3);
+        await new Promise<void>((resolve) => {
+          let count = 3;
+          const countdownInterval = setInterval(() => {
+            count--;
+            if (count > 0) {
+              setCountdown(count);
+            } else {
+              setCountdown(null);
+              clearInterval(countdownInterval);
+              resolve();
+            }
+          }, 1000);
+        });
+      }
+
       const constraints = isVideo
         ? {
             video: { facingMode },
@@ -225,6 +244,7 @@ export default function Messages() {
       }, 1000);
     } catch (error) {
       console.error('Error accessing media devices:', error);
+      setCountdown(null);
       setPermissionError(
         newMessageType === 'video'
           ? 'Camera/microphone access denied. Please enable permissions.'
@@ -337,10 +357,41 @@ export default function Messages() {
   };
 
   // Switch camera (mobile)
-  const switchCamera = () => {
-    setFacingMode((prev) => (prev === 'user' ? 'environment' : 'user'));
-    if (isRecording) {
-      stopRecording();
+  const switchCamera = async () => {
+    const newFacingMode = facingMode === 'user' ? 'environment' : 'user';
+    setFacingMode(newFacingMode);
+
+    // If recording, switch camera without stopping the recording
+    if (isRecording && streamRef.current) {
+      try {
+        // Get new stream with new facing mode
+        const newStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: newFacingMode },
+          audio: true
+        });
+
+        // Update video preview
+        if (videoPreviewRef.current) {
+          videoPreviewRef.current.srcObject = newStream;
+        }
+
+        // Replace tracks in the MediaRecorder's stream
+        const videoTrack = newStream.getVideoTracks()[0];
+        const audioTrack = newStream.getAudioTracks()[0];
+
+        const oldVideoTrack = streamRef.current.getVideoTracks()[0];
+        const oldAudioTrack = streamRef.current.getAudioTracks()[0];
+
+        // Stop old tracks
+        if (oldVideoTrack) oldVideoTrack.stop();
+        if (oldAudioTrack) oldAudioTrack.stop();
+
+        // Update stream reference
+        streamRef.current = newStream;
+      } catch (error) {
+        console.error('Error switching camera:', error);
+        // If switching fails, continue with current camera
+      }
     }
   };
 
@@ -753,7 +804,7 @@ export default function Messages() {
                       </div>
                     )}
 
-                    {!isRecording && !recordedBlob && (
+                    {!isRecording && !recordedBlob && !countdown && (
                       <div className="space-y-3">
                         <button
                           onClick={startRecording}
@@ -763,6 +814,11 @@ export default function Messages() {
                           <span className="text-white font-medium">Start Recording</span>
                           <span className="text-gray-400 text-sm mt-1">Max 60 seconds</span>
                         </button>
+                        <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                          <p className="text-yellow-400 text-xs text-center">
+                            ⚠️ Videos will automatically stop recording after 60 seconds
+                          </p>
+                        </div>
                         <button
                           onClick={switchCamera}
                           className="w-full py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg text-sm transition flex items-center justify-center"
@@ -770,6 +826,17 @@ export default function Messages() {
                           <Camera className="w-4 h-4 mr-2" />
                           Switch to {facingMode === 'user' ? 'Back' : 'Front'} Camera
                         </button>
+                      </div>
+                    )}
+
+                    {countdown !== null && (
+                      <div className="py-12 flex items-center justify-center bg-gray-800 rounded-lg">
+                        <div className="text-center">
+                          <div className="text-8xl font-bold text-blue-400 mb-4 animate-pulse">
+                            {countdown}
+                          </div>
+                          <p className="text-gray-400">Get ready...</p>
+                        </div>
                       </div>
                     )}
 
@@ -786,7 +853,15 @@ export default function Messages() {
                           <div className="absolute top-3 left-3 flex items-center space-x-2 bg-black/70 px-3 py-1 rounded-full">
                             <div className={`w-3 h-3 rounded-full ${isPaused ? 'bg-yellow-500' : 'bg-red-500 animate-pulse'}`}></div>
                             <span className="text-white font-mono text-sm">{formatTime(recordingTime)}</span>
+                            <span className="text-gray-400 text-xs">/ 1:00</span>
                           </div>
+                          {recordingTime >= 50 && recordingTime < 60 && (
+                            <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 bg-yellow-500/90 px-4 py-2 rounded-full">
+                              <span className="text-black text-xs font-semibold">
+                                Recording stops in {60 - recordingTime}s
+                              </span>
+                            </div>
+                          )}
                         </div>
 
                         <div className="flex items-center justify-center space-x-3">
