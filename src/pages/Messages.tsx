@@ -540,6 +540,50 @@ export default function Messages() {
     setPermissionError(null);
   };
 
+  // Start camera preview when video or image mode is selected
+  useEffect(() => {
+    const startCameraPreview = async () => {
+      const shouldShowPreview =
+        showNewMessage &&
+        (newMessageType === 'video' || newMessageType === 'image') &&
+        !isRecording &&
+        !recordedBlob &&
+        !countdown &&
+        !capturedImage;
+
+      if (shouldShowPreview) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode },
+            audio: false // Just preview, no audio needed yet
+          });
+          streamRef.current = stream;
+
+          if (videoPreviewRef.current) {
+            videoPreviewRef.current.srcObject = stream;
+            videoPreviewRef.current.play();
+          }
+
+          if (newMessageType === 'image') {
+            setIsCameraActive(true);
+          }
+        } catch (error) {
+          console.error('Error starting camera preview:', error);
+          setPermissionError('Camera access denied. Please enable camera permissions.');
+        }
+      } else if ((newMessageType !== 'video' && newMessageType !== 'image') || !showNewMessage) {
+        // Stop preview if not in video/image mode
+        if (streamRef.current && !isRecording) {
+          streamRef.current.getTracks().forEach((track) => track.stop());
+          streamRef.current = null;
+          setIsCameraActive(false);
+        }
+      }
+    };
+
+    startCameraPreview();
+  }, [showNewMessage, newMessageType, isRecording, recordedBlob, countdown, facingMode, capturedImage]);
+
   // Cleanup on unmount or when closing modal
   useEffect(() => {
     return () => {
@@ -956,14 +1000,25 @@ export default function Messages() {
 
                     {!isRecording && !recordedBlob && !countdown && (
                       <div className="space-y-3">
-                        <button
-                          onClick={startRecording}
-                          className="w-full py-12 bg-gray-800 border-2 border-dashed border-gray-600 rounded-lg hover:border-blue-500 hover:bg-gray-800/50 transition flex flex-col items-center justify-center"
-                        >
-                          <Video className="w-12 h-12 text-blue-400 mb-3" />
-                          <span className="text-white font-medium">Start Recording</span>
-                          <span className="text-gray-400 text-sm mt-1">Max 60 seconds</span>
-                        </button>
+                        {/* Video Preview */}
+                        <div className="bg-gray-800 rounded-lg p-4">
+                          <div className="relative mb-4 bg-black rounded-lg overflow-hidden" style={{ aspectRatio: '16/9' }}>
+                            <video
+                              ref={videoPreviewRef}
+                              autoPlay
+                              muted
+                              playsInline
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <button
+                            onClick={startRecording}
+                            className="w-full py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg font-medium hover:from-blue-600 hover:to-cyan-600 transition flex items-center justify-center"
+                          >
+                            <Video className="w-5 h-5 mr-2" />
+                            Start Recording
+                          </button>
+                        </div>
                         <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
                           <p className="text-yellow-400 text-xs text-center">
                             ⚠️ Videos will automatically stop recording after 60 seconds
@@ -1086,16 +1141,27 @@ export default function Messages() {
                     {/* Hidden canvas for photo capture */}
                     <canvas ref={canvasRef} style={{ display: 'none' }} />
 
-                    {!isCameraActive && !capturedImage && (
+                    {!capturedImage && (
                       <div className="space-y-3">
-                        <button
-                          onClick={startCamera}
-                          className="w-full py-12 bg-gray-800 border-2 border-dashed border-gray-600 rounded-lg hover:border-blue-500 hover:bg-gray-800/50 transition flex flex-col items-center justify-center"
-                        >
-                          <Camera className="w-12 h-12 text-blue-400 mb-3" />
-                          <span className="text-white font-medium">Take Photo</span>
-                          <span className="text-gray-400 text-sm mt-1">Use your camera</span>
-                        </button>
+                        {/* Camera Preview */}
+                        <div className="bg-gray-800 rounded-lg p-4">
+                          <div className="relative mb-4 bg-black rounded-lg overflow-hidden" style={{ aspectRatio: '4/3' }}>
+                            <video
+                              ref={videoPreviewRef}
+                              autoPlay
+                              muted
+                              playsInline
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <button
+                            onClick={takePhoto}
+                            className="w-full py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg font-medium hover:from-blue-600 hover:to-cyan-600 transition flex items-center justify-center"
+                          >
+                            <Camera className="w-5 h-5 mr-2" />
+                            Take Photo
+                          </button>
+                        </div>
                         <button
                           onClick={switchCameraPhoto}
                           className="w-full py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg text-sm transition flex items-center justify-center"
@@ -1103,44 +1169,6 @@ export default function Messages() {
                           <Camera className="w-4 h-4 mr-2" />
                           Switch to {facingMode === 'user' ? 'Back' : 'Front'} Camera
                         </button>
-                      </div>
-                    )}
-
-                    {isCameraActive && (
-                      <div className="bg-gray-800 rounded-lg p-4">
-                        <div className="relative mb-4 bg-black rounded-lg overflow-hidden" style={{ aspectRatio: '4/3' }}>
-                          <video
-                            ref={videoPreviewRef}
-                            autoPlay
-                            muted
-                            playsInline
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-
-                        <div className="flex items-center justify-center space-x-3">
-                          <button
-                            onClick={stopCamera}
-                            className="p-4 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-full transition"
-                            title="Cancel"
-                          >
-                            <X className="w-6 h-6" />
-                          </button>
-                          <button
-                            onClick={takePhoto}
-                            className="p-6 bg-blue-500 hover:bg-blue-600 text-white rounded-full transition shadow-lg"
-                            title="Take Photo"
-                          >
-                            <Camera className="w-8 h-8" />
-                          </button>
-                          <button
-                            onClick={switchCameraPhoto}
-                            className="p-4 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-full transition"
-                            title="Switch Camera"
-                          >
-                            <Camera className="w-6 h-6" />
-                          </button>
-                        </div>
                       </div>
                     )}
 
