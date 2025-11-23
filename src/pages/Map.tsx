@@ -123,6 +123,17 @@ export default function Map() {
     }
   };
 
+  // Zoom to location on map
+  const zoomToLocation = (lat: number, lng: number) => {
+    if (mapRef.current) {
+      mapRef.current.flyTo({
+        center: [lng, lat],
+        zoom: 10,
+        essential: true
+      });
+    }
+  };
+
   // Fetch locations from Supabase
   const fetchLocations = async () => {
     try {
@@ -715,45 +726,34 @@ export default function Map() {
                       {visitedLocations.map((location) => (
                         <div
                           key={location.id}
+                          onClick={() => zoomToLocation(location.lat, location.lng)}
                           className="group relative bg-green-500/10 border border-green-500/30 rounded-lg p-3 hover:bg-green-500/20 transition cursor-pointer"
                         >
                           <p className="text-white font-medium text-sm text-center truncate">{location.name}</p>
 
-                          {/* Hover overlay */}
+                          {/* Hover overlay with date/notes */}
                           {(location.visit_date || location.notes) && (
-                            <div className="absolute inset-0 bg-black/90 rounded-lg opacity-0 group-hover:opacity-100 transition flex flex-col items-center justify-center p-3 text-center">
+                            <div className="absolute inset-0 bg-black/90 rounded-lg opacity-0 group-hover:opacity-100 transition flex flex-col items-center justify-center p-3 text-center pointer-events-none">
                               {location.visit_date && (
                                 <p className="text-gray-300 text-xs mb-1">{location.visit_date}</p>
                               )}
                               {location.notes && (
                                 <p className="text-gray-400 text-xs line-clamp-3">{location.notes}</p>
                               )}
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  location.id && deleteLocation(location.id);
-                                }}
-                                className="mt-2 p-1 text-gray-400 hover:text-red-400 transition"
-                                title="Delete"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
                             </div>
                           )}
 
-                          {/* Delete button for locations without extra info */}
-                          {!location.visit_date && !location.notes && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                location.id && deleteLocation(location.id);
-                              }}
-                              className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-400 transition"
-                              title="Delete"
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </button>
-                          )}
+                          {/* Delete button - always top right */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              location.id && deleteLocation(location.id);
+                            }}
+                            className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-400 transition bg-black/50 rounded"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
                         </div>
                       ))}
                     </div>
@@ -771,38 +771,29 @@ export default function Map() {
                       {wishlistLocations.map((location) => (
                         <div
                           key={location.id}
+                          onClick={() => zoomToLocation(location.lat, location.lng)}
                           className="group relative bg-red-500/10 border border-red-500/30 rounded-lg p-3 hover:bg-red-500/20 transition cursor-pointer"
                         >
                           <p className="text-white font-medium text-sm text-center truncate">{location.name}</p>
 
                           {/* Hover overlay with notes if available */}
                           {location.notes && (
-                            <div className="absolute inset-0 bg-black/90 rounded-lg opacity-0 group-hover:opacity-100 transition flex flex-col items-center justify-center p-3 text-center">
+                            <div className="absolute inset-0 bg-black/90 rounded-lg opacity-0 group-hover:opacity-100 transition flex flex-col items-center justify-center p-3 text-center pointer-events-none">
                               <p className="text-gray-400 text-xs line-clamp-3">{location.notes}</p>
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  location.id && deleteLocation(location.id);
-                                }}
-                                className="mt-2 p-1 text-gray-400 hover:text-red-400 transition"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
                             </div>
                           )}
 
-                          {/* Delete button for cards without notes - show in top right on hover */}
-                          {!location.notes && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                location.id && deleteLocation(location.id);
-                              }}
-                              className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-400 transition"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          )}
+                          {/* Delete button - always top right */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              location.id && deleteLocation(location.id);
+                            }}
+                            className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-400 transition bg-black/50 rounded"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </button>
                         </div>
                       ))}
                     </div>
