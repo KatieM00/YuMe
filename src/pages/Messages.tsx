@@ -1,19 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
-import { Plus, Pin, Image, Mic, Video, X, Inbox, Trash2, XCircle, Play, Pause, Square, Camera } from 'lucide-react';
+import { Plus, Pin, Image, Mic, Video, X, Inbox, Trash2, Play, Pause, Square, Camera, Loader } from 'lucide-react';
+import {
+  Message,
+  getAllMessages,
+  createMessage,
+  updateMessageStatus,
+  deleteMessage,
+  toggleReaction,
+  uploadMessageMedia,
+} from '../lib/messageService';
 
-interface Message {
-  id: number;
-  from: string;
-  to: string;
-  type: 'text' | 'voice' | 'video' | 'image';
-  content: string;
-  timestamp: string;
-  reactions: string[];
-  status: 'active' | 'dismissed' | 'pinned';
-  position: { x: number; y: number };
-}
-
-const reactions = [
+const reactionOptions = [
   { icon: '♥️', label: 'heart' },
   { icon: '😍', label: 'love' },
   { icon: '🥹', label: 'tears' },
@@ -25,47 +22,15 @@ const reactions = [
 ];
 
 export default function Messages() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 1,
-      from: 'Katie',
-      to: 'Nassos',
-      type: 'text',
-      content: 'I miss you so much! Can\'t wait until we\'re together again.',
-      timestamp: '2024-11-10 14:30',
-      reactions: ['♥️'],
-      status: 'pinned',
-      position: { x: 50, y: 50 },
-    },
-    {
-      id: 2,
-      from: 'Nassos',
-      to: 'Katie',
-      type: 'text',
-      content: 'Just booked our summer trip! Greece here we come!',
-      timestamp: '2024-11-09 18:45',
-      reactions: ['♥️', '🎉'],
-      status: 'pinned',
-      position: { x: 400, y: 150 },
-    },
-    {
-      id: 3,
-      from: 'Sofia',
-      to: 'Alex',
-      type: 'voice',
-      content: 'Voice message: "Good morning my love..."',
-      timestamp: '2024-11-08 08:15',
-      reactions: ['😍'],
-      status: 'active',
-      position: { x: 100, y: 300 },
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [showNewMessage, setShowNewMessage] = useState(false);
   const [showInbox, setShowInbox] = useState(false);
   const [newMessageContent, setNewMessageContent] = useState('');
   const [newMessageType, setNewMessageType] = useState<'text' | 'voice' | 'video' | 'image'>('text');
-  const [expandedReactions, setExpandedReactions] = useState<number | null>(null);
+  const [expandedReactions, setExpandedReactions] = useState<string | null>(null);
 
   // Recording states
   const [isRecording, setIsRecording] = useState(false);
@@ -82,63 +47,54 @@ export default function Messages() {
   const timerRef = useRef<number | null>(null);
   const videoPreviewRef = useRef<HTMLVideoElement | null>(null);
 
-  // Migrate old messages from isPinned to status
-  useEffect(() => {
-    const saved = localStorage.getItem('yumeMessages');
-    if (saved) {
-      const parsedMessages = JSON.parse(saved);
-      const migratedMessages = parsedMessages.map((msg: any) => {
-        if ('isPinned' in msg && !('status' in msg)) {
-          return {
-            ...msg,
-            status: msg.isPinned ? 'pinned' : 'active',
-            isPinned: undefined,
-          };
-        }
-        return msg;
-      });
-      setMessages(migratedMessages);
-      saveToStorage(migratedMessages);
+  // Load messages from Supabase
+  const loadMessages = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const data = await getAllMessages();
+      setMessages(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load messages');
+      console.error('Failed to load messages:', err);
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  useEffect(() => {
+    loadMessages();
   }, []);
 
-  const saveToStorage = (updatedMessages: Message[]) => {
-    localStorage.setItem('yumeMessages', JSON.stringify(updatedMessages));
+  const handleAddReaction = async (messageId: string, emoji: string) => {
+    try {
+      await toggleReaction(messageId, emoji);
+      await loadMessages(); // Reload to get updated reactions
+    } catch (err) {
+      console.error('Failed to toggle reaction:', err);
+      alert('Failed to update reaction. Please try again.');
+    }
   };
 
-  const addReaction = (messageId: number, reaction: string) => {
-    const updated = messages.map((msg) =>
-      msg.id === messageId
-        ? {
-            ...msg,
-            reactions: msg.reactions.includes(reaction)
-              ? msg.reactions.filter((r) => r !== reaction)
-              : [...msg.reactions, reaction],
-          }
-        : msg
-    );
-    setMessages(updated);
-    saveToStorage(updated);
+  const togglePin = async (messageId: string, currentStatus: string) => {
+    try {
+      const newStatus = currentStatus === 'pinned' ? 'active' : 'pinned';
+      await updateMessageStatus(messageId, newStatus);
+      await loadMessages();
+    } catch (err) {
+      console.error('Failed to toggle pin:', err);
+      alert('Failed to update message status. Please try again.');
+    }
   };
 
-  const togglePin = (messageId: number) => {
-    const updated = messages.map((msg) =>
-      msg.id === messageId
-        ? { ...msg, status: msg.status === 'pinned' ? 'active' : 'pinned' }
-        : msg
-    );
-    setMessages(updated);
-    saveToStorage(updated);
-  };
-
-  const dismissMessage = (messageId: number) => {
-    const updated = messages.map((msg) =>
-      msg.id === messageId && msg.status !== 'pinned'
-        ? { ...msg, status: 'dismissed' as const }
-        : msg
-    );
-    setMessages(updated);
-    saveToStorage(updated);
+  const dismissMessage = async (messageId: string) => {
+    try {
+      await updateMessageStatus(messageId, 'dismissed');
+      await loadMessages();
+    } catch (err) {
+      console.error('Failed to dismiss message:', err);
+      alert('Failed to dismiss message. Please try again.');
+    }
   };
 
   // Count words in text (handle multiple spaces correctly)
@@ -157,32 +113,34 @@ export default function Messages() {
     return 'text-green-400';
   };
 
-  const addNewMessage = () => {
+  const addNewMessage = async () => {
     if (newMessageContent.trim() && wordCount <= MAX_WORDS) {
-      const newMessage: Message = {
-        id: Date.now(),
-        from: 'You',
-        to: 'Them',
-        type: newMessageType,
-        content: newMessageContent,
-        timestamp: new Date().toLocaleString(),
-        reactions: [],
-        status: 'active',
-        position: { x: Math.random() * 300 + 50, y: Math.random() * 200 + 100 },
-      };
-      const updated = [...messages, newMessage];
-      setMessages(updated);
-      saveToStorage(updated);
-      setNewMessageContent('');
-      setShowNewMessage(false);
+      try {
+        await createMessage({
+          from_user: 'You',
+          to_user: 'Them',
+          type: newMessageType,
+          content: newMessageContent,
+        });
+        setNewMessageContent('');
+        setShowNewMessage(false);
+        await loadMessages();
+      } catch (err) {
+        console.error('Failed to create message:', err);
+        alert('Failed to send message. Please try again.');
+      }
     }
   };
 
-  const deleteMessage = (messageId: number) => {
-    if (confirm('Are you sure you want to permanently delete this message?')) {
-      const updated = messages.filter((msg) => msg.id !== messageId);
-      setMessages(updated);
-      saveToStorage(updated);
+  const handleDeleteMessage = async (messageId: string, storagePath: string | null) => {
+    if (!confirm('Are you sure you want to permanently delete this message?')) return;
+
+    try {
+      await deleteMessage(messageId, storagePath || undefined);
+      await loadMessages();
+    } catch (err) {
+      console.error('Failed to delete message:', err);
+      alert('Failed to delete message. Please try again.');
     }
   };
 
@@ -320,26 +278,11 @@ export default function Messages() {
     setIsPaused(false);
   };
 
-  // Convert blob to base64
-  const blobToBase64 = (blob: Blob): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64 = reader.result as string;
-        resolve(base64);
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
-  };
-
   // Send recorded message
   const sendRecordedMessage = async () => {
     if (!recordedBlob) return;
 
     try {
-      const base64 = await blobToBase64(recordedBlob);
-
       // Check file size (warn if > 5MB)
       const sizeMB = recordedBlob.size / (1024 * 1024);
       if (sizeMB > 5) {
@@ -348,21 +291,23 @@ export default function Messages() {
         }
       }
 
-      const newMessage: Message = {
-        id: Date.now(),
-        from: 'You',
-        to: 'Them',
-        type: newMessageType,
-        content: base64,
-        timestamp: new Date().toLocaleString(),
-        reactions: [],
-        status: 'active',
-        position: { x: Math.random() * 300 + 50, y: Math.random() * 200 + 100 },
-      };
+      // Create file from blob
+      const fileExt = newMessageType === 'video' ? 'webm' : 'webm';
+      const fileName = `${newMessageType}-${Date.now()}.${fileExt}`;
+      const file = new File([recordedBlob], fileName, { type: recordedBlob.type });
 
-      const updated = [...messages, newMessage];
-      setMessages(updated);
-      saveToStorage(updated);
+      // Upload to Supabase Storage
+      const { path, url } = await uploadMessageMedia(file);
+
+      // Create message with media URL
+      await createMessage({
+        from_user: 'You',
+        to_user: 'Them',
+        type: newMessageType,
+        content: `${newMessageType === 'video' ? 'Video' : 'Voice'} message`,
+        media_url: url,
+        storage_path: path,
+      });
 
       // Reset recording state
       if (recordedUrl) {
@@ -372,6 +317,8 @@ export default function Messages() {
       setRecordedUrl(null);
       setRecordingTime(0);
       setShowNewMessage(false);
+
+      await loadMessages();
     } catch (error) {
       console.error('Error sending recorded message:', error);
       alert('Failed to send recording. Please try again.');
@@ -419,10 +366,16 @@ export default function Messages() {
     (msg) => msg.status === 'active' || msg.status === 'pinned'
   );
 
+  // Get reaction emojis for a message
+  const getMessageReactionEmojis = (message: Message): string[] => {
+    return message.reactions?.map(r => r.emoji) || [];
+  };
+
   // Render message card
   const renderMessageCard = (message: Message, showDelete: boolean = false) => {
     const isExpanded = expandedReactions === message.id;
-    const visibleReactions = isExpanded ? reactions : reactions.slice(0, 4);
+    const visibleReactions = isExpanded ? reactionOptions : reactionOptions.slice(0, 4);
+    const messageReactionEmojis = getMessageReactionEmojis(message);
 
     return (
       <div className="bg-gray-800 border-2 border-gray-600 rounded-lg shadow-2xl max-w-sm w-full">
@@ -432,13 +385,13 @@ export default function Messages() {
             <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
             <div className="w-3 h-3 rounded-full bg-green-500"></div>
             <span className="text-white text-sm font-medium ml-2">
-              {message.from} → {message.to}
+              {message.from_user} → {message.to_user}
             </span>
           </div>
           <div className="flex items-center space-x-1">
             {showDelete ? (
               <button
-                onClick={() => deleteMessage(message.id)}
+                onClick={() => handleDeleteMessage(message.id, message.storage_path)}
                 className="w-6 h-6 flex items-center justify-center hover:bg-white/20 rounded transition"
               >
                 <Trash2 className="w-4 h-4 text-white" />
@@ -463,10 +416,10 @@ export default function Messages() {
         )}
         {message.type === 'voice' && (
           <div className="mb-3">
-            {message.content.startsWith('data:') ? (
+            {message.media_url ? (
               <audio
                 controls
-                src={message.content}
+                src={message.media_url}
                 className="w-full"
                 style={{ height: '40px' }}
               />
@@ -483,10 +436,10 @@ export default function Messages() {
         )}
         {message.type === 'video' && (
           <div className="mb-3">
-            {message.content.startsWith('data:') ? (
+            {message.media_url ? (
               <video
                 controls
-                src={message.content}
+                src={message.media_url}
                 className="w-full rounded-lg bg-black"
                 style={{ maxHeight: '300px' }}
               />
@@ -505,7 +458,7 @@ export default function Messages() {
         )}
 
         <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
-          <span>{message.timestamp}</span>
+          <span>{new Date(message.created_at).toLocaleString()}</span>
           {message.status === 'pinned' && (
             <span className="text-yellow-400 text-xs">📌 Pinned</span>
           )}
@@ -519,9 +472,9 @@ export default function Messages() {
             {visibleReactions.map((reaction) => (
               <button
                 key={reaction.label}
-                onClick={() => addReaction(message.id, reaction.icon)}
+                onClick={() => handleAddReaction(message.id, reaction.icon)}
                 className={`w-8 h-8 rounded-full flex items-center justify-center transition ${
-                  message.reactions.includes(reaction.icon)
+                  messageReactionEmojis.includes(reaction.icon)
                     ? 'bg-blue-500/30 ring-2 ring-blue-500'
                     : 'bg-gray-800 hover:bg-gray-700'
                 }`}
@@ -529,7 +482,7 @@ export default function Messages() {
                 <span className="text-sm">{reaction.icon}</span>
               </button>
             ))}
-            {reactions.length > 4 && (
+            {reactionOptions.length > 4 && (
               <button
                 onClick={() => setExpandedReactions(isExpanded ? null : message.id)}
                 className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-800 hover:bg-gray-700 transition"
@@ -540,7 +493,7 @@ export default function Messages() {
             )}
           </div>
           <button
-            onClick={() => togglePin(message.id)}
+            onClick={() => togglePin(message.id, message.status)}
             className={`p-2 rounded-full transition ${
               message.status === 'pinned'
                 ? 'bg-yellow-500/30 text-yellow-400'
@@ -554,6 +507,17 @@ export default function Messages() {
     </div>
     );
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen p-4 md:p-8 flex items-center justify-center">
+        <div className="text-center">
+          <Loader className="w-12 h-12 mx-auto mb-4 text-blue-500 animate-spin" />
+          <p className="text-gray-400">Loading messages...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen p-4 md:p-8 relative overflow-hidden">
@@ -583,6 +547,12 @@ export default function Messages() {
           </div>
         </div>
 
+        {error && (
+          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400">
+            {error}
+          </div>
+        )}
+
         {/* Desktop: Scattered absolute positioning */}
         <div className="hidden md:block relative">
           {dashboardMessages.map((message) => (
@@ -590,8 +560,8 @@ export default function Messages() {
               key={message.id}
               className="absolute"
               style={{
-                left: `${message.position.x}px`,
-                top: `${message.position.y}px`,
+                left: `${message.position_x}px`,
+                top: `${message.position_y}px`,
                 zIndex: 1,
               }}
             >
