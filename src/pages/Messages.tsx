@@ -42,11 +42,16 @@ export default function Messages() {
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
   const [countdown, setCountdown] = useState<number | null>(null);
 
+  // Camera states for image capture
+  const [isCameraActive, setIsCameraActive] = useState(false);
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
+
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<number | null>(null);
   const videoPreviewRef = useRef<HTMLVideoElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   // Load messages from Supabase
   const loadMessages = async () => {
@@ -402,10 +407,144 @@ export default function Messages() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
+  // Start camera for photo capture
+  const startCamera = async () => {
+    try {
+      setPermissionError(null);
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode },
+        audio: false
+      });
+      streamRef.current = stream;
+
+      if (videoPreviewRef.current) {
+        videoPreviewRef.current.srcObject = stream;
+        videoPreviewRef.current.play();
+      }
+
+      setIsCameraActive(true);
+    } catch (error) {
+      console.error('Error accessing camera:', error);
+      setPermissionError('Camera access denied. Please enable camera permissions.');
+    }
+  };
+
+  // Take photo from camera stream
+  const takePhoto = () => {
+    if (videoPreviewRef.current && canvasRef.current) {
+      const video = videoPreviewRef.current;
+      const canvas = canvasRef.current;
+
+      // Set canvas size to match video
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      // Draw current video frame to canvas
+      const context = canvas.getContext('2d');
+      if (context) {
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        // Convert canvas to data URL
+        const imageDataUrl = canvas.toDataURL('image/jpeg', 0.9);
+        setCapturedImage(imageDataUrl);
+
+        // Stop camera stream
+        stopCamera();
+      }
+    }
+  };
+
+  // Stop camera
+  const stopCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+    }
+    if (videoPreviewRef.current) {
+      videoPreviewRef.current.srcObject = null;
+    }
+    setIsCameraActive(false);
+  };
+
+  // Switch camera for photo mode
+  const switchCameraPhoto = async () => {
+    const newFacingMode = facingMode === 'user' ? 'environment' : 'user';
+    setFacingMode(newFacingMode);
+
+    if (isCameraActive) {
+      stopCamera();
+      // Restart camera with new facing mode
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: newFacingMode },
+          audio: false
+        });
+        streamRef.current = stream;
+
+        if (videoPreviewRef.current) {
+          videoPreviewRef.current.srcObject = stream;
+          videoPreviewRef.current.play();
+        }
+      } catch (error) {
+        console.error('Error switching camera:', error);
+      }
+    }
+  };
+
+  // Retake photo
+  const retakePhoto = () => {
+    setCapturedImage(null);
+    startCamera();
+  };
+
+  // Send captured photo
+  const sendCapturedPhoto = async () => {
+    if (!capturedImage) return;
+
+    try {
+      // Convert data URL to blob
+      const response = await fetch(capturedImage);
+      const blob = await response.blob();
+
+      // Create file from blob
+      const fileName = `photo-${Date.now()}.jpg`;
+      const file = new File([blob], fileName, { type: 'image/jpeg' });
+
+      // Upload to Supabase Storage
+      const { path, url } = await uploadMessageMedia(file);
+
+      // Create message with image URL
+      await createMessage({
+        from_user: 'You',
+        to_user: 'Them',
+        type: 'image',
+        content: 'Photo message',
+        media_url: url,
+        storage_path: path,
+      });
+
+      // Reset state
+      setCapturedImage(null);
+      setShowNewMessage(false);
+      await loadMessages();
+    } catch (error) {
+      console.error('Error sending photo:', error);
+      alert('Failed to send photo. Please try again.');
+    }
+  };
+
+  // Cancel photo capture
+  const cancelPhoto = () => {
+    setCapturedImage(null);
+    stopCamera();
+    setPermissionError(null);
+  };
+
   // Cleanup on unmount or when closing modal
   useEffect(() => {
     return () => {
       cleanupRecording();
+      stopCamera();
       if (recordedUrl) {
         URL.revokeObjectURL(recordedUrl);
       }
@@ -503,8 +642,18 @@ export default function Messages() {
           </div>
         )}
         {message.type === 'image' && (
-          <div className="mb-3 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg aspect-video flex items-center justify-center">
-            <Image className="w-12 h-12 text-white/50" />
+          <div className="mb-3">
+            {message.media_url ? (
+              <img
+                src={message.media_url}
+                alt="Photo message"
+                className="w-full rounded-lg"
+              />
+            ) : (
+              <div className="bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg aspect-video flex items-center justify-center">
+                <Image className="w-12 h-12 text-white/50" />
+              </div>
+            )}
           </div>
         )}
 
@@ -662,6 +811,7 @@ export default function Messages() {
                       onClick={() => {
                         setNewMessageType(option.type as any);
                         cancelRecording();
+                        cancelPhoto();
                       }}
                       className={`flex-1 py-2 rounded-lg text-sm transition ${
                         newMessageType === option.type
@@ -924,11 +1074,105 @@ export default function Messages() {
                   </div>
                 )}
 
-                {/* Image Upload - Placeholder */}
+                {/* Image Capture */}
                 {newMessageType === 'image' && (
-                  <div className="py-12 text-center text-gray-400">
-                    <Image className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                    <p>Image upload coming soon...</p>
+                  <div>
+                    {permissionError && (
+                      <div className="mb-4 p-3 bg-red-500/20 border border-red-500 rounded-lg text-red-400 text-sm">
+                        {permissionError}
+                      </div>
+                    )}
+
+                    {/* Hidden canvas for photo capture */}
+                    <canvas ref={canvasRef} style={{ display: 'none' }} />
+
+                    {!isCameraActive && !capturedImage && (
+                      <div className="space-y-3">
+                        <button
+                          onClick={startCamera}
+                          className="w-full py-12 bg-gray-800 border-2 border-dashed border-gray-600 rounded-lg hover:border-blue-500 hover:bg-gray-800/50 transition flex flex-col items-center justify-center"
+                        >
+                          <Camera className="w-12 h-12 text-blue-400 mb-3" />
+                          <span className="text-white font-medium">Take Photo</span>
+                          <span className="text-gray-400 text-sm mt-1">Use your camera</span>
+                        </button>
+                        <button
+                          onClick={switchCameraPhoto}
+                          className="w-full py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg text-sm transition flex items-center justify-center"
+                        >
+                          <Camera className="w-4 h-4 mr-2" />
+                          Switch to {facingMode === 'user' ? 'Back' : 'Front'} Camera
+                        </button>
+                      </div>
+                    )}
+
+                    {isCameraActive && (
+                      <div className="bg-gray-800 rounded-lg p-4">
+                        <div className="relative mb-4 bg-black rounded-lg overflow-hidden" style={{ aspectRatio: '4/3' }}>
+                          <video
+                            ref={videoPreviewRef}
+                            autoPlay
+                            muted
+                            playsInline
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+
+                        <div className="flex items-center justify-center space-x-3">
+                          <button
+                            onClick={stopCamera}
+                            className="p-4 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-full transition"
+                            title="Cancel"
+                          >
+                            <X className="w-6 h-6" />
+                          </button>
+                          <button
+                            onClick={takePhoto}
+                            className="p-6 bg-blue-500 hover:bg-blue-600 text-white rounded-full transition shadow-lg"
+                            title="Take Photo"
+                          >
+                            <Camera className="w-8 h-8" />
+                          </button>
+                          <button
+                            onClick={switchCameraPhoto}
+                            className="p-4 bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded-full transition"
+                            title="Switch Camera"
+                          >
+                            <Camera className="w-6 h-6" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {capturedImage && (
+                      <div className="space-y-4">
+                        <div className="bg-gray-800 rounded-lg p-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <span className="text-white font-medium">Preview</span>
+                          </div>
+                          <img
+                            src={capturedImage}
+                            alt="Captured"
+                            className="w-full rounded-lg"
+                          />
+                        </div>
+
+                        <div className="flex space-x-3">
+                          <button
+                            onClick={retakePhoto}
+                            className="flex-1 px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-medium transition"
+                          >
+                            Retake
+                          </button>
+                          <button
+                            onClick={sendCapturedPhoto}
+                            className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg font-medium hover:from-blue-600 hover:to-cyan-600 transition"
+                          >
+                            Send
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
