@@ -65,6 +65,7 @@ export default function Messages() {
   const [showInbox, setShowInbox] = useState(false);
   const [newMessageContent, setNewMessageContent] = useState('');
   const [newMessageType, setNewMessageType] = useState<'text' | 'voice' | 'video' | 'image'>('text');
+  const [expandedReactions, setExpandedReactions] = useState<number | null>(null);
 
   // Migrate old messages from isPinned to status
   useEffect(() => {
@@ -125,8 +126,24 @@ export default function Messages() {
     saveToStorage(updated);
   };
 
+  // Count words in text (handle multiple spaces correctly)
+  const countWords = (text: string): number => {
+    const trimmed = text.trim();
+    if (!trimmed) return 0;
+    return trimmed.split(/\s+/).length;
+  };
+
+  const wordCount = countWords(newMessageContent);
+  const MAX_WORDS = 150;
+
+  const getWordCountColor = () => {
+    if (wordCount > MAX_WORDS) return 'text-red-400';
+    if (wordCount >= 140) return 'text-yellow-400';
+    return 'text-green-400';
+  };
+
   const addNewMessage = () => {
-    if (newMessageContent.trim()) {
+    if (newMessageContent.trim() && wordCount <= MAX_WORDS) {
       const newMessage: Message = {
         id: Date.now(),
         from: 'You',
@@ -160,26 +177,42 @@ export default function Messages() {
   );
 
   // Render message card
-  const renderMessageCard = (message: Message, showDelete: boolean = false) => (
-    <div className="bg-gray-800 border-2 border-gray-600 rounded-lg shadow-2xl max-w-sm w-full">
-      <div className="bg-gradient-to-r from-blue-600 to-cyan-600 px-4 py-2 rounded-t-md flex items-center justify-between cursor-move">
-        <div className="flex items-center space-x-2">
-          <div className="w-3 h-3 rounded-full bg-red-500"></div>
-          <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-          <div className="w-3 h-3 rounded-full bg-green-500"></div>
-          <span className="text-white text-sm font-medium ml-2">
-            {message.from} → {message.to}
-          </span>
+  const renderMessageCard = (message: Message, showDelete: boolean = false) => {
+    const isExpanded = expandedReactions === message.id;
+    const visibleReactions = isExpanded ? reactions : reactions.slice(0, 4);
+
+    return (
+      <div className="bg-gray-800 border-2 border-gray-600 rounded-lg shadow-2xl max-w-sm w-full">
+        <div className="bg-gradient-to-r from-blue-600 to-cyan-600 px-4 py-2 rounded-t-md flex items-center justify-between cursor-move">
+          <div className="flex items-center space-x-2">
+            <div className="w-3 h-3 rounded-full bg-red-500"></div>
+            <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+            <div className="w-3 h-3 rounded-full bg-green-500"></div>
+            <span className="text-white text-sm font-medium ml-2">
+              {message.from} → {message.to}
+            </span>
+          </div>
+          <div className="flex items-center space-x-1">
+            {showDelete ? (
+              <button
+                onClick={() => deleteMessage(message.id)}
+                className="w-6 h-6 flex items-center justify-center hover:bg-white/20 rounded transition"
+              >
+                <Trash2 className="w-4 h-4 text-white" />
+              </button>
+            ) : (
+              message.status !== 'pinned' && (
+                <button
+                  onClick={() => dismissMessage(message.id)}
+                  className="w-6 h-6 flex items-center justify-center hover:bg-white/20 rounded transition"
+                  title="Dismiss from dashboard"
+                >
+                  <X className="w-4 h-4 text-white" />
+                </button>
+              )
+            )}
+          </div>
         </div>
-        {showDelete && (
-          <button
-            onClick={() => deleteMessage(message.id)}
-            className="w-6 h-6 flex items-center justify-center hover:bg-white/20 rounded transition"
-          >
-            <Trash2 className="w-4 h-4 text-white" />
-          </button>
-        )}
-      </div>
 
       <div className="p-4 bg-gray-900/95 backdrop-blur-sm">
         {message.type === 'text' && (
@@ -216,9 +249,9 @@ export default function Messages() {
           )}
         </div>
 
-        <div className="flex items-center justify-between border-t border-gray-700 pt-3 mb-3">
+        <div className="flex items-center justify-between border-t border-gray-700 pt-3">
           <div className="flex items-center space-x-1 flex-wrap">
-            {reactions.map((reaction) => (
+            {visibleReactions.map((reaction) => (
               <button
                 key={reaction.label}
                 onClick={() => addReaction(message.id, reaction.icon)}
@@ -231,6 +264,15 @@ export default function Messages() {
                 <span className="text-sm">{reaction.icon}</span>
               </button>
             ))}
+            {reactions.length > 4 && (
+              <button
+                onClick={() => setExpandedReactions(isExpanded ? null : message.id)}
+                className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-800 hover:bg-gray-700 transition"
+                title={isExpanded ? "Show less" : "More reactions"}
+              >
+                <span className="text-xs text-gray-400">...</span>
+              </button>
+            )}
           </div>
           <button
             onClick={() => togglePin(message.id)}
@@ -243,19 +285,10 @@ export default function Messages() {
             <Pin className="w-4 h-4" />
           </button>
         </div>
-
-        {!showDelete && message.status !== 'pinned' && (
-          <button
-            onClick={() => dismissMessage(message.id)}
-            className="w-full py-2 bg-gray-800 hover:bg-gray-700 text-gray-400 rounded-lg transition flex items-center justify-center space-x-2"
-          >
-            <XCircle className="w-4 h-4" />
-            <span className="text-sm">Dismiss</span>
-          </button>
-        )}
       </div>
     </div>
-  );
+    );
+  };
 
   return (
     <div className="min-h-screen p-4 md:p-8 relative overflow-hidden">
@@ -353,16 +386,22 @@ export default function Messages() {
                   ))}
                 </div>
 
-                <textarea
-                  value={newMessageContent}
-                  onChange={(e) => setNewMessageContent(e.target.value)}
-                  placeholder="Type your message..."
-                  className="w-full h-32 px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                />
+                <div>
+                  <textarea
+                    value={newMessageContent}
+                    onChange={(e) => setNewMessageContent(e.target.value)}
+                    placeholder="Type your message..."
+                    className="w-full h-32 px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  />
+                  <div className={`mt-2 text-sm text-right ${getWordCountColor()}`}>
+                    {wordCount} / {MAX_WORDS} words
+                  </div>
+                </div>
 
                 <button
                   onClick={addNewMessage}
-                  className="w-full mt-4 px-4 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg font-medium hover:from-blue-600 hover:to-cyan-600 transition"
+                  disabled={wordCount > MAX_WORDS || !newMessageContent.trim()}
+                  className="w-full mt-4 px-4 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg font-medium hover:from-blue-600 hover:to-cyan-600 transition disabled:from-gray-600 disabled:to-gray-600 disabled:cursor-not-allowed"
                 >
                   Send Message
                 </button>
