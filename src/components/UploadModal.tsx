@@ -240,26 +240,42 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
           {/* Step 1: Select Upload Method */}
           {step === 'select' && (
             <div className="space-y-6">
-              <p className="text-gray-400 text-sm">
-                Upload images or videos from your device. Google Photos integration coming soon!
-              </p>
+              <div className="grid grid-cols-2 gap-3">
+                {/* Device Upload */}
+                <label className="block p-6 border-2 border-dashed border-gray-700 rounded-lg hover:border-blue-500 transition-colors cursor-pointer bg-gray-800/30">
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*,video/*"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
+                  <Upload className="w-8 h-8 mx-auto mb-3 text-gray-500" />
+                  <p className="text-center text-sm text-gray-300 font-medium">
+                    From Device
+                  </p>
+                  <p className="text-center text-xs text-gray-500 mt-1">
+                    Upload files
+                  </p>
+                </label>
 
-              <label className="block w-full p-8 border-2 border-dashed border-gray-700 rounded-lg hover:border-blue-500 transition-colors cursor-pointer bg-gray-800/30">
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*,video/*"
-                  onChange={handleFileSelect}
-                  className="hidden"
-                />
-                <Upload className="w-12 h-12 mx-auto mb-4 text-gray-500" />
-                <p className="text-center text-gray-300">
-                  Click to select files or drag and drop
-                </p>
-                <p className="text-center text-sm text-gray-500 mt-2">
-                  Images and videos supported
-                </p>
-              </label>
+                {/* Google Photos Placeholder */}
+                <button
+                  type="button"
+                  onClick={() => setError('Google Photos integration coming soon! This will allow you to connect your Google account and import photos directly.')}
+                  className="p-6 border-2 border-dashed border-gray-700 rounded-lg hover:border-purple-500 transition-colors bg-gray-800/30"
+                >
+                  <svg className="w-8 h-8 mx-auto mb-3 text-gray-500" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M21.35 11.1h-9.17v2.73h6.51c-.33 3.81-3.5 5.44-6.5 5.44C8.36 19.27 5 16.25 5 12c0-4.1 3.2-7.27 7.2-7.27 3.09 0 4.9 1.97 4.9 1.97L19 4.72S16.56 2 12.1 2C6.42 2 2.03 6.8 2.03 12c0 5.05 4.13 10 10.22 10 5.35 0 9.25-3.67 9.25-9.09 0-1.15-.15-1.81-.15-1.81z"/>
+                  </svg>
+                  <p className="text-center text-sm text-gray-300 font-medium">
+                    Google Photos
+                  </p>
+                  <p className="text-center text-xs text-gray-500 mt-1">
+                    Coming soon
+                  </p>
+                </button>
+              </div>
 
               {selectedFiles.length > 0 && (
                 <div className="mt-4">

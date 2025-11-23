@@ -170,14 +170,20 @@ export default function Images() {
                 )}
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition flex items-center justify-center">
                   <div className="opacity-0 group-hover:opacity-100 transition text-white text-center p-4">
+                    {image.description && (
+                      <p className="text-sm font-medium mb-2">{image.description}</p>
+                    )}
                     {image.location && (
-                      <>
-                        <MapPin className="w-5 h-5 mx-auto mb-2" />
-                        <p className="text-sm font-medium">{image.location}</p>
-                      </>
+                      <div className="flex items-center justify-center space-x-1 mb-1">
+                        <MapPin className="w-4 h-4" />
+                        <p className="text-xs">{image.location}</p>
+                      </div>
                     )}
                     {image.taken_date && (
-                      <p className="text-xs text-gray-300 mt-1">{image.taken_date}</p>
+                      <div className="flex items-center justify-center space-x-1">
+                        <Calendar className="w-4 h-4" />
+                        <p className="text-xs text-gray-300">{image.taken_date}</p>
+                      </div>
                     )}
                   </div>
                 </div>

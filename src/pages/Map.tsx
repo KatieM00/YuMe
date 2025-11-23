@@ -28,7 +28,6 @@ export default function Map() {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
-  const addLocationFormRef = useRef<HTMLDivElement>(null);
 
   const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,12 +55,6 @@ export default function Map() {
   const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN;
   const hasMapboxToken = mapboxToken && mapboxToken !== '';
 
-  const scrollToAddLocationForm = () => {
-    setShowAddForm(true);
-    setTimeout(() => {
-      addLocationFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }, 100);
-  };
 
   // Geocoding search function
   const searchLocation = async (query: string) => {
