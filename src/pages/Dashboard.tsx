@@ -8,13 +8,13 @@ import {
   Clock,
   Calendar,
   MessageSquare,
-  Music, // Box 4
-  Map, // Box 5
-  Image, // Box 6 (Album/Images)
-  Mail, // Box 7 (Inbox/Messages)
-  Tv, // Box 8 (Watching)
-  HeartHandshake, 
-  LayoutDashboard 
+  Music,
+  Map,
+  Image,
+  Mail,
+  Tv,
+  HeartHandshake,
+  LayoutDashboard
 } from 'lucide-react';
 
 // =========================================================================
@@ -24,7 +24,7 @@ import {
 type PageProps = {
     title: string;
     icon: ComponentType<{ className: string }>;
-    setPage: (page: string) => void; // Added setPage back to allow navigation
+    setPage: (page: string) => void;
 };
 
 const PagePlaceholder = ({ title, icon: Icon, setPage }: PageProps) => (
@@ -43,7 +43,6 @@ const PagePlaceholder = ({ title, icon: Icon, setPage }: PageProps) => (
     </div>
 );
 
-// Define Page Components (now accepting setPage)
 const MusicPage = ({ setPage }: { setPage: (page: string) => void }) => <PagePlaceholder title="Music Page" icon={Music} setPage={setPage} />;
 const MapPage = ({ setPage }: { setPage: (page: string) => void }) => <PagePlaceholder title="Map Page" icon={Map} setPage={setPage} />;
 const AlbumPage = ({ setPage }: { setPage: (page: string) => void }) => <PagePlaceholder title="Album Page" icon={Image} setPage={setPage} />;
@@ -63,7 +62,6 @@ type DashboardProps = {
 const DashboardContent = ({ setPage }: DashboardProps) => {
   const [currentTime, setCurrentTime] = useState(new Date());
 
-  // Update time every second
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
@@ -72,17 +70,15 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
     return () => clearInterval(timer);
   }, []);
 
-  // Helper to get time in a specific timezone
   const getTimeInTimezone = (timezone: string) => {
     return new Date().toLocaleTimeString('en-GB', {
       timeZone: timezone,
       hour: '2-digit',
       minute: '2-digit',
-      hour12: false, // Ensure HH:MM format
+      hour12: false,
     });
   };
 
-  // --- Data for Boxes 1, 2, 3 ---
   const countdowns = [
     { event: 'Summer Trip to Santorini', date: new Date('2025-07-15') },
     { event: 'Anniversary Celebration', date: new Date('2025-03-20') },
@@ -96,7 +92,6 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
     return Math.ceil(diff / (1000 * 60 * 60 * 24));
   };
 
-  // Find the nearest upcoming event
   const nextEvent = useMemo(() => {
     let nearestEvent = null;
     let minDays = Infinity;
@@ -110,7 +105,6 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
     });
 
     if (!nearestEvent) {
-      // Fallback
       const farthestEvent = countdowns[countdowns.length - 1];
       const nextYearDate = new Date(farthestEvent.date.getFullYear() + 1, farthestEvent.date.getMonth(), farthestEvent.date.getDate());
       return { event: 'Next big event', date: nextYearDate, days: getDaysUntil(nextYearDate) };
@@ -119,14 +113,11 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
     return nearestEvent;
   }, [currentTime]);
 
-  // Box 3: Most recent message data
   const recentMessage = {
     from: 'Katie',
     to: 'Nassos',
     message: 'Just saw the most beautiful sunset and thought of you...',
   };
-
-  // --- Utility Components ---
 
   const InfoBoxContainer = ({ children }: { children: React.ReactNode }) => (
     <div className="bg-gray-800/70 backdrop-blur-sm rounded-xl p-3 h-20 sm:h-24 md:h-28 border border-gray-700 shadow-lg flex items-center justify-center transition-all duration-300 hover:shadow-xl">
@@ -181,19 +172,18 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
     </div>
   );
 
-  // --- Data for Buttons 4-9 ---
   const navButtons = [
-    { id: 'music', name: 'Music Page', icon: Music, color: 'text-pink-400', bg: 'bg-pink-900/40' }, // Box 4
-    { id: 'map', name: 'Map Page', icon: Map, color: 'text-red-400', bg: 'bg-red-900/40' }, // Box 5
-    { id: 'album', name: 'Album Page', icon: Image, color: 'text-orange-400', bg: 'bg-orange-900/40' }, // Box 6
-    { id: 'inbox', name: 'Inbox Page', icon: Mail, color: 'text-yellow-400', bg: 'bg-yellow-900/40' }, // Box 7
-    { id: 'watching', name: 'Watching Page', icon: Tv, color: 'text-lime-400', bg: 'bg-lime-900/40' }, // Box 8
-    { id: 'hopes', name: 'Future Hopes Page', icon: HeartHandshake, color: 'text-fuchsia-400', bg: 'bg-fuchsia-900/40' }, // Box 9
+    { id: 'music', name: 'Music Page', icon: Music, color: 'text-pink-400', bg: 'bg-pink-900/40' },
+    { id: 'map', name: 'Map Page', icon: Map, color: 'text-red-400', bg: 'bg-red-900/40' },
+    { id: 'album', name: 'Album Page', icon: Image, color: 'text-orange-400', bg: 'bg-orange-900/40' },
+    { id: 'inbox', name: 'Inbox Page', icon: Mail, color: 'text-yellow-400', bg: 'bg-yellow-900/40' },
+    { id: 'watching', name: 'Watching Page', icon: Tv, color: 'text-lime-400', bg: 'bg-lime-900/40' },
+    { id: 'hopes', name: 'Future Hopes Page', icon: HeartHandshake, color: 'text-fuchsia-400', bg: 'bg-fuchsia-900/40' },
   ];
 
   const ButtonBox = ({ id, name, icon: Icon, color, bg }: typeof navButtons[0]) => (
     <button
-        onClick={() => setPage(id)} // Sets the page state to navigate
+        onClick={() => setPage(id)}
         className={`relative flex flex-col items-center justify-center p-6 h-full min-h-[150px] sm:min-h-[180px] rounded-2xl border border-gray-700 shadow-xl transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl ${bg}`}
     >
       <div className={`w-14 h-14 sm:w-20 sm:h-20 rounded-full flex items-center justify-center mb-3 bg-gray-900/50 ring-2 ring-gray-600`}>
@@ -205,19 +195,12 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
 
   return (
     <>
-      {/* 1. TOP ROW: Information Boxes (1, 2, 3) - Smaller Height, Uniform */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 md:mb-8">
-        {/* BOX 1: Time Zones */}
         <InfoBoxContainer><TimeBox /></InfoBoxContainer>
-
-        {/* BOX 2: Countdown */}
         <InfoBoxContainer><CountdownBox /></InfoBoxContainer>
-
-        {/* BOX 3: Most Recent Message */}
         <InfoBoxContainer><MessageBox /></InfoBoxContainer>
       </div>
 
-      {/* 2. BUTTON GRID: Navigation Buttons (4, 5, 6, 7, 8, 9) - Larger Square Tiles */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
         {navButtons.map((button, index) => (
           <ButtonBox key={index} {...button} />
@@ -232,11 +215,9 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
 // =========================================================================
 
 export default function App() {
-    // State to manage current page view
     const [page, setPage] = useState('dashboard');
 
     const renderPage = () => {
-        // Pass setPage to placeholder pages so they can navigate back
         const pageProps = { setPage };
 
         switch (page) {
@@ -254,29 +235,13 @@ export default function App() {
                 return <HopesPage {...pageProps} />;
             case 'dashboard':
             default:
-                // Pass setPage function to the dashboard content component
                 return <DashboardContent setPage={setPage} />;
         }
     };
     
-    // Title mapping for the header (kept for internal representation of the "Nav Bar")
-    const pageTitle = page === 'dashboard' 
-        ? 'Dashboard' 
-        : page.charAt(0).toUpperCase() + page.slice(1) + ' Page';
-    
     return (
         <div className="min-h-screen p-4 md:p-8 bg-gray-950 text-white font-sans">
             <div className="max-w-7xl mx-auto">
-                <header 
-                    className="mb-8 p-4 bg-gray-800 rounded-xl shadow-lg flex items-center justify-center"
-                >
-                    <h1 className="text-2xl md:text-3xl font-bold text-gray-100 flex items-center space-x-3">
-                        <LayoutDashboard className="w-6 h-6 text-blue-400" />
-                        <span>{pageTitle}</span>
-                    </h1>
-                </header>
-
-                {/* Render the current page content */}
                 {renderPage()}
             </div>
         </div>
