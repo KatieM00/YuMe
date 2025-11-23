@@ -711,29 +711,49 @@ export default function Map() {
                       <Check className="w-4 h-4 mr-1" />
                       Visited ({visitedLocations.length})
                     </h3>
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-4 lg:grid-cols-6 gap-2">
                       {visitedLocations.map((location) => (
                         <div
                           key={location.id}
-                          className="group bg-green-500/10 border border-green-500/30 rounded-lg p-4 hover:bg-green-500/20 transition"
+                          className="group relative bg-green-500/10 border border-green-500/30 rounded-lg p-3 hover:bg-green-500/20 transition cursor-pointer"
                         >
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1 min-w-0">
-                              <p className="text-white font-medium text-sm truncate">{location.name}</p>
+                          <p className="text-white font-medium text-sm text-center truncate">{location.name}</p>
+
+                          {/* Hover overlay */}
+                          {(location.visit_date || location.notes) && (
+                            <div className="absolute inset-0 bg-black/90 rounded-lg opacity-0 group-hover:opacity-100 transition flex flex-col items-center justify-center p-3 text-center">
                               {location.visit_date && (
-                                <p className="text-gray-400 text-xs mt-1">{location.visit_date}</p>
+                                <p className="text-gray-300 text-xs mb-1">{location.visit_date}</p>
                               )}
                               {location.notes && (
-                                <p className="text-gray-500 text-xs mt-2 line-clamp-2">{location.notes}</p>
+                                <p className="text-gray-400 text-xs line-clamp-3">{location.notes}</p>
                               )}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  location.id && deleteLocation(location.id);
+                                }}
+                                className="mt-2 p-1 text-gray-400 hover:text-red-400 transition"
+                                title="Delete"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
                             </div>
+                          )}
+
+                          {/* Delete button for locations without extra info */}
+                          {!location.visit_date && !location.notes && (
                             <button
-                              onClick={() => location.id && deleteLocation(location.id)}
-                              className="ml-2 opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-400 transition flex-shrink-0"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                location.id && deleteLocation(location.id);
+                              }}
+                              className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-400 transition"
+                              title="Delete"
                             >
-                              <Trash2 className="w-3.5 h-3.5" />
+                              <Trash2 className="w-3 h-3" />
                             </button>
-                          </div>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -747,26 +767,42 @@ export default function Map() {
                       <MapPin className="w-4 h-4 mr-1" />
                       Want to Visit ({wishlistLocations.length})
                     </h3>
-                    <div className="grid grid-cols-3 gap-3">
+                    <div className="grid grid-cols-4 lg:grid-cols-6 gap-2">
                       {wishlistLocations.map((location) => (
                         <div
                           key={location.id}
-                          className="group bg-red-500/10 border border-red-500/30 rounded-lg p-4 hover:bg-red-500/20 transition"
+                          className="group relative bg-red-500/10 border border-red-500/30 rounded-lg p-3 hover:bg-red-500/20 transition cursor-pointer"
                         >
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1 min-w-0">
-                              <p className="text-white font-medium text-sm truncate">{location.name}</p>
-                              {location.notes && (
-                                <p className="text-gray-500 text-xs mt-2 line-clamp-2">{location.notes}</p>
-                              )}
+                          <p className="text-white font-medium text-sm text-center truncate">{location.name}</p>
+
+                          {/* Hover overlay with notes if available */}
+                          {location.notes && (
+                            <div className="absolute inset-0 bg-black/90 rounded-lg opacity-0 group-hover:opacity-100 transition flex flex-col items-center justify-center p-3 text-center">
+                              <p className="text-gray-400 text-xs line-clamp-3">{location.notes}</p>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  location.id && deleteLocation(location.id);
+                                }}
+                                className="mt-2 p-1 text-gray-400 hover:text-red-400 transition"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
                             </div>
+                          )}
+
+                          {/* Delete button for cards without notes - show in top right on hover */}
+                          {!location.notes && (
                             <button
-                              onClick={() => location.id && deleteLocation(location.id)}
-                              className="ml-2 opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-400 transition flex-shrink-0"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                location.id && deleteLocation(location.id);
+                              }}
+                              className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-400 transition"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
-                          </div>
+                          )}
                         </div>
                       ))}
                     </div>
