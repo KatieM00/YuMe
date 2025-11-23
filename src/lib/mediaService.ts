@@ -11,6 +11,7 @@ export interface MediaItem {
   description: string | null;
   location: string | null;
   taken_date: string | null;
+  added_by: string | null;
   created_at: string;
   updated_at: string;
   comments?: MediaComment[];
@@ -28,6 +29,7 @@ export interface MediaMetadata {
   description?: string;
   location?: string;
   taken_date?: string;
+  added_by?: string;
 }
 
 /**
@@ -35,6 +37,18 @@ export interface MediaMetadata {
  */
 export async function uploadFile(file: File): Promise<{ path: string; url: string }> {
   console.log('[mediaService] uploadFile called:', { name: file.name, size: file.size, type: file.type });
+
+  // File size limit: 100MB for videos, 10MB for images
+  const MAX_VIDEO_SIZE = 100 * 1024 * 1024; // 100MB
+  const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
+  const isVideo = file.type.startsWith('video/');
+  const maxSize = isVideo ? MAX_VIDEO_SIZE : MAX_IMAGE_SIZE;
+
+  if (file.size > maxSize) {
+    const sizeMB = (file.size / 1024 / 1024).toFixed(2);
+    const maxSizeMB = (maxSize / 1024 / 1024).toFixed(0);
+    throw new Error(`File too large: ${sizeMB}MB. Maximum size for ${isVideo ? 'videos' : 'images'} is ${maxSizeMB}MB.`);
+  }
 
   const fileExt = file.name.split('.').pop();
   const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
@@ -115,6 +129,7 @@ export async function createMediaItem(
       description: metadata.description || null,
       location: metadata.location || null,
       taken_date: metadata.taken_date || null,
+      added_by: metadata.added_by || null,
     })
     .select()
     .single();
@@ -192,6 +207,7 @@ export async function updateMediaItem(
       description: metadata.description || null,
       location: metadata.location || null,
       taken_date: metadata.taken_date || null,
+      added_by: metadata.added_by || null,
     })
     .eq('id', id)
     .select()

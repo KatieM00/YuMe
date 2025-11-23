@@ -38,13 +38,39 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
       const allFiles = Array.from(e.target.files);
       console.log('[UploadModal] All selected files:', allFiles.map(f => ({ name: f.name, type: f.type, size: f.size })));
 
-      const files = allFiles.filter((file) => {
-        return file.type.startsWith('image/') || file.type.startsWith('video/');
+      const MAX_VIDEO_SIZE = 100 * 1024 * 1024; // 100MB
+      const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
+
+      const validFiles: File[] = [];
+      const errors: string[] = [];
+
+      allFiles.forEach((file) => {
+        if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
+          errors.push(`${file.name}: Unsupported file type`);
+          return;
+        }
+
+        const isVideo = file.type.startsWith('video/');
+        const maxSize = isVideo ? MAX_VIDEO_SIZE : MAX_IMAGE_SIZE;
+
+        if (file.size > maxSize) {
+          const sizeMB = (file.size / 1024 / 1024).toFixed(2);
+          const maxSizeMB = (maxSize / 1024 / 1024).toFixed(0);
+          errors.push(`${file.name}: File too large (${sizeMB}MB). Max ${maxSizeMB}MB for ${isVideo ? 'videos' : 'images'}`);
+          return;
+        }
+
+        validFiles.push(file);
       });
 
-      console.log('[UploadModal] Filtered files (images/videos only):', files.map(f => ({ name: f.name, type: f.type })));
-      setSelectedFiles(files);
-      setError(null);
+      console.log('[UploadModal] Valid files:', validFiles.map(f => ({ name: f.name, type: f.type })));
+      setSelectedFiles(validFiles);
+
+      if (errors.length > 0) {
+        setError(errors.join('\n'));
+      } else {
+        setError(null);
+      }
     }
   };
 
@@ -133,6 +159,7 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
       description: formData.get('description') as string || undefined,
       location: formData.get('location') as string || undefined,
       taken_date: formData.get('taken_date') as string || undefined,
+      added_by: formData.get('added_by') as string || undefined,
     };
 
     // Update current file's metadata
@@ -232,7 +259,7 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
 
         <div className="p-6">
           {error && (
-            <div className="mb-4 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400">
+            <div className="mb-4 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 whitespace-pre-line">
               {error}
             </div>
           )}
@@ -366,6 +393,19 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
                     name="taken_date"
                     defaultValue={currentFile.metadata.taken_date}
                     className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block mb-2 text-sm font-medium text-gray-300">
+                    Added by (optional)
+                  </label>
+                  <input
+                    type="text"
+                    name="added_by"
+                    defaultValue={currentFile.metadata.added_by}
+                    placeholder="Who added this?"
+                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, MapPin, Calendar, MessageSquare, X, Trash2, Loader } from 'lucide-react';
+import { Plus, MapPin, Calendar, MessageSquare, X, Trash2, Loader, Pencil } from 'lucide-react';
 import { UploadModal } from '../components/UploadModal';
 import {
   MediaItem,
@@ -7,6 +7,7 @@ import {
   deleteMediaItem,
   addComment,
   deleteComment,
+  updateMediaItem,
 } from '../lib/mediaService';
 
 export default function Images() {
@@ -16,6 +17,7 @@ export default function Images() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const loadMedia = async () => {
     try {
@@ -109,6 +111,34 @@ export default function Images() {
     loadMedia();
   };
 
+  const handleUpdateMedia = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!selectedImage) return;
+
+    const formData = new FormData(e.currentTarget);
+    const metadata = {
+      description: formData.get('description') as string || undefined,
+      location: formData.get('location') as string || undefined,
+      taken_date: formData.get('taken_date') as string || undefined,
+      added_by: formData.get('added_by') as string || undefined,
+    };
+
+    try {
+      const updated = await updateMediaItem(selectedImage.id, metadata);
+
+      // Update local state
+      const updatedImages = images.map((img) =>
+        img.id === updated.id ? { ...updated, comments: img.comments } : img
+      );
+      setImages(updatedImages);
+      setSelectedImage({ ...updated, comments: selectedImage.comments });
+      setIsEditMode(false);
+    } catch (err) {
+      console.error('Failed to update media:', err);
+      alert('Failed to update media. Please try again.');
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen p-4 md:p-8 flex items-center justify-center">
@@ -124,7 +154,7 @@ export default function Images() {
     <div className="min-h-screen p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-white">Images</h1>
+          <h1 className="text-3xl md:text-4xl font-bold text-white">Album</h1>
           <button
             onClick={() => setShowAddModal(true)}
             className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-full font-medium hover:from-blue-600 hover:to-cyan-600 transition"
@@ -236,9 +266,22 @@ export default function Images() {
                             <span>{selectedImage.taken_date}</span>
                           </div>
                         )}
+                        {selectedImage.added_by && (
+                          <div className="flex items-center space-x-1">
+                            <span className="text-gray-500">Added by:</span>
+                            <span className="text-gray-300">{selectedImage.added_by}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => setIsEditMode(!isEditMode)}
+                        className="w-10 h-10 bg-blue-500/20 hover:bg-blue-500/30 rounded-full flex items-center justify-center transition"
+                        title="Edit media"
+                      >
+                        <Pencil className="w-5 h-5 text-blue-400" />
+                      </button>
                       <button
                         onClick={() => handleDeleteMedia(selectedImage.id, selectedImage.storage_path)}
                         className="w-10 h-10 bg-red-500/20 hover:bg-red-500/30 rounded-full flex items-center justify-center transition"
@@ -247,13 +290,91 @@ export default function Images() {
                         <Trash2 className="w-5 h-5 text-red-400" />
                       </button>
                       <button
-                        onClick={() => setSelectedImage(null)}
+                        onClick={() => {
+                          setSelectedImage(null);
+                          setIsEditMode(false);
+                        }}
                         className="w-10 h-10 bg-gray-800 hover:bg-gray-700 rounded-full flex items-center justify-center transition"
                       >
                         <X className="w-5 h-5 text-white" />
                       </button>
                     </div>
                   </div>
+
+                  {/* Edit Form */}
+                  {isEditMode && (
+                    <div className="border-t border-gray-700 pt-4 mb-4">
+                      <h3 className="text-lg font-semibold text-white mb-4">Edit Details</h3>
+                      <form onSubmit={handleUpdateMedia} className="space-y-4">
+                        <div>
+                          <label className="block mb-2 text-sm font-medium text-gray-300">
+                            Description
+                          </label>
+                          <textarea
+                            name="description"
+                            defaultValue={selectedImage.description || ''}
+                            placeholder="Add a description..."
+                            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            rows={3}
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block mb-2 text-sm font-medium text-gray-300">
+                            Location
+                          </label>
+                          <input
+                            type="text"
+                            name="location"
+                            defaultValue={selectedImage.location || ''}
+                            placeholder="Where was this taken?"
+                            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block mb-2 text-sm font-medium text-gray-300">
+                            Date
+                          </label>
+                          <input
+                            type="date"
+                            name="taken_date"
+                            defaultValue={selectedImage.taken_date || ''}
+                            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block mb-2 text-sm font-medium text-gray-300">
+                            Added by
+                          </label>
+                          <input
+                            type="text"
+                            name="added_by"
+                            defaultValue={selectedImage.added_by || ''}
+                            placeholder="Who added this?"
+                            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+
+                        <div className="flex gap-3">
+                          <button
+                            type="button"
+                            onClick={() => setIsEditMode(false)}
+                            className="flex-1 px-4 py-2 border border-gray-700 text-gray-300 rounded-lg hover:bg-gray-800 transition"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+                          >
+                            Save Changes
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  )}
 
                   <div className="border-t border-gray-700 pt-4 flex-1">
                     <h3 className="text-lg font-semibold text-white mb-4 flex items-center space-x-2">
