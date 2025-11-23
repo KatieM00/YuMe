@@ -138,6 +138,12 @@ export async function getAllMessages(): Promise<Message[]> {
 export async function createMessage(messageData: CreateMessageData): Promise<Message> {
   console.log('[messageService] createMessage called:', messageData);
 
+  // Generate random position with better distribution
+  // X: 20px to 600px (wider horizontal spread)
+  // Y: 20px to 500px (wider vertical spread)
+  const randomX = messageData.position_x ?? Math.floor(Math.random() * 580 + 20);
+  const randomY = messageData.position_y ?? Math.floor(Math.random() * 480 + 20);
+
   const { data, error } = await supabase
     .from('messages')
     .insert({
@@ -148,8 +154,8 @@ export async function createMessage(messageData: CreateMessageData): Promise<Mes
       media_url: messageData.media_url || null,
       storage_path: messageData.storage_path || null,
       status: messageData.status || 'active',
-      position_x: messageData.position_x || Math.floor(Math.random() * 300 + 50),
-      position_y: messageData.position_y || Math.floor(Math.random() * 200 + 100),
+      position_x: randomX,
+      position_y: randomY,
     })
     .select()
     .single();

@@ -59,7 +59,34 @@ export default function Messages() {
       setIsLoading(true);
       setError(null);
       const data = await getAllMessages();
-      setMessages(data);
+
+      // Enforce maximum of 10 messages on dashboard (active + pinned)
+      const dashboardMsgs = data.filter(msg => msg.status === 'active' || msg.status === 'pinned');
+
+      if (dashboardMsgs.length > 10) {
+        // Find oldest unpinned active messages to dismiss
+        const activeUnpinned = dashboardMsgs
+          .filter(msg => msg.status === 'active')
+          .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
+
+        const numToRemove = dashboardMsgs.length - 10;
+        const messagesToDismiss = activeUnpinned.slice(0, numToRemove);
+
+        // Dismiss the oldest unpinned messages (moves to inbox, not deleted)
+        for (const msg of messagesToDismiss) {
+          try {
+            await updateMessageStatus(msg.id, 'dismissed');
+          } catch (err) {
+            console.error('Failed to auto-dismiss message:', err);
+          }
+        }
+
+        // Reload messages after auto-dismissing
+        const updatedData = await getAllMessages();
+        setMessages(updatedData);
+      } else {
+        setMessages(data);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load messages');
       console.error('Failed to load messages:', err);
