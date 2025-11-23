@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Plus, Pin, Image, Mic, Video, X, Inbox, Trash2, Play, Pause, Square, Camera, Loader } from 'lucide-react';
+import { Plus, Pin, Image, Mic, Video, X, Inbox, Trash2, Play, Pause, Square, Camera, Loader, User } from 'lucide-react';
 import {
   Message,
   getAllMessages,
@@ -1028,8 +1028,17 @@ export default function Messages() {
                           onClick={switchCamera}
                           className="w-full py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg text-sm transition flex items-center justify-center"
                         >
-                          <Camera className="w-4 h-4 mr-2" />
-                          Switch to {facingMode === 'user' ? 'Back' : 'Front'} Camera
+                          {facingMode === 'user' ? (
+                            <>
+                              <Camera className="w-4 h-4 mr-2" />
+                              Switch to Back Camera
+                            </>
+                          ) : (
+                            <>
+                              <User className="w-4 h-4 mr-2" />
+                              Switch to Selfie Camera
+                            </>
+                          )}
                         </button>
                       </div>
                     )}
@@ -1166,8 +1175,17 @@ export default function Messages() {
                           onClick={switchCameraPhoto}
                           className="w-full py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg text-sm transition flex items-center justify-center"
                         >
-                          <Camera className="w-4 h-4 mr-2" />
-                          Switch to {facingMode === 'user' ? 'Back' : 'Front'} Camera
+                          {facingMode === 'user' ? (
+                            <>
+                              <Camera className="w-4 h-4 mr-2" />
+                              Switch to Back Camera
+                            </>
+                          ) : (
+                            <>
+                              <User className="w-4 h-4 mr-2" />
+                              Switch to Selfie Camera
+                            </>
+                          )}
                         </button>
                       </div>
                     )}
