@@ -1,9 +1,24 @@
-import { useState, useEffect } from 'react';
-import { Clock, Calendar, MapPin, MessageSquare } from 'lucide-react';
+import {
+  useState,
+  useEffect,
+  useMemo
+} from 'react';
+import {
+  Clock,
+  Calendar,
+  MessageSquare,
+  Music, // Box 4
+  Map, // Box 5
+  Image, // Box 6 (Album/Images)
+  Mail, // Box 7 (Inbox/Messages)
+  Tv, // Box 8 (Watching)
+  HeartHandshake, // Box 9 (Future Hopes)
+} from 'lucide-react';
 
 export default function Dashboard() {
   const [currentTime, setCurrentTime] = useState(new Date());
 
+  // Update time every second
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
@@ -12,140 +27,170 @@ export default function Dashboard() {
     return () => clearInterval(timer);
   }, []);
 
+  // Helper to get time in a specific timezone
   const getTimeInTimezone = (timezone: string) => {
     return new Date().toLocaleTimeString('en-GB', {
       timeZone: timezone,
       hour: '2-digit',
       minute: '2-digit',
-      second: '2-digit',
+      hour12: false, // Ensure HH:MM format
     });
   };
 
+  // --- Data for Boxes 1, 2, 3 ---
+
+  // Box 2: Countdown data
   const countdowns = [
-    { event: 'Summer Trip to Santorini', date: new Date('2025-07-15'), location: 'Greece' },
-    { event: 'Anniversary Celebration', date: new Date('2025-03-20'), location: 'London' },
-    { event: 'Christmas Together', date: new Date('2025-12-25'), location: 'Athens' },
+    { event: 'Summer Trip to Santorini', date: new Date('2025-07-15') },
+    { event: 'Anniversary Celebration', date: new Date('2025-03-20') },
+    { event: 'Christmas Together', date: new Date('2025-12-25') },
   ];
 
   const getDaysUntil = (date: Date) => {
     const now = new Date();
+    // Set time of `now` to midnight to only count full days
+    now.setHours(0, 0, 0, 0);
     const diff = date.getTime() - now.getTime();
     return Math.ceil(diff / (1000 * 60 * 60 * 24));
   };
 
-  const locations = [
-    { person: 'Nassos', city: 'London', country: 'UK', lat: 51.5074, lng: -0.1278 },
-    { person: 'Katie', city: 'Athens', country: 'Greece', lat: 37.9838, lng: 23.7275 },
-  ];
+  // Find the nearest upcoming event
+  const nextEvent = useMemo(() => {
+    let nearestEvent = null;
+    let minDays = Infinity;
 
+    countdowns.forEach(countdown => {
+      const days = getDaysUntil(countdown.date);
+      // Only consider future events (days > 0)
+      if (days > 0 && days < minDays) {
+        minDays = days;
+        nearestEvent = { ...countdown, days: minDays };
+      }
+    });
+
+    // Fallback if all dates are in the past or none are set
+    if (!nearestEvent) {
+      // Pick the next year's date for the last event if current one passed
+      const lastEventDate = countdowns[countdowns.length - 1].date;
+      const nextYearDate = new Date(lastEventDate.getFullYear() + 1, lastEventDate.getMonth(), lastEventDate.getDate());
+      return { event: 'Next big event', date: nextYearDate, days: getDaysUntil(nextYearDate) };
+    }
+
+    return nearestEvent;
+  }, [currentTime]);
+
+  // Box 3: Most recent message data
   const recentMessage = {
     from: 'Katie',
     to: 'Nassos',
     message: 'Just saw the most beautiful sunset and thought of you...',
-    time: '2 hours ago',
   };
 
+  // --- Data for Boxes 4-9 (Navigation Buttons) ---
+
+  const navButtons = [
+    { name: 'Music Page', icon: Music, color: 'text-pink-400', bg: 'bg-pink-700/20' }, // Box 4
+    { name: 'Map Page', icon: Map, color: 'text-red-400', bg: 'bg-red-700/20' }, // Box 5
+    { name: 'Album Page', icon: Image, color: 'text-orange-400', bg: 'bg-orange-700/20' }, // Box 6
+    { name: 'Inbox Page', icon: Mail, color: 'text-yellow-400', bg: 'bg-yellow-700/20' }, // Box 7
+    { name: 'Watching Page', icon: Tv, color: 'text-lime-400', bg: 'bg-lime-700/20' }, // Box 8
+    { name: 'Future Hopes Page', icon: HeartHandshake, color: 'text-fuchsia-400', bg: 'bg-fuchsia-700/20' }, // Box 9
+  ];
+
+  const ButtonBox = ({ name, icon: Icon, color, bg }: typeof navButtons[0]) => (
+    <button className={`relative flex flex-col items-center justify-center p-6 sm:p-8 h-40 md:h-52 rounded-2xl border border-gray-700 shadow-xl transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl ${bg}`}>
+      <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center mb-3 sm:mb-4 bg-gray-900/50 ring-2 ring-gray-600`}>
+        <Icon className={`w-8 h-8 sm:w-10 sm:h-10 ${color}`} />
+      </div>
+      <span className="text-white text-base sm:text-lg font-semibold text-center mt-2">{name}</span>
+    </button>
+  );
+
+  const TimeBox = () => (
+    <div className="flex items-center justify-center h-full">
+      <Clock className="w-5 h-5 text-blue-400 mr-3" />
+      <p className="text-white text-xl md:text-2xl font-bold tabular-nums">
+        GR: {getTimeInTimezone('Europe/Athens')}
+      </p>
+      <span className="text-gray-500 text-xl md:text-2xl font-bold mx-3">|</span>
+      <p className="text-white text-xl md:text-2xl font-bold tabular-nums">
+        UK: {getTimeInTimezone('Europe/London')}
+      </p>
+    </div>
+  );
+
+  const CountdownBox = () => (
+    <div className="flex flex-col items-center justify-center h-full text-center p-3">
+      {nextEvent && (
+        <>
+          <p className="text-green-400 text-3xl md:text-4xl font-extrabold tabular-nums">
+            {nextEvent.days}
+          </p>
+          <p className="text-gray-300 text-base font-medium">
+            days until
+          </p>
+          <p className="text-white text-lg font-semibold truncate max-w-full mt-1">
+            {nextEvent.event}
+          </p>
+        </>
+      )}
+    </div>
+  );
+
+  const MessageBox = () => (
+    <div className="flex flex-col items-start justify-center h-full p-3">
+      <div className="flex items-center mb-1">
+        <MessageSquare className="w-4 h-4 text-cyan-400 mr-2 flex-shrink-0" />
+        <span className="text-sm text-gray-400">Most Recent Message</span>
+      </div>
+      <p className="text-white text-base font-medium leading-tight">
+        <span className="text-cyan-300">{recentMessage.from}</span> &gt;{' '}
+        <span className="text-blue-300">{recentMessage.to}</span>:
+        <span className="ml-1 text-gray-300 truncate max-w-full inline-block">
+          {recentMessage.message}
+        </span>
+      </p>
+    </div>
+  );
+
+
+  // Common style for the information boxes (Box 1, 2, 3)
+  const InfoBoxStyle = "bg-gray-800/70 backdrop-blur-sm rounded-2xl p-4 h-24 sm:h-28 border border-gray-700 shadow-lg flex items-center justify-center";
+
   return (
-    <div className="min-h-screen p-4 md:p-8">
+    <div className="min-h-screen p-4 md:p-8 bg-gray-900 text-white font-sans">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl md:text-4xl font-bold text-white mb-8">Dashboard</h1>
+        {/* Navbar Placeholder - Keeping as is */}
+        <header className="mb-8 p-4 bg-gray-900/50 rounded-xl">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-100 text-center">Dashboard</h1>
+        </header>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 shadow-xl hover:shadow-2xl transition">
-            <div className="flex items-center space-x-3 mb-4">
-              <Clock className="w-6 h-6 text-blue-400" />
-              <h2 className="text-xl font-semibold text-white">Time</h2>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <p className="text-gray-400 text-sm mb-1">Greece</p>
-                <p className="text-3xl font-bold text-white tabular-nums">
-                  {getTimeInTimezone('Europe/Athens')}
-                </p>
-              </div>
-              <div className="border-t border-gray-700 pt-4">
-                <p className="text-gray-400 text-sm mb-1">United Kingdom</p>
-                <p className="text-3xl font-bold text-white tabular-nums">
-                  {getTimeInTimezone('Europe/London')}
-                </p>
-              </div>
-            </div>
+        {/* Main Grid: 3 Information Boxes (Top Row) + 6 Navigation Buttons (Bottom Grid) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+
+          {/* BOX 1: Time Zones */}
+          <div className={`${InfoBoxStyle} order-1`}>
+            <TimeBox />
           </div>
 
-          <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 shadow-xl hover:shadow-2xl transition">
-            <div className="flex items-center space-x-3 mb-4">
-              <Calendar className="w-6 h-6 text-green-400" />
-              <h2 className="text-xl font-semibold text-white">Countdowns</h2>
-            </div>
-            <div className="space-y-3">
-              {countdowns.map((countdown, index) => {
-                const days = getDaysUntil(countdown.date);
-                return (
-                  <div key={index} className="bg-gray-900/50 rounded-lg p-3 border border-gray-700">
-                    <p className="text-white font-medium text-sm mb-1">{countdown.event}</p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-2xl font-bold text-green-400">{days} days</span>
-                      <span className="text-gray-400 text-xs">{countdown.location}</span>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+          {/* BOX 2: Countdown */}
+          <div className={`${InfoBoxStyle} order-2`}>
+            <CountdownBox />
           </div>
 
-          <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 shadow-xl hover:shadow-2xl transition">
-            <div className="flex items-center space-x-3 mb-4">
-              <MapPin className="w-6 h-6 text-red-400" />
-              <h2 className="text-xl font-semibold text-white">Locations</h2>
-            </div>
-            <div className="space-y-4">
-              {locations.map((location, index) => (
-                <div key={index} className="flex items-start space-x-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-red-500 to-pink-500 flex items-center justify-center flex-shrink-0">
-                    <span className="text-white font-bold text-sm">
-                      {location.person.charAt(0)}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="text-white font-medium">{location.person}</p>
-                    <p className="text-gray-400 text-sm">
-                      {location.city}, {location.country}
-                    </p>
-                  </div>
-                </div>
-              ))}
-              <div className="mt-4 bg-gray-900/50 rounded-lg p-3 border border-gray-700">
-                <div className="w-full h-32 bg-gradient-to-br from-blue-900/30 to-cyan-900/30 rounded flex items-center justify-center">
-                  <MapPin className="w-8 h-8 text-gray-600" />
-                </div>
-              </div>
-            </div>
+          {/* BOX 3: Most Recent Message */}
+          <div className={`${InfoBoxStyle} order-3`}>
+            <MessageBox />
           </div>
 
-          <div className="bg-gradient-to-br from-gray-800/80 to-gray-900/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 shadow-xl hover:shadow-2xl transition md:col-span-2 lg:col-span-3">
-            <div className="flex items-center space-x-3 mb-4">
-              <MessageSquare className="w-6 h-6 text-cyan-400" />
-              <h2 className="text-xl font-semibold text-white">Recent Message</h2>
+          {/* BOX 4 - 9: Navigation Buttons (Below Info Boxes) */}
+          {navButtons.map((button, index) => (
+            // Order 4 through 9 ensures they follow Box 1, 2, 3
+            <div key={index} className={`order-${index + 4}`}>
+              <ButtonBox {...button} />
             </div>
-            <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700">
-              <div className="flex items-start justify-between mb-2">
-                <div className="flex items-center space-x-2">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
-                    <span className="text-white font-bold text-sm">
-                      {recentMessage.from.charAt(0)}
-                    </span>
-                  </div>
-                  <div>
-                    <p className="text-white font-medium">
-                      {recentMessage.from} → {recentMessage.to}
-                    </p>
-                    <p className="text-gray-400 text-xs">{recentMessage.time}</p>
-                  </div>
-                </div>
-              </div>
-              <p className="text-gray-300 ml-12">{recentMessage.message}</p>
-            </div>
-          </div>
+          ))}
+
         </div>
       </div>
     </div>
