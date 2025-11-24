@@ -219,20 +219,25 @@ export default function Messages() {
         });
       }
 
-      const constraints = isVideo
-        ? {
-            video: { facingMode },
-            audio: true
-          }
-        : { audio: true };
+      // Use existing stream if already active (for video), otherwise get new stream (for voice)
+      let stream = streamRef.current;
 
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      streamRef.current = stream;
+      if (!stream) {
+        const constraints = isVideo
+          ? {
+              video: { facingMode },
+              audio: true
+            }
+          : { audio: true };
 
-      // Show video preview for video recording
-      if (isVideo && videoPreviewRef.current) {
-        videoPreviewRef.current.srcObject = stream;
-        videoPreviewRef.current.play();
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
+        streamRef.current = stream;
+
+        // Show video preview for video recording
+        if (isVideo && videoPreviewRef.current) {
+          videoPreviewRef.current.srcObject = stream;
+          videoPreviewRef.current.play();
+        }
       }
 
       const mimeType = isVideo
@@ -434,13 +439,13 @@ export default function Messages() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Start camera for photo capture
-  const startCamera = async () => {
+  // Start camera for photo capture or video preview
+  const startCamera = async (withAudio: boolean = false) => {
     try {
       setPermissionError(null);
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode },
-        audio: false
+        audio: withAudio
       });
       streamRef.current = stream;
 
@@ -452,7 +457,9 @@ export default function Messages() {
       setIsCameraActive(true);
     } catch (error) {
       console.error('Error accessing camera:', error);
-      setPermissionError('Camera access denied. Please enable camera permissions.');
+      setPermissionError(withAudio
+        ? 'Camera/microphone access denied. Please enable permissions.'
+        : 'Camera access denied. Please enable camera permissions.');
     }
   };
 
@@ -848,9 +855,11 @@ export default function Messages() {
                         // Set the new message type
                         setNewMessageType(option.type as any);
 
-                        // Start camera automatically for image mode
+                        // Start camera automatically for image and video modes
                         if (option.type === 'image') {
-                          setTimeout(() => startCamera(), 100);
+                          setTimeout(() => startCamera(false), 100);
+                        } else if (option.type === 'video') {
+                          setTimeout(() => startCamera(true), 100);
                         }
                       }}
                       className={`flex-1 py-2 rounded-lg text-sm transition ${
@@ -994,9 +1003,19 @@ export default function Messages() {
                       </div>
                     )}
 
-                    {!isRecording && !recordedBlob && !countdown && (
+                    {!isRecording && !recordedBlob && !countdown && isCameraActive && (
                       <div className="space-y-3">
+                        {/* Camera Preview with Start Recording button */}
                         <div className="bg-gray-800 rounded-lg p-4">
+                          <div className="relative mb-4 bg-black rounded-lg overflow-hidden" style={{ aspectRatio: '16/9' }}>
+                            <video
+                              ref={videoPreviewRef}
+                              autoPlay
+                              muted
+                              playsInline
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
                           <button
                             onClick={startRecording}
                             className="w-full py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg font-medium hover:from-blue-600 hover:to-cyan-600 transition flex items-center justify-center"
@@ -1005,6 +1024,22 @@ export default function Messages() {
                             Start Recording
                           </button>
                         </div>
+                        <button
+                          onClick={switchCameraPhoto}
+                          className="w-full py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg text-sm transition flex items-center justify-center"
+                        >
+                          {facingMode === 'user' ? (
+                            <>
+                              <Camera className="w-4 h-4 mr-2" />
+                              Switch to Back Camera
+                            </>
+                          ) : (
+                            <>
+                              <User className="w-4 h-4 mr-2" />
+                              Switch to Selfie Camera
+                            </>
+                          )}
+                        </button>
                         <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
                           <p className="text-yellow-400 text-xs text-center">
                             ⚠️ Videos will automatically stop recording after 60 seconds
