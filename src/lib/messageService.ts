@@ -242,28 +242,10 @@ function findAvailablePosition(
 export async function createMessage(messageData: CreateMessageData): Promise<Message> {
   console.log('[messageService] createMessage called:', messageData);
 
-  // Calculate smart position if viewport and existing messages are provided
-  let positionX: number;
-  let positionY: number;
-
-  if (messageData.position_x !== undefined && messageData.position_y !== undefined) {
-    // Use explicitly provided position
-    positionX = messageData.position_x;
-    positionY = messageData.position_y;
-  } else if (messageData.viewportWidth && messageData.viewportHeight && messageData.existingMessages) {
-    // Use smart positioning algorithm
-    const position = findAvailablePosition(
-      messageData.existingMessages,
-      messageData.viewportWidth,
-      messageData.viewportHeight
-    );
-    positionX = position.x;
-    positionY = position.y;
-  } else {
-    // Fallback to random position (legacy behavior)
-    positionX = Math.floor(Math.random() * 580 + 20);
-    positionY = Math.floor(Math.random() * 480 + 20);
-  }
+  // Use grid-based positioning now - positions are just placeholders for database schema
+  // Actual positioning is handled by CSS Grid in the UI
+  const positionX = messageData.position_x ?? 0;
+  const positionY = messageData.position_y ?? 0;
 
   const { data, error } = await supabase
     .from('messages')
