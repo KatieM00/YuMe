@@ -1,8 +1,7 @@
 import {
   useState,
   useEffect,
-  useMemo,
-  ComponentType
+  useMemo
 } from 'react';
 import {
   Clock,
@@ -13,46 +12,11 @@ import {
   Image,
   Mail,
   Tv,
-  HeartHandshake,
-  LayoutDashboard
+  HeartHandshake
 } from 'lucide-react';
 
 // =========================================================================
-// 1. PLACEHOLDER COMPONENTS FOR PAGE NAVIGATION
-// =========================================================================
-
-type PageProps = {
-    title: string;
-    icon: ComponentType<{ className: string }>;
-    setPage: (page: string) => void;
-};
-
-const PagePlaceholder = ({ title, icon: Icon, setPage }: PageProps) => (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] p-8 bg-gray-800 rounded-2xl shadow-2xl border border-gray-700">
-        <Icon className="w-16 h-16 text-white mb-4 opacity-70" />
-        <h2 className="3xl font-bold text-white mb-4">{title}</h2>
-        <p className="text-gray-400 text-lg text-center">
-            This is the content area for the {title}.
-        </p>
-        <button 
-            onClick={() => setPage('dashboard')} 
-            className="mt-6 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm transition-colors"
-        >
-            Back to Dashboard
-        </button>
-    </div>
-);
-
-const MusicPage = ({ setPage }: { setPage: (page: string) => void }) => <PagePlaceholder title="Music Page" icon={Music} setPage={setPage} />;
-const MapPage = ({ setPage }: { setPage: (page: string) => void }) => <PagePlaceholder title="Map Page" icon={Map} setPage={setPage} />;
-const AlbumPage = ({ setPage }: { setPage: (page: string) => void }) => <PagePlaceholder title="Album Page" icon={Image} setPage={setPage} />;
-const InboxPage = ({ setPage }: { setPage: (page: string) => void }) => <PagePlaceholder title="Inbox Page" icon={Mail} setPage={setPage} />;
-const WatchingPage = ({ setPage }: { setPage: (page: string) => void }) => <PagePlaceholder title="Watching Page" icon={Tv} setPage={setPage} />;
-const HopesPage = ({ setPage }: { setPage: (page: string) => void }) => <PagePlaceholder title="Future Hopes Page" icon={HeartHandshake} setPage={setPage} />;
-
-
-// =========================================================================
-// 2. DASHBOARD CONTENT (THE MAIN GRID)
+// DASHBOARD CONTENT
 // =========================================================================
 
 type DashboardProps = {
@@ -173,12 +137,12 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
   );
 
   const navButtons = [
-    { id: 'music', name: 'Music Page', icon: Music, color: 'text-pink-400', bg: 'bg-pink-900/40' },
-    { id: 'map', name: 'Map Page', icon: Map, color: 'text-red-400', bg: 'bg-red-900/40' },
-    { id: 'album', name: 'Album Page', icon: Image, color: 'text-orange-400', bg: 'bg-orange-900/40' },
-    { id: 'inbox', name: 'Inbox Page', icon: Mail, color: 'text-yellow-400', bg: 'bg-yellow-900/40' },
-    { id: 'watching', name: 'Watching Page', icon: Tv, color: 'text-lime-400', bg: 'bg-lime-900/40' },
-    { id: 'hopes', name: 'Future Hopes Page', icon: HeartHandshake, color: 'text-fuchsia-400', bg: 'bg-fuchsia-900/40' },
+    { id: 'mixtape', name: 'Mixtape', icon: Music, color: 'text-pink-400', bg: 'bg-pink-900/40' },
+    { id: 'map', name: 'Map', icon: Map, color: 'text-red-400', bg: 'bg-red-900/40' },
+    { id: 'images', name: 'Album', icon: Image, color: 'text-orange-400', bg: 'bg-orange-900/40' },
+    { id: 'messages', name: 'Messages', icon: Mail, color: 'text-yellow-400', bg: 'bg-yellow-900/40' },
+    { id: 'watching', name: 'Watching', icon: Tv, color: 'text-lime-400', bg: 'bg-lime-900/40' },
+    { id: 'future-hopes', name: 'Future Hopes', icon: HeartHandshake, color: 'text-fuchsia-400', bg: 'bg-fuchsia-900/40' },
   ];
 
   const ButtonBox = ({ id, name, icon: Icon, color, bg }: typeof navButtons[0]) => (
@@ -211,38 +175,14 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
 }
 
 // =========================================================================
-// 3. MAIN APP (ROOT COMPONENT WITH ROUTING)
+// MAIN DASHBOARD COMPONENT
 // =========================================================================
 
-export default function App() {
-    const [page, setPage] = useState('dashboard');
-
-    const renderPage = () => {
-        const pageProps = { setPage };
-
-        switch (page) {
-            case 'music':
-                return <MusicPage {...pageProps} />;
-            case 'map':
-                return <MapPage {...pageProps} />;
-            case 'album':
-                return <AlbumPage {...pageProps} />;
-            case 'inbox':
-                return <InboxPage {...pageProps} />;
-            case 'watching':
-                return <WatchingPage {...pageProps} />;
-            case 'hopes':
-                return <HopesPage {...pageProps} />;
-            case 'dashboard':
-            default:
-                return <DashboardContent setPage={setPage} />;
-        }
-    };
-    
+export default function Dashboard({ setCurrentPage }: { setCurrentPage: (page: string) => void }) {
     return (
-        <div className="min-h-screen p-4 md:p-8 bg-gray-950 text-white font-sans">
+        <div className="min-h-screen p-4 md:p-8">
             <div className="max-w-7xl mx-auto">
-                {renderPage()}
+                <DashboardContent setPage={setCurrentPage} />
             </div>
         </div>
     );

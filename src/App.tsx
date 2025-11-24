@@ -38,7 +38,7 @@ function App() {
   const renderPage = () => {
     switch (currentPage) {
       case 'dashboard':
-        return <Dashboard />;
+        return <Dashboard setCurrentPage={setCurrentPage} />;
       case 'mixtape':
         return <Mixtape />;
       case 'map':
@@ -52,7 +52,7 @@ function App() {
       case 'future-hopes':
         return <FutureHopes />;
       default:
-        return <Dashboard />;
+        return <Dashboard setCurrentPage={setCurrentPage} />;
     }
   };
 
