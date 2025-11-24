@@ -34,7 +34,6 @@ export default function Watching() {
 
   // Detail modal states
   const [selectedItem, setSelectedItem] = useState<WatchingItem | null>(null);
-  const [hoveredItem, setHoveredItem] = useState<WatchingItem | null>(null);
 
   // Load watching items
   const loadWatchingItems = async () => {
@@ -270,7 +269,6 @@ export default function Watching() {
                     key={item.id}
                     item={item}
                     onSelect={setSelectedItem}
-                    onHover={setHoveredItem}
                     getDisplayRating={getDisplayRating}
                   />
                 ))}
@@ -288,7 +286,6 @@ export default function Watching() {
                     key={item.id}
                     item={item}
                     onSelect={setSelectedItem}
-                    onHover={setHoveredItem}
                     getDisplayRating={getDisplayRating}
                   />
                 ))}
@@ -306,7 +303,6 @@ export default function Watching() {
                     key={item.id}
                     item={item}
                     onSelect={setSelectedItem}
-                    onHover={setHoveredItem}
                     getDisplayRating={getDisplayRating}
                   />
                 ))}
@@ -398,14 +394,6 @@ export default function Watching() {
           />
         )}
 
-        {/* Hover Tooltip */}
-        {hoveredItem && (
-          <HoverTooltip
-            item={hoveredItem}
-            formatRuntime={formatRuntime}
-            formatDate={formatDate}
-          />
-        )}
       </div>
     </div>
   );
@@ -415,12 +403,10 @@ export default function Watching() {
 function WatchingCard({
   item,
   onSelect,
-  onHover,
   getDisplayRating,
 }: {
   item: WatchingItem;
   onSelect: (item: WatchingItem) => void;
-  onHover: (item: WatchingItem | null) => void;
   getDisplayRating: (item: WatchingItem) => { rating: number; source: 'user' | 'tmdb' };
 }) {
   const displayRating = getDisplayRating(item);
@@ -430,8 +416,6 @@ function WatchingCard({
     <div
       className="group cursor-pointer relative"
       onClick={() => onSelect(item)}
-      onMouseEnter={() => onHover(item)}
-      onMouseLeave={() => onHover(null)}
     >
       <div className="aspect-[2/3] rounded-lg overflow-hidden relative shadow-lg group-hover:shadow-2xl transition-all duration-300">
         {item.poster_path ? (
@@ -810,49 +794,3 @@ function DetailModal({
   );
 }
 
-// Hover Tooltip Component (appears near cursor)
-function HoverTooltip({
-  item,
-  formatRuntime,
-  formatDate,
-}: {
-  item: WatchingItem;
-  formatRuntime: (minutes: number | null) => string;
-  formatDate: (date: string | null) => string;
-}) {
-  return (
-    <div className="fixed bottom-4 left-4 bg-gray-900 border border-gray-700 rounded-lg p-4 shadow-2xl z-40 max-w-sm">
-      <div className="flex items-start space-x-1 mb-2">
-        <span className="text-xs text-gray-500 uppercase">
-          {item.media_type === 'movie' ? 'Movie' : 'Series'}
-        </span>
-      </div>
-      <h3 className="text-white font-bold text-lg mb-2">{item.title}</h3>
-      <div className="space-y-1 text-sm text-gray-400">
-        <div className="flex items-center space-x-2">
-          <Clock className="w-4 h-4" />
-          <span>
-            {item.runtime
-              ? item.media_type === 'tv'
-                ? `${item.runtime}m/ep avg`
-                : formatRuntime(item.runtime)
-              : 'N/A'}
-          </span>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Calendar className="w-4 h-4" />
-          <span>{formatDate(item.release_date)}</span>
-        </div>
-        {item.genres.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-2">
-            {item.genres.slice(0, 3).map((genre) => (
-              <span key={genre} className="px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded text-xs">
-                {genre}
-              </span>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
