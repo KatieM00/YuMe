@@ -149,19 +149,11 @@ export default function Messages() {
   const addNewMessage = async () => {
     if (newMessageContent.trim() && wordCount <= MAX_WORDS) {
       try {
-        // Get current dashboard messages for collision detection
-        const dashboardMsgs = messages.filter(
-          (msg) => msg.status === 'active' || msg.status === 'pinned'
-        );
-
         await createMessage({
           from_user: 'You',
           to_user: 'Them',
           type: newMessageType,
           content: newMessageContent,
-          viewportWidth: window.innerWidth,
-          viewportHeight: window.innerHeight,
-          existingMessages: dashboardMsgs,
         });
         setNewMessageContent('');
         setShowNewMessage(false);
@@ -346,11 +338,6 @@ export default function Messages() {
       // Upload to Supabase Storage
       const { path, url } = await uploadMessageMedia(file);
 
-      // Get current dashboard messages for collision detection
-      const dashboardMsgs = messages.filter(
-        (msg) => msg.status === 'active' || msg.status === 'pinned'
-      );
-
       // Create message with media URL
       await createMessage({
         from_user: 'You',
@@ -359,9 +346,6 @@ export default function Messages() {
         content: `${newMessageType === 'video' ? 'Video' : 'Voice'} message`,
         media_url: url,
         storage_path: path,
-        viewportWidth: window.innerWidth,
-        viewportHeight: window.innerHeight,
-        existingMessages: dashboardMsgs,
       });
 
       // Reset recording state
@@ -545,11 +529,6 @@ export default function Messages() {
       // Upload to Supabase Storage
       const { path, url } = await uploadMessageMedia(file);
 
-      // Get current dashboard messages for collision detection
-      const dashboardMsgs = messages.filter(
-        (msg) => msg.status === 'active' || msg.status === 'pinned'
-      );
-
       // Create message with image URL
       await createMessage({
         from_user: 'You',
@@ -558,9 +537,6 @@ export default function Messages() {
         content: 'Photo message',
         media_url: url,
         storage_path: path,
-        viewportWidth: window.innerWidth,
-        viewportHeight: window.innerHeight,
-        existingMessages: dashboardMsgs,
       });
 
       // Reset state
@@ -793,18 +769,10 @@ export default function Messages() {
           </div>
         )}
 
-        {/* Desktop: Scattered absolute positioning */}
-        <div className="hidden md:block relative">
+        {/* Desktop: Flexible Grid Layout */}
+        <div className="hidden md:grid grid-cols-3 gap-6 auto-rows-min">
           {dashboardMessages.map((message) => (
-            <div
-              key={message.id}
-              className="absolute"
-              style={{
-                left: `${message.position_x}px`,
-                top: `${message.position_y}px`,
-                zIndex: 1,
-              }}
-            >
+            <div key={message.id} className="flex justify-center items-start">
               {renderMessageCard(message)}
             </div>
           ))}
