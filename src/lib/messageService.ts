@@ -138,10 +138,10 @@ export async function getAllMessages(): Promise<Message[]> {
 /**
  * Message positioning constants
  */
-const MESSAGE_CARD_WIDTH = 384; // max-w-sm in pixels
-const MESSAGE_CARD_HEIGHT = 320; // approximate height including content
-const MIN_SPACING = 20; // minimum spacing between messages
-const PADDING = 20; // padding from screen edges
+const MESSAGE_CARD_WIDTH = 320; // max-w-xs in pixels (20rem)
+const MESSAGE_CARD_HEIGHT = 180; // Compact height estimate
+const MIN_SPACING = 40; // Increased spacing between messages for better separation
+const PADDING = 40; // Increased padding from screen edges
 
 /**
  * Check if two rectangles collide
@@ -167,12 +167,18 @@ function findAvailablePosition(
   viewportWidth: number,
   viewportHeight: number
 ): { x: number; y: number } {
+  console.log('[findAvailablePosition] Starting with:', {
+    existingCount: existingMessages.length,
+    viewport: { width: viewportWidth, height: viewportHeight },
+    existingPositions: existingMessages.map(m => ({ id: m.id, x: m.position_x, y: m.position_y }))
+  });
+
   const maxX = viewportWidth - MESSAGE_CARD_WIDTH - PADDING;
   const maxY = viewportHeight - MESSAGE_CARD_HEIGHT - PADDING;
 
   // Ensure we have valid boundaries
   if (maxX < PADDING || maxY < PADDING) {
-    // Viewport too small, return default position
+    console.log('[findAvailablePosition] Viewport too small, using default position');
     return { x: PADDING, y: PADDING };
   }
 
@@ -189,11 +195,13 @@ function findAvailablePosition(
         msg.position_x, msg.position_y, MESSAGE_CARD_WIDTH, MESSAGE_CARD_HEIGHT
       )) {
         hasCollision = true;
+        console.log(`[findAvailablePosition] Attempt ${attempt + 1}: Collision at (${x}, ${y}) with message at (${msg.position_x}, ${msg.position_y})`);
         break;
       }
     }
 
     if (!hasCollision) {
+      console.log(`[findAvailablePosition] Found position after ${attempt + 1} attempts:`, { x, y });
       return { x, y };
     }
   }

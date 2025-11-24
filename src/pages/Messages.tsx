@@ -608,7 +608,7 @@ export default function Messages() {
     const messageReactionEmojis = getMessageReactionEmojis(message);
 
     return (
-      <div className="bg-gray-800 border-2 border-gray-600 rounded-lg shadow-2xl max-w-sm w-full">
+      <div className="bg-gray-800 border-2 border-gray-600 rounded-lg shadow-2xl max-w-xs w-full">
         <div className="bg-gradient-to-r from-blue-600 to-cyan-600 px-4 py-2 rounded-t-md flex items-center justify-between cursor-move">
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 rounded-full bg-red-500"></div>
