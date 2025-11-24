@@ -201,24 +201,6 @@ export default function Messages() {
       setPermissionError(null);
       const isVideo = newMessageType === 'video';
 
-      // For video recording, show countdown first
-      if (isVideo) {
-        setCountdown(3);
-        await new Promise<void>((resolve) => {
-          let count = 3;
-          const countdownInterval = setInterval(() => {
-            count--;
-            if (count > 0) {
-              setCountdown(count);
-            } else {
-              setCountdown(null);
-              clearInterval(countdownInterval);
-              resolve();
-            }
-          }, 1000);
-        });
-      }
-
       // Use existing stream if already active (for video), otherwise get new stream (for voice)
       let stream = streamRef.current;
 
@@ -232,12 +214,13 @@ export default function Messages() {
 
         stream = await navigator.mediaDevices.getUserMedia(constraints);
         streamRef.current = stream;
+      }
 
-        // Show video preview for video recording
-        if (isVideo && videoPreviewRef.current) {
-          videoPreviewRef.current.srcObject = stream;
-          videoPreviewRef.current.play();
-        }
+      // Always attach stream to video element for video recording
+      // (Re-attach in case the video element was remounted during state transition)
+      if (isVideo && videoPreviewRef.current && stream) {
+        videoPreviewRef.current.srcObject = stream;
+        videoPreviewRef.current.play();
       }
 
       const mimeType = isVideo
@@ -281,7 +264,6 @@ export default function Messages() {
       }, 1000);
     } catch (error) {
       console.error('Error accessing media devices:', error);
-      setCountdown(null);
       setPermissionError(
         newMessageType === 'video'
           ? 'Camera/microphone access denied. Please enable permissions.'
@@ -1003,7 +985,7 @@ export default function Messages() {
                       </div>
                     )}
 
-                    {!isRecording && !recordedBlob && !countdown && (
+                    {!isRecording && !recordedBlob && (
                       <div className="space-y-3">
                         {/* Camera Preview with Start Recording button */}
                         <div className="bg-gray-800 rounded-lg p-4">
@@ -1044,17 +1026,6 @@ export default function Messages() {
                           <p className="text-yellow-400 text-xs text-center">
                             ⚠️ Videos will automatically stop recording after 60 seconds
                           </p>
-                        </div>
-                      </div>
-                    )}
-
-                    {countdown !== null && (
-                      <div className="py-12 flex items-center justify-center bg-gray-800 rounded-lg">
-                        <div className="text-center">
-                          <div className="text-8xl font-bold text-blue-400 mb-4 animate-pulse">
-                            {countdown}
-                          </div>
-                          <p className="text-gray-400">Get ready...</p>
                         </div>
                       </div>
                     )}
