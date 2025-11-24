@@ -769,10 +769,10 @@ export default function Messages() {
           </div>
         )}
 
-        {/* Desktop: Flexible Grid Layout */}
-        <div className="hidden md:grid grid-cols-4 lg:grid-cols-5 gap-3 auto-rows-min">
+        {/* Desktop: Flexible Grid Layout with Tight Packing */}
+        <div className="hidden md:flex flex-wrap gap-3">
           {dashboardMessages.map((message) => (
-            <div key={message.id} className="flex justify-center items-start">
+            <div key={message.id} className="flex-shrink-0" style={{ width: '240px' }}>
               {renderMessageCard(message)}
             </div>
           ))}
