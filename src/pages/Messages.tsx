@@ -1003,7 +1003,7 @@ export default function Messages() {
                       </div>
                     )}
 
-                    {!isRecording && !recordedBlob && !countdown && isCameraActive && (
+                    {!isRecording && !recordedBlob && !countdown && (
                       <div className="space-y-3">
                         {/* Camera Preview with Start Recording button */}
                         <div className="bg-gray-800 rounded-lg p-4">
