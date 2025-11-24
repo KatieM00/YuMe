@@ -33,6 +33,9 @@ export interface CreateMessageData {
   status?: 'active' | 'dismissed' | 'pinned';
   position_x?: number;
   position_y?: number;
+  viewportWidth?: number;
+  viewportHeight?: number;
+  existingMessages?: Message[];
 }
 
 /**
@@ -133,16 +136,126 @@ export async function getAllMessages(): Promise<Message[]> {
 }
 
 /**
+ * Message positioning constants
+ */
+const MESSAGE_CARD_WIDTH = 384; // max-w-sm in pixels
+const MESSAGE_CARD_HEIGHT = 320; // approximate height including content
+const MIN_SPACING = 20; // minimum spacing between messages
+const PADDING = 20; // padding from screen edges
+
+/**
+ * Check if two rectangles collide
+ */
+function checkCollision(
+  x1: number, y1: number, w1: number, h1: number,
+  x2: number, y2: number, w2: number, h2: number,
+  buffer: number = MIN_SPACING
+): boolean {
+  return !(
+    x1 + w1 + buffer < x2 ||
+    x2 + w2 + buffer < x1 ||
+    y1 + h1 + buffer < y2 ||
+    y2 + h2 + buffer < y1
+  );
+}
+
+/**
+ * Find a non-overlapping position for a new message
+ */
+function findAvailablePosition(
+  existingMessages: Message[],
+  viewportWidth: number,
+  viewportHeight: number
+): { x: number; y: number } {
+  const maxX = viewportWidth - MESSAGE_CARD_WIDTH - PADDING;
+  const maxY = viewportHeight - MESSAGE_CARD_HEIGHT - PADDING;
+
+  // Ensure we have valid boundaries
+  if (maxX < PADDING || maxY < PADDING) {
+    // Viewport too small, return default position
+    return { x: PADDING, y: PADDING };
+  }
+
+  // Try random positions up to 20 times
+  for (let attempt = 0; attempt < 20; attempt++) {
+    const x = Math.floor(Math.random() * (maxX - PADDING) + PADDING);
+    const y = Math.floor(Math.random() * (maxY - PADDING) + PADDING);
+
+    // Check if this position collides with any existing message
+    let hasCollision = false;
+    for (const msg of existingMessages) {
+      if (checkCollision(
+        x, y, MESSAGE_CARD_WIDTH, MESSAGE_CARD_HEIGHT,
+        msg.position_x, msg.position_y, MESSAGE_CARD_WIDTH, MESSAGE_CARD_HEIGHT
+      )) {
+        hasCollision = true;
+        break;
+      }
+    }
+
+    if (!hasCollision) {
+      return { x, y };
+    }
+  }
+
+  // If all random attempts failed, use grid-based placement
+  const cols = Math.floor((viewportWidth - 2 * PADDING) / (MESSAGE_CARD_WIDTH + MIN_SPACING));
+  const rows = Math.floor((viewportHeight - 2 * PADDING) / (MESSAGE_CARD_HEIGHT + MIN_SPACING));
+
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
+      const x = PADDING + col * (MESSAGE_CARD_WIDTH + MIN_SPACING);
+      const y = PADDING + row * (MESSAGE_CARD_HEIGHT + MIN_SPACING);
+
+      let hasCollision = false;
+      for (const msg of existingMessages) {
+        if (checkCollision(
+          x, y, MESSAGE_CARD_WIDTH, MESSAGE_CARD_HEIGHT,
+          msg.position_x, msg.position_y, MESSAGE_CARD_WIDTH, MESSAGE_CARD_HEIGHT
+        )) {
+          hasCollision = true;
+          break;
+        }
+      }
+
+      if (!hasCollision) {
+        return { x, y };
+      }
+    }
+  }
+
+  // Last resort: place at top-left with padding
+  return { x: PADDING, y: PADDING };
+}
+
+/**
  * Create a new message
  */
 export async function createMessage(messageData: CreateMessageData): Promise<Message> {
   console.log('[messageService] createMessage called:', messageData);
 
-  // Generate random position with better distribution
-  // X: 20px to 600px (wider horizontal spread)
-  // Y: 20px to 500px (wider vertical spread)
-  const randomX = messageData.position_x ?? Math.floor(Math.random() * 580 + 20);
-  const randomY = messageData.position_y ?? Math.floor(Math.random() * 480 + 20);
+  // Calculate smart position if viewport and existing messages are provided
+  let positionX: number;
+  let positionY: number;
+
+  if (messageData.position_x !== undefined && messageData.position_y !== undefined) {
+    // Use explicitly provided position
+    positionX = messageData.position_x;
+    positionY = messageData.position_y;
+  } else if (messageData.viewportWidth && messageData.viewportHeight && messageData.existingMessages) {
+    // Use smart positioning algorithm
+    const position = findAvailablePosition(
+      messageData.existingMessages,
+      messageData.viewportWidth,
+      messageData.viewportHeight
+    );
+    positionX = position.x;
+    positionY = position.y;
+  } else {
+    // Fallback to random position (legacy behavior)
+    positionX = Math.floor(Math.random() * 580 + 20);
+    positionY = Math.floor(Math.random() * 480 + 20);
+  }
 
   const { data, error } = await supabase
     .from('messages')
@@ -154,8 +267,8 @@ export async function createMessage(messageData: CreateMessageData): Promise<Mes
       media_url: messageData.media_url || null,
       storage_path: messageData.storage_path || null,
       status: messageData.status || 'active',
-      position_x: randomX,
-      position_y: randomY,
+      position_x: positionX,
+      position_y: positionY,
     })
     .select()
     .single();
