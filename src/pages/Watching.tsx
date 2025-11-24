@@ -271,6 +271,7 @@ export default function Watching() {
                     item={item}
                     onSelect={setSelectedItem}
                     onHover={setHoveredItem}
+                    getDisplayRating={getDisplayRating}
                   />
                 ))}
               </div>
@@ -288,6 +289,7 @@ export default function Watching() {
                     item={item}
                     onSelect={setSelectedItem}
                     onHover={setHoveredItem}
+                    getDisplayRating={getDisplayRating}
                   />
                 ))}
               </div>
@@ -305,6 +307,7 @@ export default function Watching() {
                     item={item}
                     onSelect={setSelectedItem}
                     onHover={setHoveredItem}
+                    getDisplayRating={getDisplayRating}
                   />
                 ))}
               </div>
@@ -413,11 +416,16 @@ function WatchingCard({
   item,
   onSelect,
   onHover,
+  getDisplayRating,
 }: {
   item: WatchingItem;
   onSelect: (item: WatchingItem) => void;
   onHover: (item: WatchingItem | null) => void;
+  getDisplayRating: (item: WatchingItem) => { rating: number; source: 'user' | 'tmdb' };
 }) {
+  const displayRating = getDisplayRating(item);
+  const fullStars = Math.floor(displayRating.rating);
+
   return (
     <div
       className="group cursor-pointer relative"
@@ -425,7 +433,7 @@ function WatchingCard({
       onMouseEnter={() => onHover(item)}
       onMouseLeave={() => onHover(null)}
     >
-      <div className="aspect-[2/3] rounded-lg overflow-hidden relative shadow-lg group-hover:shadow-2xl group-hover:scale-105 transition-all duration-300">
+      <div className="aspect-[2/3] rounded-lg overflow-hidden relative shadow-lg group-hover:shadow-2xl transition-all duration-300">
         {item.poster_path ? (
           <img
             src={getPosterUrl(item.poster_path, 'w342')}
@@ -442,13 +450,69 @@ function WatchingCard({
           </div>
         )}
 
-        {/* Type Badge */}
-        <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm px-2 py-0.5 rounded text-[10px] text-white font-medium">
+        {/* Type Badge - Top Right */}
+        <div className={`absolute top-2 right-2 backdrop-blur-sm px-2 py-0.5 rounded text-[10px] font-bold ${
+          item.media_type === 'movie'
+            ? 'bg-red-500 text-white'
+            : 'bg-blue-500 text-white'
+        }`}>
           {item.media_type === 'movie' ? 'MOVIE' : 'SERIES'}
         </div>
 
-        {/* Hover Overlay */}
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-300" />
+        {/* Rating Badge - Bottom Left */}
+        <div className="absolute bottom-2 left-2 bg-black/70 backdrop-blur-sm px-2 py-1 rounded flex items-center space-x-1">
+          {Array.from({ length: fullStars }).map((_, i) => (
+            <Star
+              key={i}
+              className={`w-3 h-3 ${
+                displayRating.source === 'user'
+                  ? 'text-orange-400 fill-orange-400'
+                  : 'text-yellow-400 fill-yellow-400'
+              }`}
+            />
+          ))}
+          <span className={`text-xs font-medium ${
+            displayRating.source === 'user' ? 'text-orange-400' : 'text-yellow-400'
+          }`}>
+            {displayRating.rating.toFixed(1)}
+          </span>
+        </div>
+
+        {/* Hover Overlay - Similar to Album page */}
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition flex items-center justify-center">
+          <div className="opacity-0 group-hover:opacity-100 transition text-white text-center p-4">
+            <p className="text-sm font-bold mb-2">{item.title}</p>
+            <p className="text-xs text-gray-300 mb-1">
+              {item.media_type === 'movie' ? 'Movie' : 'Series'}
+            </p>
+            {item.runtime && (
+              <div className="flex items-center justify-center space-x-1 mb-1">
+                <Clock className="w-3 h-3" />
+                <p className="text-xs">
+                  {item.media_type === 'tv'
+                    ? `${item.runtime}m/ep`
+                    : (() => {
+                        const hours = Math.floor(item.runtime / 60);
+                        const mins = item.runtime % 60;
+                        return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+                      })()
+                  }
+                </p>
+              </div>
+            )}
+            {item.genres.length > 0 && (
+              <p className="text-xs text-gray-300 mb-1">{item.genres.slice(0, 2).join(', ')}</p>
+            )}
+            {item.release_date && (
+              <div className="flex items-center justify-center space-x-1">
+                <Calendar className="w-3 h-3" />
+                <p className="text-xs text-gray-300">
+                  {new Date(item.release_date).getFullYear()}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -593,30 +657,58 @@ function DetailModal({
               </button>
             </div>
 
-            {/* Rating */}
-            <div className="mb-4">
-              <p className="text-gray-400 text-sm mb-2">
-                {displayRating.source === 'user' ? 'Your Rating' : 'TMDB Rating'}
-              </p>
-              <div className="flex items-center space-x-1">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => onUpdateRating(item.id, i + 1)}
-                    className="transition hover:scale-110"
-                  >
+            {/* Ratings */}
+            <div className="mb-4 space-y-3">
+              {/* TMDB Rating */}
+              <div>
+                <p className="text-gray-400 text-sm mb-2">TMDB Rating</p>
+                <div className="flex items-center space-x-1">
+                  {Array.from({ length: 5 }).map((_, i) => (
                     <Star
-                      className={`w-6 h-6 ${
-                        i < Math.floor(displayRating.rating)
+                      key={i}
+                      className={`w-5 h-5 ${
+                        i < Math.floor((item.tmdb_rating / 10) * 5)
                           ? 'text-yellow-400 fill-yellow-400'
-                          : 'text-gray-600 hover:text-gray-500'
+                          : 'text-gray-600'
                       }`}
                     />
-                  </button>
-                ))}
-                {displayRating.source === 'tmdb' && (
-                  <span className="text-gray-500 text-sm ml-2">({item.tmdb_rating}/10)</span>
-                )}
+                  ))}
+                  <span className="text-gray-400 text-sm ml-2">
+                    {item.tmdb_rating.toFixed(1)}/10
+                  </span>
+                </div>
+              </div>
+
+              {/* Our Rating */}
+              <div>
+                <p className="text-gray-400 text-sm mb-2">Our Rating</p>
+                <div className="flex items-center space-x-1">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => onUpdateRating(item.id, i + 1)}
+                      className="transition hover:scale-110"
+                    >
+                      <Star
+                        className={`w-6 h-6 ${
+                          item.user_rating && i < item.user_rating
+                            ? 'text-orange-400 fill-orange-400'
+                            : 'text-gray-600 hover:text-gray-500'
+                        }`}
+                      />
+                    </button>
+                  ))}
+                  {item.user_rating && (
+                    <span className="text-orange-400 text-sm ml-2 font-medium">
+                      {item.user_rating}/5
+                    </span>
+                  )}
+                  {!item.user_rating && (
+                    <span className="text-gray-500 text-sm ml-2 italic">
+                      Click to rate
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -624,7 +716,13 @@ function DetailModal({
             <div className="grid grid-cols-2 gap-3 mb-4">
               <div className="flex items-center space-x-2 text-gray-300">
                 <Clock className="w-4 h-4 text-gray-500" />
-                <span className="text-sm">{formatRuntime(item.runtime)}</span>
+                <span className="text-sm">
+                  {item.runtime
+                    ? item.media_type === 'tv'
+                      ? `${item.runtime}m/ep avg`
+                      : formatRuntime(item.runtime)
+                    : 'N/A'}
+                </span>
               </div>
               <div className="flex items-center space-x-2 text-gray-300">
                 <Calendar className="w-4 h-4 text-gray-500" />
@@ -733,7 +831,13 @@ function HoverTooltip({
       <div className="space-y-1 text-sm text-gray-400">
         <div className="flex items-center space-x-2">
           <Clock className="w-4 h-4" />
-          <span>{formatRuntime(item.runtime)}</span>
+          <span>
+            {item.runtime
+              ? item.media_type === 'tv'
+                ? `${item.runtime}m/ep avg`
+                : formatRuntime(item.runtime)
+              : 'N/A'}
+          </span>
         </div>
         <div className="flex items-center space-x-2">
           <Calendar className="w-4 h-4" />
