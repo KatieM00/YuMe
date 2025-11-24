@@ -567,50 +567,6 @@ export default function Messages() {
     setPermissionError(null);
   };
 
-  // Start camera preview when video or image mode is selected
-  useEffect(() => {
-    const startCameraPreview = async () => {
-      const shouldShowPreview =
-        showNewMessage &&
-        (newMessageType === 'video' || newMessageType === 'image') &&
-        !isRecording &&
-        !recordedBlob &&
-        !countdown &&
-        !capturedImage;
-
-      if (shouldShowPreview) {
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode },
-            audio: false // Just preview, no audio needed yet
-          });
-          streamRef.current = stream;
-
-          if (videoPreviewRef.current) {
-            videoPreviewRef.current.srcObject = stream;
-            videoPreviewRef.current.play();
-          }
-
-          if (newMessageType === 'image') {
-            setIsCameraActive(true);
-          }
-        } catch (error) {
-          console.error('Error starting camera preview:', error);
-          setPermissionError('Camera access denied. Please enable camera permissions.');
-        }
-      } else if ((newMessageType !== 'video' && newMessageType !== 'image') || !showNewMessage) {
-        // Stop preview if not in video/image mode
-        if (streamRef.current && !isRecording) {
-          streamRef.current.getTracks().forEach((track) => track.stop());
-          streamRef.current = null;
-          setIsCameraActive(false);
-        }
-      }
-    };
-
-    startCameraPreview();
-  }, [showNewMessage, newMessageType, isRecording, recordedBlob, countdown, facingMode, capturedImage]);
-
   // Cleanup on unmount or when closing modal
   useEffect(() => {
     return () => {
@@ -620,7 +576,7 @@ export default function Messages() {
         URL.revokeObjectURL(recordedUrl);
       }
     };
-  }, [recordedUrl]);
+  }, []); // Empty dependency array ensures cleanup always runs on unmount
 
   // Filter messages for dashboard: only active and pinned
   const dashboardMessages = messages.filter(
@@ -862,7 +818,12 @@ export default function Messages() {
                   <span className="text-white font-medium ml-2">New Message</span>
                 </div>
                 <button
-                  onClick={() => setShowNewMessage(false)}
+                  onClick={() => {
+                    setShowNewMessage(false);
+                    // Clean up camera and recording when closing modal
+                    cancelRecording();
+                    cancelPhoto();
+                  }}
                   className="w-6 h-6 flex items-center justify-center hover:bg-white/20 rounded transition"
                 >
                   <X className="w-4 h-4 text-white" />
@@ -880,9 +841,17 @@ export default function Messages() {
                     <button
                       key={option.type}
                       onClick={() => {
-                        setNewMessageType(option.type as any);
+                        // Clean up any active recording or camera first
                         cancelRecording();
                         cancelPhoto();
+
+                        // Set the new message type
+                        setNewMessageType(option.type as any);
+
+                        // Start camera automatically for image mode
+                        if (option.type === 'image') {
+                          setTimeout(() => startCamera(), 100);
+                        }
                       }}
                       className={`flex-1 py-2 rounded-lg text-sm transition ${
                         newMessageType === option.type
@@ -1027,17 +996,7 @@ export default function Messages() {
 
                     {!isRecording && !recordedBlob && !countdown && (
                       <div className="space-y-3">
-                        {/* Video Preview */}
                         <div className="bg-gray-800 rounded-lg p-4">
-                          <div className="relative mb-4 bg-black rounded-lg overflow-hidden" style={{ aspectRatio: '16/9' }}>
-                            <video
-                              ref={videoPreviewRef}
-                              autoPlay
-                              muted
-                              playsInline
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
                           <button
                             onClick={startRecording}
                             className="w-full py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg font-medium hover:from-blue-600 hover:to-cyan-600 transition flex items-center justify-center"
@@ -1051,22 +1010,6 @@ export default function Messages() {
                             ⚠️ Videos will automatically stop recording after 60 seconds
                           </p>
                         </div>
-                        <button
-                          onClick={switchCamera}
-                          className="w-full py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg text-sm transition flex items-center justify-center"
-                        >
-                          {facingMode === 'user' ? (
-                            <>
-                              <Camera className="w-4 h-4 mr-2" />
-                              Switch to Back Camera
-                            </>
-                          ) : (
-                            <>
-                              <User className="w-4 h-4 mr-2" />
-                              Switch to Selfie Camera
-                            </>
-                          )}
-                        </button>
                       </div>
                     )}
 
