@@ -136,12 +136,12 @@ export async function getAllMessages(): Promise<Message[]> {
 }
 
 /**
- * Message positioning constants
+ * Message positioning constants (legacy - now using CSS Grid)
  */
-const MESSAGE_CARD_WIDTH = 320; // max-w-xs in pixels (20rem)
-const MESSAGE_CARD_HEIGHT = 180; // Compact height estimate
-const MIN_SPACING = 40; // Increased spacing between messages for better separation
-const PADDING = 40; // Increased padding from screen edges
+const MESSAGE_CARD_WIDTH = 240; // max-w-[240px]
+const MESSAGE_CARD_HEIGHT = 140; // Compact card height
+const MIN_SPACING = 12; // Gap between grid items
+const PADDING = 12; // Padding from screen edges
 
 /**
  * Check if two rectangles collide

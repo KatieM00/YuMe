@@ -584,13 +584,13 @@ export default function Messages() {
     const messageReactionEmojis = getMessageReactionEmojis(message);
 
     return (
-      <div className="bg-gray-800 border-2 border-gray-600 rounded-lg shadow-2xl max-w-xs w-full">
-        <div className="bg-gradient-to-r from-blue-600 to-cyan-600 px-4 py-2 rounded-t-md flex items-center justify-between cursor-move">
-          <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 rounded-full bg-red-500"></div>
-            <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-            <div className="w-3 h-3 rounded-full bg-green-500"></div>
-            <span className="text-white text-sm font-medium ml-2">
+      <div className="bg-gray-800 border border-gray-600 rounded-md shadow-lg max-w-[240px] w-full">
+        <div className="bg-gradient-to-r from-blue-600 to-cyan-600 px-2 py-1 rounded-t-md flex items-center justify-between cursor-move">
+          <div className="flex items-center space-x-1">
+            <div className="w-2 h-2 rounded-full bg-red-500"></div>
+            <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+            <span className="text-white text-xs font-medium ml-1">
               {message.from_user} → {message.to_user}
             </span>
           </div>
@@ -616,107 +616,107 @@ export default function Messages() {
           </div>
         </div>
 
-      <div className="p-4 bg-gray-900/95 backdrop-blur-sm">
+      <div className="p-2 bg-gray-900/95 backdrop-blur-sm">
         {message.type === 'text' && (
-          <p className="text-gray-200 mb-3">{message.content}</p>
+          <p className="text-gray-200 text-sm mb-2">{message.content}</p>
         )}
         {message.type === 'voice' && (
-          <div className="mb-3">
+          <div className="mb-2">
             {message.media_url ? (
               <audio
                 controls
                 src={message.media_url}
                 className="w-full"
-                style={{ height: '40px' }}
+                style={{ height: '28px' }}
               />
             ) : (
-              <div className="flex items-center space-x-3 bg-gray-800/50 rounded-lg p-3">
-                <Mic className="w-5 h-5 text-blue-400" />
+              <div className="flex items-center space-x-2 bg-gray-800/50 rounded p-2">
+                <Mic className="w-4 h-4 text-blue-400" />
                 <div className="flex-1 h-1 bg-gray-700 rounded-full">
                   <div className="w-1/3 h-full bg-blue-500 rounded-full"></div>
                 </div>
-                <span className="text-gray-400 text-xs">0:15</span>
+                <span className="text-gray-400 text-[10px]">0:15</span>
               </div>
             )}
           </div>
         )}
         {message.type === 'video' && (
-          <div className="mb-3">
+          <div className="mb-2">
             {message.media_url ? (
               <video
                 controls
                 src={message.media_url}
-                className="w-full rounded-lg bg-black"
-                style={{ maxHeight: '300px' }}
+                className="w-full rounded bg-black"
+                style={{ maxHeight: '150px' }}
               />
             ) : (
-              <div className="bg-gray-800/50 rounded-lg p-3 text-center">
-                <Video className="w-8 h-8 text-blue-400 mx-auto mb-2" />
-                <p className="text-gray-400 text-sm">Video message</p>
+              <div className="bg-gray-800/50 rounded p-2 text-center">
+                <Video className="w-6 h-6 text-blue-400 mx-auto mb-1" />
+                <p className="text-gray-400 text-xs">Video</p>
               </div>
             )}
           </div>
         )}
         {message.type === 'image' && (
-          <div className="mb-3">
+          <div className="mb-2">
             {message.media_url ? (
               <img
                 src={message.media_url}
                 alt="Photo message"
-                className="w-full rounded-lg"
+                className="w-full rounded"
               />
             ) : (
-              <div className="bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg aspect-video flex items-center justify-center">
-                <Image className="w-12 h-12 text-white/50" />
+              <div className="bg-gradient-to-br from-blue-500 to-cyan-500 rounded aspect-video flex items-center justify-center">
+                <Image className="w-8 h-8 text-white/50" />
               </div>
             )}
           </div>
         )}
 
-        <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
-          <span>{new Date(message.created_at).toLocaleString()}</span>
+        <div className="flex items-center justify-between text-[10px] text-gray-500 mb-2">
+          <span className="truncate">{new Date(message.created_at).toLocaleString()}</span>
           {message.status === 'pinned' && (
-            <span className="text-yellow-400 text-xs">📌 Pinned</span>
+            <span className="text-yellow-400 text-[10px]">📌</span>
           )}
           {message.status === 'dismissed' && (
-            <span className="text-gray-500 text-xs">Dismissed</span>
+            <span className="text-gray-500 text-[10px]">Dismissed</span>
           )}
         </div>
 
-        <div className="flex items-center justify-between border-t border-gray-700 pt-3">
-          <div className="flex items-center space-x-1 flex-wrap">
+        <div className="flex items-center justify-between border-t border-gray-700 pt-1.5">
+          <div className="flex items-center space-x-0.5 flex-wrap">
             {visibleReactions.map((reaction) => (
               <button
                 key={reaction.label}
                 onClick={() => handleAddReaction(message.id, reaction.icon)}
-                className={`w-8 h-8 rounded-full flex items-center justify-center transition ${
+                className={`w-6 h-6 rounded-full flex items-center justify-center transition ${
                   messageReactionEmojis.includes(reaction.icon)
-                    ? 'bg-blue-500/30 ring-2 ring-blue-500'
+                    ? 'bg-blue-500/30 ring-1 ring-blue-500'
                     : 'bg-gray-800 hover:bg-gray-700'
                 }`}
               >
-                <span className="text-sm">{reaction.icon}</span>
+                <span className="text-xs">{reaction.icon}</span>
               </button>
             ))}
             {reactionOptions.length > 4 && (
               <button
                 onClick={() => setExpandedReactions(isExpanded ? null : message.id)}
-                className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-800 hover:bg-gray-700 transition"
+                className="w-6 h-6 rounded-full flex items-center justify-center bg-gray-800 hover:bg-gray-700 transition"
                 title={isExpanded ? "Show less" : "More reactions"}
               >
-                <span className="text-xs text-gray-400">...</span>
+                <span className="text-[10px] text-gray-400">...</span>
               </button>
             )}
           </div>
           <button
             onClick={() => togglePin(message.id, message.status)}
-            className={`p-2 rounded-full transition ${
+            className={`p-1 rounded-full transition ${
               message.status === 'pinned'
                 ? 'bg-yellow-500/30 text-yellow-400'
                 : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
             }`}
           >
-            <Pin className="w-4 h-4" />
+            <Pin className="w-3 h-3" />
           </button>
         </div>
       </div>
@@ -770,7 +770,7 @@ export default function Messages() {
         )}
 
         {/* Desktop: Flexible Grid Layout */}
-        <div className="hidden md:grid grid-cols-3 gap-6 auto-rows-min">
+        <div className="hidden md:grid grid-cols-4 lg:grid-cols-5 gap-3 auto-rows-min">
           {dashboardMessages.map((message) => (
             <div key={message.id} className="flex justify-center items-start">
               {renderMessageCard(message)}
