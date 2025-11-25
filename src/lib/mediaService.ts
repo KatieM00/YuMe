@@ -117,9 +117,16 @@ export async function createMediaItem(
     metadata
   });
 
+  // Get current user ID
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    throw new Error('User not authenticated');
+  }
+
   const { data, error } = await supabase
     .from('media_items')
     .insert({
+      user_id: user.id,
       storage_path: storagePath,
       public_url: publicUrl,
       file_name: fileName,
@@ -248,9 +255,16 @@ export async function deleteMediaItem(id: string, storagePath: string): Promise<
  * Add a comment to a media item
  */
 export async function addComment(mediaId: string, comment: string): Promise<MediaComment> {
+  // Get current user ID
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    throw new Error('User not authenticated');
+  }
+
   const { data, error } = await supabase
     .from('media_comments')
     .insert({
+      user_id: user.id,
       media_id: mediaId,
       comment,
     })

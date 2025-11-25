@@ -64,9 +64,16 @@ export async function getVisionItemById(id: string): Promise<VisionItem | null> 
 }
 
 export async function createVisionItem(itemData: CreateVisionItemData): Promise<VisionItem> {
+  // Get current user ID
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    throw new Error('User not authenticated');
+  }
+
   const { data, error } = await supabase
     .from('vision_items')
     .insert([{
+      user_id: user.id,
       type: itemData.type,
       title: itemData.title,
       content: itemData.content || null,
@@ -136,9 +143,16 @@ export async function getCommentsByVisionItemId(visionItemId: string): Promise<V
 }
 
 export async function createComment(visionItemId: string, commentText: string): Promise<VisionComment> {
+  // Get current user ID
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    throw new Error('User not authenticated');
+  }
+
   const { data, error } = await supabase
     .from('vision_comments')
     .insert([{
+      user_id: user.id,
       vision_item_id: visionItemId,
       comment_text: commentText,
     }])

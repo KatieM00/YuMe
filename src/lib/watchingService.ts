@@ -47,12 +47,19 @@ export async function getAllWatchingItems(): Promise<WatchingItem[]> {
 export async function addWatchingItem(itemData: Omit<WatchingItem, 'id' | 'created_at' | 'updated_at'>): Promise<WatchingItem> {
   console.log('[watchingService] addWatchingItem called:', itemData);
 
-  // Check if item already exists
+  // Get current user ID
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    throw new Error('User not authenticated');
+  }
+
+  // Check if item already exists for this user
   const { data: existing } = await supabase
     .from('watching')
     .select('*')
     .eq('tmdb_id', itemData.tmdb_id)
     .eq('media_type', itemData.media_type)
+    .eq('user_id', user.id)
     .single();
 
   if (existing) {
@@ -62,7 +69,7 @@ export async function addWatchingItem(itemData: Omit<WatchingItem, 'id' | 'creat
 
   const { data, error } = await supabase
     .from('watching')
-    .insert(itemData)
+    .insert({ ...itemData, user_id: user.id })
     .select()
     .single();
 

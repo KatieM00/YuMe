@@ -242,6 +242,12 @@ function findAvailablePosition(
 export async function createMessage(messageData: CreateMessageData): Promise<Message> {
   console.log('[messageService] createMessage called:', messageData);
 
+  // Get current user ID
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    throw new Error('User not authenticated');
+  }
+
   // Use grid-based positioning now - positions are just placeholders for database schema
   // Actual positioning is handled by CSS Grid in the UI
   const positionX = messageData.position_x ?? 0;
@@ -250,6 +256,7 @@ export async function createMessage(messageData: CreateMessageData): Promise<Mes
   const { data, error } = await supabase
     .from('messages')
     .insert({
+      user_id: user.id,
       from_user: messageData.from_user,
       to_user: messageData.to_user,
       type: messageData.type,
@@ -359,12 +366,19 @@ export async function deleteMessage(messageId: string, storagePath?: string): Pr
 export async function addReaction(messageId: string, emoji: string): Promise<MessageReaction> {
   console.log('[messageService] addReaction called:', { messageId, emoji });
 
-  // Check if reaction already exists
+  // Get current user ID
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    throw new Error('User not authenticated');
+  }
+
+  // Check if reaction already exists for this user
   const { data: existing } = await supabase
     .from('message_reactions')
     .select('*')
     .eq('message_id', messageId)
     .eq('emoji', emoji)
+    .eq('user_id', user.id)
     .single();
 
   if (existing) {
@@ -375,6 +389,7 @@ export async function addReaction(messageId: string, emoji: string): Promise<Mes
   const { data, error } = await supabase
     .from('message_reactions')
     .insert({
+      user_id: user.id,
       message_id: messageId,
       emoji,
     })
