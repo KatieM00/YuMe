@@ -7,6 +7,7 @@ import Images from './pages/Images';
 import Messages from './pages/Messages';
 import Watching from './pages/Watching';
 import Vision from './pages/Vision';
+import Settings from './pages/Settings';
 import Navbar from './components/Navbar';
 import { getCurrentSession, signOut, onAuthStateChange } from './lib/authService';
 
@@ -79,6 +80,8 @@ function App() {
         return <Watching />;
       case 'vision':
         return <Vision />;
+      case 'settings':
+        return <Settings />;
       default:
         return <Dashboard setCurrentPage={setCurrentPage} />;
     }

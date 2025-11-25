@@ -1,4 +1,4 @@
-import { Heart, Music, MapPin, Image, MessageSquare, Film, Sparkles, LogOut } from 'lucide-react';
+import { Heart, Music, MapPin, Image, MessageSquare, Film, Sparkles, Settings, LogOut } from 'lucide-react';
 
 interface NavbarProps {
   currentPage: string;
@@ -49,13 +49,26 @@ export default function Navbar({ currentPage, setCurrentPage, onLogout }: Navbar
             </div>
           </div>
 
-          <button
-            onClick={onLogout}
-            className="flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-gray-800 transition"
-          >
-            <LogOut className="w-4 h-4" />
-            <span className="hidden sm:inline">Logout</span>
-          </button>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => setCurrentPage('settings')}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition ${
+                currentPage === 'settings'
+                  ? 'bg-blue-500/20 text-blue-400'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-800'
+              }`}
+            >
+              <Settings className="w-4 h-4" />
+              <span className="hidden sm:inline">Settings</span>
+            </button>
+            <button
+              onClick={onLogout}
+              className="flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-gray-800 transition"
+            >
+              <LogOut className="w-4 h-4" />
+              <span className="hidden sm:inline">Logout</span>
+            </button>
+          </div>
         </div>
       </div>
 
