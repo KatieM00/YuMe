@@ -142,7 +142,7 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
     { id: 'images', name: 'Album', icon: Image, color: 'text-orange-400', bg: 'bg-orange-900/40' },
     { id: 'messages', name: 'Messages', icon: Mail, color: 'text-yellow-400', bg: 'bg-yellow-900/40' },
     { id: 'watching', name: 'Watching', icon: Tv, color: 'text-lime-400', bg: 'bg-lime-900/40' },
-    { id: 'future-hopes', name: 'Future Hopes', icon: HeartHandshake, color: 'text-fuchsia-400', bg: 'bg-fuchsia-900/40' },
+    { id: 'vision', name: 'Vision', icon: HeartHandshake, color: 'text-fuchsia-400', bg: 'bg-fuchsia-900/40' },
   ];
 
   const ButtonBox = ({ id, name, icon: Icon, color, bg }: typeof navButtons[0]) => (

@@ -14,7 +14,7 @@ export default function Navbar({ currentPage, setCurrentPage, onLogout }: Navbar
     { id: 'images', label: 'Images', icon: Image },
     { id: 'messages', label: 'Messages', icon: MessageSquare },
     { id: 'watching', label: 'Watching', icon: Film },
-    { id: 'future-hopes', label: 'Future Hopes', icon: Sparkles },
+    { id: 'vision', label: 'Vision', icon: Sparkles },
   ];
 
   return (

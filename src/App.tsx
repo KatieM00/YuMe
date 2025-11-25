@@ -6,7 +6,7 @@ import Map from './pages/Map';
 import Images from './pages/Images';
 import Messages from './pages/Messages';
 import Watching from './pages/Watching';
-import FutureHopes from './pages/FutureHopes';
+import Vision from './pages/Vision';
 import Navbar from './components/Navbar';
 
 function App() {
@@ -49,8 +49,8 @@ function App() {
         return <Messages />;
       case 'watching':
         return <Watching />;
-      case 'future-hopes':
-        return <FutureHopes />;
+      case 'vision':
+        return <Vision />;
       default:
         return <Dashboard setCurrentPage={setCurrentPage} />;
     }
