@@ -8,28 +8,56 @@ import Messages from './pages/Messages';
 import Watching from './pages/Watching';
 import Vision from './pages/Vision';
 import Navbar from './components/Navbar';
+import { getCurrentSession, signOut, onAuthStateChange } from './lib/authService';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState('dashboard');
 
   useEffect(() => {
-    const auth = localStorage.getItem('yumeAuth');
-    if (auth === 'true') {
-      setIsAuthenticated(true);
-    }
+    // Check for existing session on mount
+    getCurrentSession().then((session) => {
+      setIsAuthenticated(!!session);
+      setIsLoading(false);
+    });
+
+    // Listen for auth state changes
+    const subscription = onAuthStateChange((user) => {
+      setIsAuthenticated(!!user);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const handleLogin = () => {
-    localStorage.setItem('yumeAuth', 'true');
     setIsAuthenticated(true);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('yumeAuth');
-    setIsAuthenticated(false);
-    setCurrentPage('dashboard');
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      setIsAuthenticated(false);
+      setCurrentPage('dashboard');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full mb-4 animate-pulse">
+            <span className="text-2xl">💕</span>
+          </div>
+          <p className="text-gray-400">Loading YuMe...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return <LoginPage onLogin={handleLogin} />;
