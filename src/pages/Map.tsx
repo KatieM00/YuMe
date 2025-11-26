@@ -164,9 +164,16 @@ export default function Map() {
     }
 
     try {
+      // Get current user ID
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
       const { data, error: insertError } = await supabase
         .from('map_locations')
         .insert({
+          user_id: user.id,
           name: newLocation.name,
           lat: newLocation.lat,
           lng: newLocation.lng,
