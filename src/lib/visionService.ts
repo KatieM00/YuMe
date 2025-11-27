@@ -12,6 +12,10 @@ export interface VisionItem {
   image_url: string | null;
   goal_completed: boolean;
   event_date?: string | null;
+  event_type?: 'goal' | 'event' | 'task' | null;
+  is_all_day?: boolean;
+  event_start_time?: string | null;
+  event_end_time?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -30,6 +34,10 @@ export interface CreateVisionItemData {
   image_url?: string;
   goal_completed?: boolean;
   event_date?: string | null;
+  event_type?: 'goal' | 'event' | 'task' | null;
+  is_all_day?: boolean;
+  event_start_time?: string | null;
+  event_end_time?: string | null;
 }
 
 // =========================================================================
@@ -82,6 +90,10 @@ export async function createVisionItem(itemData: CreateVisionItemData): Promise<
       image_url: itemData.image_url || null,
       goal_completed: itemData.goal_completed || false,
       event_date: itemData.event_date || null,
+      event_type: itemData.event_type || null,
+      is_all_day: itemData.is_all_day || false,
+      event_start_time: itemData.event_start_time || null,
+      event_end_time: itemData.event_end_time || null,
     }])
     .select()
     .single();

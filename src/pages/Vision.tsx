@@ -55,7 +55,10 @@ export default function Vision() {
   const [eventTitle, setEventTitle] = useState('');
   const [eventDescription, setEventDescription] = useState('');
   const [eventDate, setEventDate] = useState('');
-  const [eventTime, setEventTime] = useState('');
+  const [eventType, setEventType] = useState<'goal' | 'event' | 'task'>('event');
+  const [isAllDay, setIsAllDay] = useState(false);
+  const [eventStartTime, setEventStartTime] = useState('09:00');
+  const [eventEndTime, setEventEndTime] = useState('10:00');
 
   // Load vision items on mount
   useEffect(() => {
@@ -108,7 +111,10 @@ export default function Vision() {
   const handleDateClick = (date: Date) => {
     setSelectedDate(date);
     setEventDate(date.toISOString().split('T')[0]);
-    setEventTime('12:00');
+    setEventType('event');
+    setIsAllDay(false);
+    setEventStartTime('09:00');
+    setEventEndTime('10:00');
     setShowEventModal(true);
   };
 
@@ -125,6 +131,10 @@ export default function Vision() {
           title: eventTitle,
           content: eventDescription || undefined,
           event_date: eventDate || null,
+          event_type: eventType,
+          is_all_day: isAllDay,
+          event_start_time: isAllDay ? null : eventStartTime,
+          event_end_time: isAllDay ? null : eventEndTime,
         });
         setItems(items.map(item => item.id === editingEvent.id ? updated : item));
       } else {
@@ -134,6 +144,10 @@ export default function Vision() {
           title: eventTitle,
           content: eventDescription || undefined,
           event_date: eventDate || null,
+          event_type: eventType,
+          is_all_day: isAllDay,
+          event_start_time: isAllDay ? null : eventStartTime,
+          event_end_time: isAllDay ? null : eventEndTime,
         });
         setItems([newEvent, ...items]);
       }
@@ -151,7 +165,10 @@ export default function Vision() {
     setEventTitle(event.title);
     setEventDescription(event.content || '');
     setEventDate(event.event_date || '');
-    setEventTime('12:00');
+    setEventType(event.event_type || 'event');
+    setIsAllDay(event.is_all_day || false);
+    setEventStartTime(event.event_start_time || '09:00');
+    setEventEndTime(event.event_end_time || '10:00');
     setShowEventModal(true);
   };
 
@@ -171,7 +188,10 @@ export default function Vision() {
     setEventTitle('');
     setEventDescription('');
     setEventDate('');
-    setEventTime('');
+    setEventType('event');
+    setIsAllDay(false);
+    setEventStartTime('09:00');
+    setEventEndTime('10:00');
     setEditingEvent(null);
     setSelectedDate(null);
   };
@@ -595,6 +615,47 @@ export default function Vision() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Event Type *
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setEventType('goal')}
+                      className={`px-4 py-2 rounded-lg font-medium transition ${
+                        eventType === 'goal'
+                          ? 'bg-purple-600 text-white'
+                          : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                      }`}
+                    >
+                      Goal
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEventType('event')}
+                      className={`px-4 py-2 rounded-lg font-medium transition ${
+                        eventType === 'event'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                      }`}
+                    >
+                      Event
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEventType('task')}
+                      className={`px-4 py-2 rounded-lg font-medium transition ${
+                        eventType === 'task'
+                          ? 'bg-green-600 text-white'
+                          : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                      }`}
+                    >
+                      Task
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
                     Description
                   </label>
                   <textarea
@@ -606,29 +667,55 @@ export default function Vision() {
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Date *
-                    </label>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Date *
+                  </label>
+                  <input
+                    type="date"
+                    value={eventDate}
+                    onChange={(e) => setEventDate(e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="flex items-center space-x-2 mb-3">
                     <input
-                      type="date"
-                      value={eventDate}
-                      onChange={(e) => setEventDate(e.target.value)}
-                      className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      type="checkbox"
+                      checked={isAllDay}
+                      onChange={(e) => setIsAllDay(e.target.checked)}
+                      className="w-4 h-4 rounded border-gray-600 bg-gray-800 text-blue-600 focus:ring-2 focus:ring-blue-500"
                     />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Time
-                    </label>
-                    <input
-                      type="time"
-                      value={eventTime}
-                      onChange={(e) => setEventTime(e.target.value)}
-                      className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
+                    <span className="text-sm font-medium text-gray-300">All Day Event</span>
+                  </label>
+
+                  {!isAllDay && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-400 mb-2">
+                          From
+                        </label>
+                        <input
+                          type="time"
+                          value={eventStartTime}
+                          onChange={(e) => setEventStartTime(e.target.value)}
+                          className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-400 mb-2">
+                          To
+                        </label>
+                        <input
+                          type="time"
+                          value={eventEndTime}
+                          onChange={(e) => setEventEndTime(e.target.value)}
+                          className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
