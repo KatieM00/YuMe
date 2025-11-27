@@ -174,9 +174,16 @@ export default function Mixtape() {
         if (updateError) throw updateError;
       } else {
         // Create new playlist
+        // Get current user ID
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          throw new Error('User not authenticated');
+        }
+
         const { error: insertError } = await supabase
           .from('playlists')
           .insert({
+            user_id: user.id,
             title: playlistTitle,
             description: playlistDescription,
             cover: selectedCover,
@@ -282,10 +289,17 @@ export default function Mixtape() {
 
       const nextPosition = (existingSongs && existingSongs.length > 0 ? existingSongs[0].position : -1) + 1;
 
+      // Get current user ID
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
       // Insert song
       const { error: insertError } = await supabase
         .from('songs')
         .insert({
+          user_id: user.id,
           playlist_id: selectedPlaylist.id,
           title,
           artist,
@@ -385,9 +399,16 @@ export default function Mixtape() {
     try {
       setAddingComment(songId);
 
+      // Get current user ID
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
       const { error: insertError } = await supabase
         .from('song_comments')
         .insert({
+          user_id: user.id,
           song_id: songId,
           comment: commentText
         });
