@@ -612,8 +612,8 @@ export default function Mixtape() {
         {/* Create/Edit Playlist Modal */}
         {showCreateModal && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-gray-900 rounded-2xl max-w-md w-full border border-gray-700">
-              <div className="p-6">
+            <div className="bg-gray-900 rounded-2xl max-w-md w-full border border-gray-700 max-h-[90vh] flex flex-col">
+              <div className="p-6 overflow-y-auto flex-1">
                 <h2 className="text-2xl font-bold text-white mb-6">
                   {editingPlaylist ? 'Edit Playlist' : 'Create Playlist'}
                 </h2>
@@ -737,30 +737,6 @@ export default function Mixtape() {
                   </div>
                 </div>
 
-                <div className="flex space-x-3 mt-6">
-                  <button
-                    onClick={() => setShowCreateModal(false)}
-                    className="flex-1 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition"
-                    disabled={creatingPlaylist}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleCreateOrUpdatePlaylist}
-                    disabled={creatingPlaylist || !playlistTitle.trim()}
-                    className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg font-medium hover:from-blue-600 hover:to-cyan-600 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                  >
-                    {creatingPlaylist ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                        {editingPlaylist ? 'Updating...' : 'Creating...'}
-                      </>
-                    ) : (
-                      editingPlaylist ? 'Update' : 'Create'
-                    )}
-                  </button>
-                </div>
-
                 {editingPlaylist && (
                   <div className="mt-4 pt-4 border-t border-gray-700">
                     <button
@@ -790,6 +766,32 @@ export default function Mixtape() {
                     </button>
                   </div>
                 )}
+              </div>
+
+              {/* Fixed Footer with Buttons */}
+              <div className="p-6 border-t border-gray-700 flex space-x-3 bg-gray-900 rounded-b-2xl">
+                <button
+                  onClick={() => {
+                    setShowCreateModal(false);
+                    setEditingPlaylist(null);
+                    setPlaylistTitle('');
+                    setPlaylistDescription('');
+                    setSelectedCover(coverGradients[0]);
+                    setSongsToAdd([]);
+                    setSpotifyInput('');
+                    setAddSongError(null);
+                  }}
+                  className="flex-1 px-6 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreateOrUpdatePlaylist}
+                  disabled={!playlistTitle.trim()}
+                  className="flex-1 px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {editingPlaylist ? 'Update Playlist' : 'Create Playlist'}
+                </button>
               </div>
             </div>
           </div>
