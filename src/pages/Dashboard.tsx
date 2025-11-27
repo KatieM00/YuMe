@@ -14,6 +14,9 @@ import {
   Tv,
   HeartHandshake
 } from 'lucide-react';
+import { getCurrentUserProfile, getPartnerInfo, type UserProfile, type PartnerInfo } from '../lib/partnerService';
+import { getAllVisionItems, type VisionItem } from '../lib/visionService';
+import { getAllMessages, type Message } from '../lib/messageService';
 
 // =========================================================================
 // DASHBOARD CONTENT
@@ -25,6 +28,11 @@ type DashboardProps = {
 
 const DashboardContent = ({ setPage }: DashboardProps) => {
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [partnerProfile, setPartnerProfile] = useState<PartnerInfo | null>(null);
+  const [visionItems, setVisionItems] = useState<VisionItem[]>([]);
+  const [recentMessage, setRecentMessage] = useState<Message | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -33,6 +41,44 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
 
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  const loadDashboardData = async () => {
+    try {
+      setIsLoading(true);
+
+      // Load user profile and partner info
+      const profile = await getCurrentUserProfile();
+      setUserProfile(profile);
+
+      if (profile?.partner_id) {
+        const partner = await getPartnerInfo();
+        setPartnerProfile(partner);
+      }
+
+      // Load vision items with dates for calendar events
+      const items = await getAllVisionItems();
+      setVisionItems(items);
+
+      // Load most recent message
+      const messages = await getAllMessages();
+      const activeMessages = messages.filter(m => m.status === 'active' || m.status === 'pinned');
+      if (activeMessages.length > 0) {
+        // Sort by created_at descending to get the most recent
+        const sorted = activeMessages.sort((a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+        setRecentMessage(sorted[0]);
+      }
+    } catch (error) {
+      console.error('Error loading dashboard data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const getTimeInTimezone = (timezone: string) => {
     return new Date().toLocaleTimeString('en-GB', {
@@ -43,12 +89,6 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
     });
   };
 
-  const countdowns = [
-    { event: 'Summer Trip to Santorini', date: new Date('2025-07-15') },
-    { event: 'Anniversary Celebration', date: new Date('2025-03-20') },
-    { event: 'Christmas Together', date: new Date('2025-12-25') },
-  ];
-
   const getDaysUntil = (date: Date) => {
     const now = new Date();
     now.setHours(0, 0, 0, 0);
@@ -57,31 +97,27 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
   };
 
   const nextEvent = useMemo(() => {
+    // Filter vision items that have event_date set
+    const eventsWithDates = visionItems.filter(item => item.event_date);
+
+    if (eventsWithDates.length === 0) {
+      return null;
+    }
+
     let nearestEvent = null;
     let minDays = Infinity;
 
-    countdowns.forEach(countdown => {
-      const days = getDaysUntil(countdown.date);
+    eventsWithDates.forEach(item => {
+      const eventDate = new Date(item.event_date!);
+      const days = getDaysUntil(eventDate);
       if (days > 0 && days < minDays) {
         minDays = days;
-        nearestEvent = { ...countdown, days: minDays };
+        nearestEvent = { event: item.title, date: eventDate, days: minDays };
       }
     });
 
-    if (!nearestEvent) {
-      const farthestEvent = countdowns[countdowns.length - 1];
-      const nextYearDate = new Date(farthestEvent.date.getFullYear() + 1, farthestEvent.date.getMonth(), farthestEvent.date.getDate());
-      return { event: 'Next big event', date: nextYearDate, days: getDaysUntil(nextYearDate) };
-    }
-
     return nearestEvent;
-  }, [currentTime]);
-
-  const recentMessage = {
-    from: 'Katie',
-    to: 'Nassos',
-    message: 'Just saw the most beautiful sunset and thought of you...',
-  };
+  }, [visionItems]);
 
   const InfoBoxContainer = ({ children }: { children: React.ReactNode }) => (
     <div className="bg-gray-800/70 backdrop-blur-sm rounded-xl p-3 h-20 sm:h-24 md:h-28 border border-gray-700 shadow-lg flex items-center justify-center transition-all duration-300 hover:shadow-xl">
@@ -89,22 +125,41 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
     </div>
   );
 
-  const TimeBox = () => (
-    <div className="flex items-center justify-center w-full text-center text-sm md:text-base">
-      <Clock className="w-4 h-4 text-blue-400 mr-2 flex-shrink-0" />
-      <p className="text-white font-bold tabular-nums">
-        GR: {getTimeInTimezone('Europe/Athens')}
-      </p>
-      <span className="text-gray-500 font-bold mx-2">|</span>
-      <p className="text-white font-bold tabular-nums">
-        UK: {getTimeInTimezone('Europe/London')}
-      </p>
-    </div>
-  );
+  const TimeBox = () => {
+    const userTimezone = userProfile?.timezone || 'Europe/London';
+    const partnerTimezone = partnerProfile?.timezone || null;
+
+    const getUserLabel = () => {
+      if (userProfile?.display_name) return userProfile.display_name;
+      return 'You';
+    };
+
+    const getPartnerLabel = () => {
+      if (partnerProfile?.display_name) return partnerProfile.display_name;
+      return 'Partner';
+    };
+
+    return (
+      <div className="flex items-center justify-center w-full text-center text-sm md:text-base">
+        <Clock className="w-4 h-4 text-blue-400 mr-2 flex-shrink-0" />
+        <p className="text-white font-bold tabular-nums">
+          {getUserLabel()}: {getTimeInTimezone(userTimezone)}
+        </p>
+        {partnerTimezone && (
+          <>
+            <span className="text-gray-500 font-bold mx-2">|</span>
+            <p className="text-white font-bold tabular-nums">
+              {getPartnerLabel()}: {getTimeInTimezone(partnerTimezone)}
+            </p>
+          </>
+        )}
+      </div>
+    );
+  };
 
   const CountdownBox = () => (
     <div className="flex flex-col items-center justify-center w-full text-center p-1">
-      {nextEvent && (
+      {nextEvent ? (
         <>
           <p className="text-green-400 text-xl md:text-2xl font-extrabold tabular-nums leading-none">
             {nextEvent.days}
@@ -116,6 +171,12 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
             {nextEvent.event}
           </p>
         </>
+      ) : (
+        <div className="flex flex-col items-center justify-center">
+          <Calendar className="w-6 h-6 text-gray-500 mb-1" />
+          <p className="text-gray-400 text-xs">No upcoming events</p>
+          <p className="text-gray-500 text-[10px] mt-1">Add dates to Vision items</p>
+        </div>
       )}
     </div>
   );
@@ -126,13 +187,19 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
         <MessageSquare className="w-4 h-4 text-cyan-400 mr-2" />
         <span className="text-xs text-gray-400 font-medium">Recent Message</span>
       </div>
-      <p className="text-gray-300 text-sm leading-tight line-clamp-2">
-        <span className="text-cyan-300 font-semibold">{recentMessage.from}</span> &gt;{' '}
-        <span className="text-blue-300 font-semibold">{recentMessage.to}</span>:
-        <span className="ml-1 font-normal">
-          {recentMessage.message}
-        </span>
-      </p>
+      {recentMessage ? (
+        <p className="text-gray-300 text-sm leading-tight line-clamp-2">
+          <span className="text-cyan-300 font-semibold">{recentMessage.from_user}</span> &gt;{' '}
+          <span className="text-blue-300 font-semibold">{recentMessage.to_user}</span>:
+          <span className="ml-1 font-normal">
+            {recentMessage.type === 'text'
+              ? recentMessage.content
+              : `[${recentMessage.type}]`}
+          </span>
+        </p>
+      ) : (
+        <p className="text-gray-400 text-xs italic">No messages yet</p>
+      )}
     </div>
   );
 

@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Heart, Copy, Check, UserPlus, X, Loader, User } from 'lucide-react';
+import { Heart, Copy, Check, UserPlus, X, Loader, User, Globe } from 'lucide-react';
 import {
   getCurrentUserProfile,
   getPartnerInfo,
   linkPartnerAccount,
   unlinkPartnerAccount,
   updateDisplayName,
+  updateTimezone,
   type UserProfile,
   type PartnerInfo,
 } from '../lib/partnerService';
@@ -17,9 +18,11 @@ export default function Settings() {
   const [copied, setCopied] = useState(false);
   const [inviteCode, setInviteCode] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [timezone, setTimezone] = useState('Europe/London');
   const [isLinking, setIsLinking] = useState(false);
   const [isUnlinking, setIsUnlinking] = useState(false);
   const [isUpdatingName, setIsUpdatingName] = useState(false);
+  const [isUpdatingTimezone, setIsUpdatingTimezone] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
@@ -33,6 +36,7 @@ export default function Settings() {
       const userProfile = await getCurrentUserProfile();
       setProfile(userProfile);
       setDisplayName(userProfile?.display_name || '');
+      setTimezone(userProfile?.timezone || 'Europe/London');
 
       if (userProfile?.partner_id) {
         const partnerInfo = await getPartnerInfo();
@@ -132,6 +136,27 @@ export default function Settings() {
     }
   };
 
+  const handleUpdateTimezone = async () => {
+    setIsUpdatingTimezone(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const result = await updateTimezone(timezone);
+
+      if (result) {
+        setSuccess('Timezone updated successfully');
+        await loadProfile();
+      } else {
+        setError('Failed to update timezone');
+      }
+    } catch (err) {
+      setError('Failed to update timezone');
+    } finally {
+      setIsUpdatingTimezone(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen p-4 md:p-8 flex items-center justify-center">
@@ -195,6 +220,80 @@ export default function Settings() {
                     {isUpdatingName ? 'Saving...' : 'Save'}
                   </button>
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2 flex items-center">
+                  <Globe className="w-4 h-4 mr-2" />
+                  Your Timezone
+                </label>
+                <div className="flex space-x-2">
+                  <select
+                    value={timezone}
+                    onChange={(e) => setTimezone(e.target.value)}
+                    className="flex-1 px-4 py-3 bg-gray-900/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <optgroup label="Common Timezones">
+                      <option value="Europe/London">London (GMT)</option>
+                      <option value="Europe/Athens">Athens (GMT+2)</option>
+                      <option value="Europe/Paris">Paris (GMT+1)</option>
+                      <option value="Europe/Berlin">Berlin (GMT+1)</option>
+                      <option value="America/New_York">New York (EST)</option>
+                      <option value="America/Los_Angeles">Los Angeles (PST)</option>
+                      <option value="America/Chicago">Chicago (CST)</option>
+                      <option value="Asia/Tokyo">Tokyo (JST)</option>
+                      <option value="Asia/Dubai">Dubai (GST)</option>
+                      <option value="Australia/Sydney">Sydney (AEDT)</option>
+                    </optgroup>
+                    <optgroup label="Europe">
+                      <option value="Europe/Amsterdam">Amsterdam</option>
+                      <option value="Europe/Brussels">Brussels</option>
+                      <option value="Europe/Copenhagen">Copenhagen</option>
+                      <option value="Europe/Dublin">Dublin</option>
+                      <option value="Europe/Helsinki">Helsinki</option>
+                      <option value="Europe/Istanbul">Istanbul</option>
+                      <option value="Europe/Lisbon">Lisbon</option>
+                      <option value="Europe/Madrid">Madrid</option>
+                      <option value="Europe/Moscow">Moscow</option>
+                      <option value="Europe/Oslo">Oslo</option>
+                      <option value="Europe/Prague">Prague</option>
+                      <option value="Europe/Rome">Rome</option>
+                      <option value="Europe/Stockholm">Stockholm</option>
+                      <option value="Europe/Vienna">Vienna</option>
+                      <option value="Europe/Warsaw">Warsaw</option>
+                      <option value="Europe/Zurich">Zurich</option>
+                    </optgroup>
+                    <optgroup label="Americas">
+                      <option value="America/Toronto">Toronto</option>
+                      <option value="America/Vancouver">Vancouver</option>
+                      <option value="America/Mexico_City">Mexico City</option>
+                      <option value="America/Sao_Paulo">São Paulo</option>
+                      <option value="America/Buenos_Aires">Buenos Aires</option>
+                    </optgroup>
+                    <optgroup label="Asia">
+                      <option value="Asia/Shanghai">Shanghai</option>
+                      <option value="Asia/Hong_Kong">Hong Kong</option>
+                      <option value="Asia/Singapore">Singapore</option>
+                      <option value="Asia/Seoul">Seoul</option>
+                      <option value="Asia/Bangkok">Bangkok</option>
+                      <option value="Asia/Kolkata">Kolkata</option>
+                    </optgroup>
+                    <optgroup label="Pacific">
+                      <option value="Pacific/Auckland">Auckland</option>
+                      <option value="Pacific/Fiji">Fiji</option>
+                    </optgroup>
+                  </select>
+                  <button
+                    onClick={handleUpdateTimezone}
+                    disabled={isUpdatingTimezone || timezone === profile?.timezone}
+                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isUpdatingTimezone ? 'Saving...' : 'Save'}
+                  </button>
+                </div>
+                <p className="mt-2 text-xs text-gray-400">
+                  This will be shown on the dashboard alongside your partner's timezone
+                </p>
               </div>
             </div>
           </div>

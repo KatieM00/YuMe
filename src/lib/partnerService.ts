@@ -10,6 +10,7 @@ export interface UserProfile {
   display_name: string | null;
   partner_id: string | null;
   invite_code: string;
+  timezone: string;
   created_at: string;
   updated_at: string;
 }
@@ -18,6 +19,7 @@ export interface PartnerInfo {
   id: string;
   email: string;
   display_name: string | null;
+  timezone: string;
 }
 
 // =========================================================================
@@ -51,7 +53,7 @@ export async function getPartnerInfo(): Promise<PartnerInfo | null> {
 
   const { data, error } = await supabase
     .from('user_profiles')
-    .select('id, email, display_name')
+    .select('id, email, display_name, timezone')
     .eq('id', profile.partner_id)
     .single();
 
@@ -107,6 +109,24 @@ export async function updateDisplayName(displayName: string): Promise<boolean> {
 
   if (error) {
     console.error('Error updating display name:', error);
+    return false;
+  }
+
+  return true;
+}
+
+// =========================================================================
+// UPDATE TIMEZONE
+// =========================================================================
+
+export async function updateTimezone(timezone: string): Promise<boolean> {
+  const { error } = await supabase
+    .from('user_profiles')
+    .update({ timezone })
+    .eq('id', (await supabase.auth.getUser()).data.user?.id);
+
+  if (error) {
+    console.error('Error updating timezone:', error);
     return false;
   }
 

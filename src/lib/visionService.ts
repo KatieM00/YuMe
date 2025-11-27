@@ -11,6 +11,7 @@ export interface VisionItem {
   content: string | null;
   image_url: string | null;
   goal_completed: boolean;
+  event_date?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -28,6 +29,7 @@ export interface CreateVisionItemData {
   content?: string;
   image_url?: string;
   goal_completed?: boolean;
+  event_date?: string | null;
 }
 
 // =========================================================================
@@ -79,6 +81,7 @@ export async function createVisionItem(itemData: CreateVisionItemData): Promise<
       content: itemData.content || null,
       image_url: itemData.image_url || null,
       goal_completed: itemData.goal_completed || false,
+      event_date: itemData.event_date || null,
     }])
     .select()
     .single();
