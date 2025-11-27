@@ -1,5 +1,20 @@
 import { useState, useEffect, useRef } from 'react';
-import { Plus, Image as ImageIcon, Type, List, X, MessageSquare, Check, Upload } from 'lucide-react';
+import {
+  Plus,
+  Image as ImageIcon,
+  Type,
+  List,
+  X,
+  MessageSquare,
+  Check,
+  Upload,
+  ChevronLeft,
+  ChevronRight,
+  Calendar as CalendarIcon,
+  Clock,
+  Edit2,
+  Trash2
+} from 'lucide-react';
 import Masonry from 'react-masonry-css';
 import {
   VisionItem,
@@ -20,7 +35,12 @@ export default function Vision() {
   const [items, setItems] = useState<VisionItem[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showEventModal, setShowEventModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState<VisionItem | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [editingEvent, setEditingEvent] = useState<VisionItem | null>(null);
+
+  // Vision board item states
   const [newItemType, setNewItemType] = useState<'text' | 'goal' | 'image'>('text');
   const [newItemTitle, setNewItemTitle] = useState('');
   const [newItemContent, setNewItemContent] = useState('');
@@ -29,6 +49,13 @@ export default function Vision() {
   const [comments, setComments] = useState<VisionComment[]>([]);
   const [newCommentText, setNewCommentText] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Calendar states
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [eventTitle, setEventTitle] = useState('');
+  const [eventDescription, setEventDescription] = useState('');
+  const [eventDate, setEventDate] = useState('');
+  const [eventTime, setEventTime] = useState('');
 
   // Load vision items on mount
   useEffect(() => {
@@ -53,6 +80,103 @@ export default function Vision() {
     }
   };
 
+  // Calendar helper functions
+  const getDaysInMonth = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
+
+    return { daysInMonth, startingDayOfWeek, firstDay, lastDay };
+  };
+
+  const getEventsForDate = (date: Date) => {
+    const dateStr = date.toISOString().split('T')[0];
+    return items.filter(item => item.event_date === dateStr);
+  };
+
+  const handlePreviousMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1));
+  };
+
+  const handleNextMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1));
+  };
+
+  const handleDateClick = (date: Date) => {
+    setSelectedDate(date);
+    setEventDate(date.toISOString().split('T')[0]);
+    setEventTime('12:00');
+    setShowEventModal(true);
+  };
+
+  const handleAddEvent = async () => {
+    if (!eventTitle.trim()) {
+      alert('Please enter an event title');
+      return;
+    }
+
+    try {
+      if (editingEvent) {
+        // Update existing event
+        const updated = await updateVisionItem(editingEvent.id, {
+          title: eventTitle,
+          content: eventDescription || undefined,
+          event_date: eventDate || null,
+        });
+        setItems(items.map(item => item.id === editingEvent.id ? updated : item));
+      } else {
+        // Create new event (as a goal type with event_date)
+        const newEvent = await createVisionItem({
+          type: 'goal',
+          title: eventTitle,
+          content: eventDescription || undefined,
+          event_date: eventDate || null,
+        });
+        setItems([newEvent, ...items]);
+      }
+
+      setShowEventModal(false);
+      resetEventForm();
+    } catch (error) {
+      console.error('Error saving event:', error);
+    }
+  };
+
+  const handleEditEvent = (event: VisionItem, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingEvent(event);
+    setEventTitle(event.title);
+    setEventDescription(event.content || '');
+    setEventDate(event.event_date || '');
+    setEventTime('12:00');
+    setShowEventModal(true);
+  };
+
+  const handleDeleteEvent = async (event: VisionItem, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm('Are you sure you want to delete this event?')) return;
+
+    try {
+      await deleteVisionItem(event.id);
+      setItems(items.filter(item => item.id !== event.id));
+    } catch (error) {
+      console.error('Error deleting event:', error);
+    }
+  };
+
+  const resetEventForm = () => {
+    setEventTitle('');
+    setEventDescription('');
+    setEventDate('');
+    setEventTime('');
+    setEditingEvent(null);
+    setSelectedDate(null);
+  };
+
+  // Vision board functions
   const handleAddItem = async () => {
     if (newItemType === 'image' && !uploadedImageUrl) {
       alert('Please upload an image first');
@@ -98,7 +222,6 @@ export default function Vision() {
     if (!confirm('Are you sure you want to delete this item?')) return;
 
     try {
-      // Delete image from storage if exists
       if (imageUrl) {
         await deleteVisionImage(imageUrl);
       }
@@ -171,128 +294,366 @@ export default function Vision() {
   };
 
   const breakpointColumnsObj = {
-    default: 4,
-    1536: 3,
-    1024: 2,
+    default: 2,
+    1536: 2,
+    1024: 1,
     640: 1,
   };
 
+  const { daysInMonth, startingDayOfWeek } = getDaysInMonth(currentMonth);
+  const monthName = currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  // Filter items for vision board (items without event_date or can include all)
+  const visionBoardItems = items.filter(item => !item.event_date);
+
   return (
     <div className="min-h-screen p-4 md:p-8">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-[1800px] mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-white">Vision Board</h1>
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-cyan-700 transition"
-          >
-            <Plus className="w-5 h-5" />
-            <span>Add Item</span>
-          </button>
+          <h1 className="text-3xl md:text-4xl font-bold text-white">Vision & Calendar</h1>
         </div>
 
-        {/* Masonry Grid */}
-        <Masonry
-          breakpointCols={breakpointColumnsObj}
-          className="flex -ml-6 w-auto"
-          columnClassName="pl-6 bg-clip-padding"
-        >
-          {items.map((item, index) => (
-            <div
-              key={item.id}
-              className="mb-6 group cursor-pointer"
-              onClick={() => openDetailModal(item)}
-            >
-              {item.type === 'image' && (
-                <div className="relative overflow-hidden rounded-xl shadow-2xl transform transition-all duration-300 hover:scale-105 hover:shadow-3xl">
-                  <img
-                    src={item.image_url || ''}
-                    alt={item.title}
-                    className="w-full h-auto object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                    <div className="absolute bottom-0 left-0 right-0 p-4">
-                      <h3 className="text-white font-semibold text-lg">{item.title}</h3>
-                    </div>
-                  </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteItem(item.id, item.image_url);
-                    }}
-                    className="absolute top-2 right-2 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
-                  >
-                    <X className="w-4 h-4 text-white" />
-                  </button>
-                </div>
-              )}
+        {/* Split Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* LEFT: Calendar */}
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-white flex items-center">
+                <CalendarIcon className="w-6 h-6 mr-2" />
+                Calendar
+              </h2>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={handlePreviousMonth}
+                  className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition"
+                >
+                  <ChevronLeft className="w-5 h-5 text-white" />
+                </button>
+                <span className="text-white font-semibold min-w-[200px] text-center">{monthName}</span>
+                <button
+                  onClick={handleNextMonth}
+                  className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition"
+                >
+                  <ChevronRight className="w-5 h-5 text-white" />
+                </button>
+              </div>
+            </div>
 
-              {item.type === 'text' && (
-                <div className="relative">
-                  <div className={`${getCardColor(index)} p-6 rounded-xl shadow-2xl transform transition-all duration-300 hover:scale-105 hover:shadow-3xl`}>
-                    <h3 className="text-white font-bold text-lg mb-2">{item.title}</h3>
-                    {item.content && (
-                      <p className="text-white/90 text-sm line-clamp-4">{item.content}</p>
-                    )}
+            {/* Calendar Grid */}
+            <div className="bg-gray-900/50 rounded-xl p-4">
+              {/* Week days header */}
+              <div className="grid grid-cols-7 gap-2 mb-2">
+                {weekDays.map(day => (
+                  <div key={day} className="text-center text-gray-400 text-sm font-medium py-2">
+                    {day}
                   </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteItem(item.id, null);
-                    }}
-                    className="absolute top-2 right-2 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
-                  >
-                    <X className="w-4 h-4 text-white" />
-                  </button>
-                </div>
-              )}
+                ))}
+              </div>
 
-              {item.type === 'goal' && (
-                <div className="relative">
-                  <div className={`${getCardColor(index)} p-6 rounded-xl shadow-2xl transform transition-all duration-300 hover:scale-105 hover:shadow-3xl`}>
-                    <div className="flex items-start space-x-3">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleToggleGoal(item.id, item.goal_completed);
-                        }}
-                        className={`w-6 h-6 rounded-full border-2 flex-shrink-0 mt-0.5 flex items-center justify-center transition ${
-                          item.goal_completed
-                            ? 'bg-white border-white'
-                            : 'border-white bg-transparent hover:bg-white/20'
-                        }`}
-                      >
-                        {item.goal_completed && <Check className="w-4 h-4 text-blue-600" />}
-                      </button>
-                      <div className="flex-1">
-                        <h3 className={`text-white font-bold text-lg ${item.goal_completed ? 'line-through opacity-70' : ''}`}>
-                          {item.title}
-                        </h3>
-                        {item.content && (
-                          <p className={`text-white/90 text-sm mt-2 line-clamp-4 ${item.goal_completed ? 'line-through opacity-70' : ''}`}>
-                            {item.content}
-                          </p>
+              {/* Calendar days */}
+              <div className="grid grid-cols-7 gap-2">
+                {/* Empty cells for days before month starts */}
+                {Array.from({ length: startingDayOfWeek }).map((_, i) => (
+                  <div key={`empty-${i}`} className="aspect-square" />
+                ))}
+
+                {/* Days of the month */}
+                {Array.from({ length: daysInMonth }).map((_, i) => {
+                  const day = i + 1;
+                  const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+                  const events = getEventsForDate(date);
+                  const isToday =
+                    date.toDateString() === new Date().toDateString();
+
+                  return (
+                    <div
+                      key={day}
+                      onClick={() => handleDateClick(date)}
+                      className={`aspect-square p-2 rounded-lg cursor-pointer transition ${
+                        isToday
+                          ? 'bg-blue-600 hover:bg-blue-700'
+                          : 'bg-gray-800 hover:bg-gray-700'
+                      }`}
+                    >
+                      <div className="flex flex-col h-full">
+                        <span className={`text-sm font-medium ${isToday ? 'text-white' : 'text-gray-300'}`}>
+                          {day}
+                        </span>
+                        {events.length > 0 && (
+                          <div className="mt-1 flex-1 overflow-hidden">
+                            {events.slice(0, 2).map((event, idx) => (
+                              <div
+                                key={event.id}
+                                className="text-[10px] text-white bg-cyan-600 rounded px-1 py-0.5 mb-0.5 truncate"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openDetailModal(event);
+                                }}
+                              >
+                                {event.title}
+                              </div>
+                            ))}
+                            {events.length > 2 && (
+                              <div className="text-[9px] text-gray-400">
+                                +{events.length - 2} more
+                              </div>
+                            )}
+                          </div>
                         )}
                       </div>
                     </div>
-                  </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteItem(item.id, null);
-                    }}
-                    className="absolute top-2 right-2 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
-                  >
-                    <X className="w-4 h-4 text-white" />
-                  </button>
-                </div>
-              )}
+                  );
+                })}
+              </div>
             </div>
-          ))}
-        </Masonry>
 
-        {/* Add Item Modal */}
+            {/* Events List for Selected Date */}
+            {selectedDate && (
+              <div className="mt-6">
+                <h3 className="text-lg font-bold text-white mb-3">
+                  Events on {selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
+                </h3>
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {getEventsForDate(selectedDate).map(event => (
+                    <div
+                      key={event.id}
+                      className="bg-gray-800 rounded-lg p-3 group flex items-center justify-between"
+                    >
+                      <div
+                        className="flex-1 cursor-pointer"
+                        onClick={() => openDetailModal(event)}
+                      >
+                        <h4 className="text-white font-medium">{event.title}</h4>
+                        {event.content && (
+                          <p className="text-gray-400 text-sm mt-1 line-clamp-1">{event.content}</p>
+                        )}
+                      </div>
+                      <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition">
+                        <button
+                          onClick={(e) => handleEditEvent(event, e)}
+                          className="p-1 bg-blue-600 hover:bg-blue-700 rounded"
+                        >
+                          <Edit2 className="w-3 h-3 text-white" />
+                        </button>
+                        <button
+                          onClick={(e) => handleDeleteEvent(event, e)}
+                          className="p-1 bg-red-600 hover:bg-red-700 rounded"
+                        >
+                          <Trash2 className="w-3 h-3 text-white" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  {getEventsForDate(selectedDate).length === 0 && (
+                    <p className="text-gray-400 text-sm italic">No events on this day</p>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* RIGHT: Vision Board */}
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-white">Vision Board</h2>
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-cyan-700 transition"
+              >
+                <Plus className="w-5 h-5" />
+                <span>Add Item</span>
+              </button>
+            </div>
+
+            {/* Vision Board Grid */}
+            <div className="overflow-y-auto max-h-[calc(100vh-200px)]">
+              <Masonry
+                breakpointCols={breakpointColumnsObj}
+                className="flex -ml-4 w-auto"
+                columnClassName="pl-4 bg-clip-padding"
+              >
+                {visionBoardItems.map((item, index) => (
+                  <div
+                    key={item.id}
+                    className="mb-4 group cursor-pointer"
+                    onClick={() => openDetailModal(item)}
+                  >
+                    {item.type === 'image' && (
+                      <div className="relative overflow-hidden rounded-xl shadow-2xl transform transition-all duration-300 hover:scale-105 hover:shadow-3xl">
+                        <img
+                          src={item.image_url || ''}
+                          alt={item.title}
+                          className="w-full h-auto object-cover"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="absolute bottom-0 left-0 right-0 p-4">
+                            <h3 className="text-white font-semibold text-lg">{item.title}</h3>
+                          </div>
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteItem(item.id, item.image_url);
+                          }}
+                          className="absolute top-2 right-2 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+                        >
+                          <X className="w-4 h-4 text-white" />
+                        </button>
+                      </div>
+                    )}
+
+                    {item.type === 'text' && (
+                      <div className="relative">
+                        <div className={`${getCardColor(index)} p-6 rounded-xl shadow-2xl transform transition-all duration-300 hover:scale-105 hover:shadow-3xl`}>
+                          <h3 className="text-white font-bold text-lg mb-2">{item.title}</h3>
+                          {item.content && (
+                            <p className="text-white/90 text-sm line-clamp-4">{item.content}</p>
+                          )}
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteItem(item.id, null);
+                          }}
+                          className="absolute top-2 right-2 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+                        >
+                          <X className="w-4 h-4 text-white" />
+                        </button>
+                      </div>
+                    )}
+
+                    {item.type === 'goal' && (
+                      <div className="relative">
+                        <div className={`${getCardColor(index)} p-6 rounded-xl shadow-2xl transform transition-all duration-300 hover:scale-105 hover:shadow-3xl`}>
+                          <div className="flex items-start space-x-3">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleToggleGoal(item.id, item.goal_completed);
+                              }}
+                              className={`w-6 h-6 rounded-full border-2 flex-shrink-0 mt-0.5 flex items-center justify-center transition ${
+                                item.goal_completed
+                                  ? 'bg-white border-white'
+                                  : 'border-white bg-transparent hover:bg-white/20'
+                              }`}
+                            >
+                              {item.goal_completed && <Check className="w-4 h-4 text-blue-600" />}
+                            </button>
+                            <div className="flex-1">
+                              <h3 className={`text-white font-bold text-lg ${item.goal_completed ? 'line-through opacity-70' : ''}`}>
+                                {item.title}
+                              </h3>
+                              {item.content && (
+                                <p className={`text-white/90 text-sm mt-2 line-clamp-4 ${item.goal_completed ? 'line-through opacity-70' : ''}`}>
+                                  {item.content}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteItem(item.id, null);
+                          }}
+                          className="absolute top-2 right-2 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+                        >
+                          <X className="w-4 h-4 text-white" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </Masonry>
+            </div>
+          </div>
+        </div>
+
+        {/* Add Event Modal */}
+        {showEventModal && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-gray-900 rounded-2xl max-w-md w-full p-6 border border-gray-700">
+              <h2 className="text-2xl font-bold text-white mb-4">
+                {editingEvent ? 'Edit Event' : 'Add Event'}
+              </h2>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Event Title *
+                  </label>
+                  <input
+                    type="text"
+                    value={eventTitle}
+                    onChange={(e) => setEventTitle(e.target.value)}
+                    placeholder="e.g., Anniversary Dinner"
+                    className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Description
+                  </label>
+                  <textarea
+                    value={eventDescription}
+                    onChange={(e) => setEventDescription(e.target.value)}
+                    placeholder="Add details about this event..."
+                    rows={3}
+                    className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Date *
+                    </label>
+                    <input
+                      type="date"
+                      value={eventDate}
+                      onChange={(e) => setEventDate(e.target.value)}
+                      className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Time
+                    </label>
+                    <input
+                      type="time"
+                      value={eventTime}
+                      onChange={(e) => setEventTime(e.target.value)}
+                      className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex space-x-2 mt-6">
+                <button
+                  onClick={handleAddEvent}
+                  className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-cyan-700 transition"
+                >
+                  {editingEvent ? 'Update Event' : 'Add Event'}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowEventModal(false);
+                    resetEventForm();
+                  }}
+                  className="px-4 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Add Vision Item Modal */}
         {showAddModal && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div className="bg-gray-900 rounded-2xl max-w-md w-full p-6 border border-gray-700">
@@ -423,9 +784,17 @@ export default function Vision() {
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
                   <h2 className="text-2xl font-bold text-white mb-2">{selectedItem.title}</h2>
-                  <span className="inline-block px-3 py-1 bg-blue-600 text-white text-xs rounded-full">
-                    {selectedItem.type.toUpperCase()}
-                  </span>
+                  <div className="flex items-center space-x-2">
+                    <span className="inline-block px-3 py-1 bg-blue-600 text-white text-xs rounded-full">
+                      {selectedItem.type.toUpperCase()}
+                    </span>
+                    {selectedItem.event_date && (
+                      <span className="inline-block px-3 py-1 bg-green-600 text-white text-xs rounded-full flex items-center">
+                        <CalendarIcon className="w-3 h-3 mr-1" />
+                        {new Date(selectedItem.event_date).toLocaleDateString()}
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <button
                   onClick={() => setShowDetailModal(false)}
