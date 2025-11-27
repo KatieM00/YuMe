@@ -53,6 +53,7 @@ export default function Mixtape() {
   const [playlistDescription, setPlaylistDescription] = useState('');
   const [selectedCover, setSelectedCover] = useState(coverGradients[0]);
   const [creatingPlaylist, setCreatingPlaylist] = useState(false);
+  const [songsToAdd, setSongsToAdd] = useState<Array<{title: string; artist: string; spotify_id: string; album_art: string | null}>>([]);
 
   // Add Song
   const [showAddSong, setShowAddSong] = useState(false);
@@ -180,22 +181,45 @@ export default function Mixtape() {
           throw new Error('User not authenticated');
         }
 
-        const { error: insertError } = await supabase
+        const { data: newPlaylist, error: insertError } = await supabase
           .from('playlists')
           .insert({
             user_id: user.id,
             title: playlistTitle,
             description: playlistDescription,
             cover: selectedCover,
-          });
+          })
+          .select()
+          .single();
 
         if (insertError) throw insertError;
+
+        // Add songs to the newly created playlist
+        if (newPlaylist && songsToAdd.length > 0) {
+          const songsWithPlaylistId = songsToAdd.map((song, index) => ({
+            user_id: user.id,
+            playlist_id: newPlaylist.id,
+            title: song.title,
+            artist: song.artist,
+            spotify_id: song.spotify_id,
+            album_art: song.album_art,
+            duration: '0:00',
+            position: index,
+          }));
+
+          const { error: songsError } = await supabase
+            .from('songs')
+            .insert(songsWithPlaylistId);
+
+          if (songsError) throw songsError;
+        }
       }
 
       await fetchPlaylists();
       setShowCreateModal(false);
       setPlaylistTitle('');
       setPlaylistDescription('');
+      setSongsToAdd([]);
     } catch (err) {
       console.error('Error creating/updating playlist:', err);
       setError('Couldn\'t save playlist. Please try again.');
@@ -244,6 +268,55 @@ export default function Mixtape() {
     }
 
     return null;
+  };
+
+  const handleAddSongToList = async () => {
+    const trackId = extractSpotifyTrackId(spotifyInput);
+
+    if (!trackId) {
+      setAddSongError('Please enter a valid Spotify URL or Track ID');
+      return;
+    }
+
+    try {
+      setAddingSong(true);
+      setAddSongError(null);
+
+      // Fetch song info from Spotify oEmbed API
+      const response = await fetch(
+        `https://open.spotify.com/oembed?url=https://open.spotify.com/track/${trackId}`
+      );
+
+      if (!response.ok) {
+        throw new Error('Invalid Spotify track');
+      }
+
+      const data = await response.json();
+
+      // Parse title and artist from data.title (usually "Song Name by Artist Name")
+      const titleParts = data.title?.split(' by ') || [];
+      const title = titleParts[0] || 'Unknown';
+      const artist = titleParts.slice(1).join(' by ') || 'Unknown';
+
+      // Extract album art from thumbnail_url
+      const albumArt = data.thumbnail_url || null;
+
+      // Add to temporary list
+      setSongsToAdd([...songsToAdd, {
+        title,
+        artist,
+        spotify_id: trackId,
+        album_art: albumArt,
+      }]);
+
+      // Clear input
+      setSpotifyInput('');
+    } catch (err) {
+      console.error('Error adding song:', err);
+      setAddSongError('Failed to fetch song info. Please check the Spotify link.');
+    } finally {
+      setAddingSong(false);
+    }
   };
 
   const handleAddSong = async () => {
@@ -571,6 +644,59 @@ export default function Mixtape() {
                       className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                     />
                   </div>
+
+                  {!editingPlaylist && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Add Songs (Optional)
+                      </label>
+                      <div className="space-y-2">
+                        <div className="flex space-x-2">
+                          <input
+                            type="text"
+                            value={spotifyInput}
+                            onChange={(e) => setSpotifyInput(e.target.value)}
+                            placeholder="Paste Spotify track link..."
+                            className="flex-1 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            onKeyPress={async (e) => {
+                              if (e.key === 'Enter' && spotifyInput.trim()) {
+                                e.preventDefault();
+                                await handleAddSongToList();
+                              }
+                            }}
+                          />
+                          <button
+                            onClick={handleAddSongToList}
+                            disabled={!spotifyInput.trim() || addingSong}
+                            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {addingSong ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus className="w-5 h-5" />}
+                          </button>
+                        </div>
+                        {songsToAdd.length > 0 && (
+                          <div className="mt-3 space-y-2 max-h-48 overflow-y-auto">
+                            {songsToAdd.map((song, index) => (
+                              <div key={index} className="flex items-center space-x-3 p-2 bg-gray-800 rounded-lg">
+                                {song.album_art && (
+                                  <img src={song.album_art} alt={song.title} className="w-10 h-10 rounded object-cover" />
+                                )}
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-white text-sm font-medium truncate">{song.title}</p>
+                                  <p className="text-gray-400 text-xs truncate">{song.artist}</p>
+                                </div>
+                                <button
+                                  onClick={() => setSongsToAdd(songsToAdd.filter((_, i) => i !== index))}
+                                  className="text-gray-400 hover:text-red-500 transition"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
                   <div>
                     <label className="block text-sm font-medium text-gray-300 mb-3">
