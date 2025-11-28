@@ -523,10 +523,10 @@ export default function Vision() {
 
                     {item.type === 'text' && (
                       <div className="relative">
-                        <div className={`${getCardColor(index)} p-6 rounded-xl shadow-2xl transform transition-all duration-300 hover:scale-105 hover:shadow-3xl`}>
-                          <h3 className="text-white font-bold text-lg mb-2">{item.title}</h3>
+                        <div className={`${getCardColor(index)} p-3 rounded-lg shadow-lg transform transition-all duration-300 hover:scale-105 hover:shadow-xl`}>
+                          <h3 className="text-white font-bold text-sm mb-1">{item.title}</h3>
                           {item.content && (
-                            <p className="text-white/90 text-sm line-clamp-4">{item.content}</p>
+                            <p className="text-white/90 text-xs line-clamp-3">{item.content}</p>
                           )}
                         </div>
                         <button
@@ -543,27 +543,27 @@ export default function Vision() {
 
                     {item.type === 'goal' && (
                       <div className="relative">
-                        <div className={`${getCardColor(index)} p-6 rounded-xl shadow-2xl transform transition-all duration-300 hover:scale-105 hover:shadow-3xl`}>
-                          <div className="flex items-start space-x-3">
+                        <div className={`${getCardColor(index)} p-3 rounded-lg shadow-lg transform transition-all duration-300 hover:scale-105 hover:shadow-xl`}>
+                          <div className="flex items-start space-x-2">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleToggleGoal(item.id, item.goal_completed);
                               }}
-                              className={`w-6 h-6 rounded-full border-2 flex-shrink-0 mt-0.5 flex items-center justify-center transition ${
+                              className={`w-4 h-4 rounded-full border-2 flex-shrink-0 mt-0.5 flex items-center justify-center transition ${
                                 item.goal_completed
                                   ? 'bg-white border-white'
                                   : 'border-white bg-transparent hover:bg-white/20'
                               }`}
                             >
-                              {item.goal_completed && <Check className="w-4 h-4 text-blue-600" />}
+                              {item.goal_completed && <Check className="w-3 h-3 text-blue-600" />}
                             </button>
                             <div className="flex-1">
-                              <h3 className={`text-white font-bold text-lg ${item.goal_completed ? 'line-through opacity-70' : ''}`}>
+                              <h3 className={`text-white font-bold text-sm ${item.goal_completed ? 'line-through opacity-70' : ''}`}>
                                 {item.title}
                               </h3>
                               {item.content && (
-                                <p className={`text-white/90 text-sm mt-2 line-clamp-4 ${item.goal_completed ? 'line-through opacity-70' : ''}`}>
+                                <p className={`text-white/90 text-xs mt-1 line-clamp-3 ${item.goal_completed ? 'line-through opacity-70' : ''}`}>
                                   {item.content}
                                 </p>
                               )}

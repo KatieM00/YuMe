@@ -12,7 +12,9 @@ import {
   Image,
   Mail,
   Tv,
-  HeartHandshake
+  HeartHandshake,
+  Play,
+  X
 } from 'lucide-react';
 import { getCurrentUserProfile, getPartnerInfo, type UserProfile, type PartnerInfo } from '../lib/partnerService';
 import { getAllVisionItems, type VisionItem } from '../lib/visionService';
@@ -33,6 +35,9 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
   const [visionItems, setVisionItems] = useState<VisionItem[]>([]);
   const [recentMessage, setRecentMessage] = useState<Message | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showMediaModal, setShowMediaModal] = useState(false);
+  const [mediaModalType, setMediaModalType] = useState<'image' | 'video' | 'voice' | null>(null);
+  const [mediaModalUrl, setMediaModalUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -181,24 +186,63 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
     </div>
   );
 
+  const handleMediaClick = (type: 'image' | 'video' | 'voice', url: string) => {
+    setMediaModalType(type);
+    setMediaModalUrl(url);
+    setShowMediaModal(true);
+  };
+
   const MessageBox = () => (
-    <div className="flex flex-col items-start justify-center w-full p-1 h-full overflow-hidden">
-      <div className="flex items-center mb-1 flex-shrink-0">
-        <MessageSquare className="w-4 h-4 text-cyan-400 mr-2" />
-        <span className="text-xs text-gray-400 font-medium">Recent Message</span>
+    <div className="flex items-center justify-between w-full p-1 h-full overflow-hidden">
+      <div className="flex flex-col items-start justify-center flex-1 min-w-0">
+        <div className="flex items-center mb-1 flex-shrink-0">
+          <MessageSquare className="w-4 h-4 text-cyan-400 mr-2" />
+          <span className="text-xs text-gray-400 font-medium">Recent Message</span>
+        </div>
+        {recentMessage ? (
+          <p className="text-gray-300 text-sm leading-tight line-clamp-2">
+            <span className="text-cyan-300 font-semibold">{recentMessage.from_user}</span> &gt;{' '}
+            <span className="text-blue-300 font-semibold">{recentMessage.to_user}</span>:
+            <span className="ml-1 font-normal">
+              {recentMessage.type === 'text'
+                ? recentMessage.content
+                : `[${recentMessage.type}]`}
+            </span>
+          </p>
+        ) : (
+          <p className="text-gray-400 text-xs italic">No messages yet</p>
+        )}
       </div>
-      {recentMessage ? (
-        <p className="text-gray-300 text-sm leading-tight line-clamp-2">
-          <span className="text-cyan-300 font-semibold">{recentMessage.from_user}</span> &gt;{' '}
-          <span className="text-blue-300 font-semibold">{recentMessage.to_user}</span>:
-          <span className="ml-1 font-normal">
-            {recentMessage.type === 'text'
-              ? recentMessage.content
-              : `[${recentMessage.type}]`}
-          </span>
-        </p>
-      ) : (
-        <p className="text-gray-400 text-xs italic">No messages yet</p>
+
+      {/* Media preview on the right */}
+      {recentMessage?.media_url && (
+        <div className="ml-2 flex-shrink-0">
+          {recentMessage.type === 'image' && (
+            <img
+              src={recentMessage.media_url}
+              alt="Message preview"
+              className="w-16 h-16 object-cover rounded cursor-pointer hover:opacity-80 transition"
+              onClick={() => handleMediaClick('image', recentMessage.media_url!)}
+            />
+          )}
+          {recentMessage.type === 'video' && (
+            <div
+              className="w-16 h-16 bg-gray-700 rounded cursor-pointer hover:bg-gray-600 transition flex items-center justify-center relative overflow-hidden"
+              onClick={() => handleMediaClick('video', recentMessage.media_url!)}
+            >
+              <video src={recentMessage.media_url} className="absolute inset-0 w-full h-full object-cover" />
+              <Play className="w-8 h-8 text-white relative z-10" />
+            </div>
+          )}
+          {recentMessage.type === 'voice' && (
+            <div
+              className="w-16 h-16 bg-purple-600 rounded cursor-pointer hover:bg-purple-700 transition flex items-center justify-center"
+              onClick={() => handleMediaClick('voice', recentMessage.media_url!)}
+            >
+              <Play className="w-8 h-8 text-white" />
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
@@ -237,6 +281,49 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
           <ButtonBox key={index} {...button} />
         ))}
       </div>
+
+      {/* Media Modal */}
+      {showMediaModal && mediaModalUrl && (
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <button
+            onClick={() => setShowMediaModal(false)}
+            className="absolute top-4 right-4 p-2 bg-gray-800 hover:bg-gray-700 rounded-full transition"
+          >
+            <X className="w-6 h-6 text-white" />
+          </button>
+
+          <div className="max-w-4xl w-full">
+            {mediaModalType === 'image' && (
+              <img
+                src={mediaModalUrl}
+                alt="Full size"
+                className="w-full h-auto max-h-[90vh] object-contain rounded-lg"
+              />
+            )}
+            {mediaModalType === 'video' && (
+              <video
+                src={mediaModalUrl}
+                controls
+                autoPlay
+                className="w-full h-auto max-h-[90vh] rounded-lg"
+              />
+            )}
+            {mediaModalType === 'voice' && (
+              <div className="bg-gray-800 rounded-lg p-8 flex flex-col items-center justify-center">
+                <div className="w-32 h-32 bg-purple-600 rounded-full flex items-center justify-center mb-6">
+                  <Play className="w-16 h-16 text-white" />
+                </div>
+                <audio
+                  src={mediaModalUrl}
+                  controls
+                  autoPlay
+                  className="w-full max-w-md"
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </>
   );
 }
