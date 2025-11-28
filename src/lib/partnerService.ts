@@ -35,15 +35,40 @@ export async function getCurrentUserProfile(): Promise<UserProfile | null> {
     return null;
   }
 
+  // Try to fetch the profile
   const { data, error } = await supabase
     .from('user_profiles')
     .select('*')
     .eq('id', user.id)
-    .single();
+    .maybeSingle();
 
   if (error) {
     console.error('Error fetching user profile:', error);
     return null;
+  }
+
+  // If profile doesn't exist, create it
+  if (!data) {
+    console.log('No profile found, creating one...');
+    const inviteCode = Math.random().toString(36).substring(2, 10);
+
+    const { data: newProfile, error: createError } = await supabase
+      .from('user_profiles')
+      .insert([{
+        id: user.id,
+        email: user.email || '',
+        invite_code: inviteCode,
+        timezone: 'Europe/London'
+      }])
+      .select()
+      .single();
+
+    if (createError) {
+      console.error('Error creating user profile:', createError);
+      return null;
+    }
+
+    return newProfile;
   }
 
   return data;
