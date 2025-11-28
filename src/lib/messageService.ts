@@ -248,6 +248,9 @@ export async function createMessage(messageData: CreateMessageData): Promise<Mes
     throw new Error('User not authenticated');
   }
 
+  console.log('[DEBUG] Creating message with user_id:', user.id);
+  console.log('[DEBUG] User email:', user.email);
+
   // Use grid-based positioning now - positions are just placeholders for database schema
   // Actual positioning is handled by CSS Grid in the UI
   const positionX = messageData.position_x ?? 0;
