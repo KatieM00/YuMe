@@ -406,11 +406,8 @@ export default function Vision() {
                             {events.slice(0, 2).map((event, idx) => (
                               <div
                                 key={event.id}
-                                className="text-[10px] text-white bg-cyan-600 rounded px-1 py-0.5 mb-0.5 truncate"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  openDetailModal(event);
-                                }}
+                                className="text-[10px] text-white bg-cyan-600 hover:bg-cyan-700 rounded px-1 py-0.5 mb-0.5 truncate cursor-pointer transition"
+                                onClick={(e) => handleEditEvent(event, e)}
                               >
                                 {event.title}
                               </div>
