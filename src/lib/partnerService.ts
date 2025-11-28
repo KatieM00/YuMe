@@ -79,24 +79,28 @@ export async function getCurrentUserProfile(): Promise<UserProfile | null> {
 // =========================================================================
 
 export async function getPartnerInfo(): Promise<PartnerInfo | null> {
-  const profile = await getCurrentUserProfile();
+  const { data: { user } } = await supabase.auth.getUser();
 
-  if (!profile || !profile.partner_id) {
+  if (!user) {
     return null;
   }
 
+  // Use the SECURITY DEFINER function to get partner info
+  // This bypasses RLS to avoid infinite recursion
   const { data, error } = await supabase
-    .from('user_profiles')
-    .select('id, email, display_name, timezone')
-    .eq('id', profile.partner_id)
-    .single();
+    .rpc('get_partner_profile', { user_id: user.id });
 
   if (error) {
     console.error('Error fetching partner info:', error);
     return null;
   }
 
-  return data;
+  // The RPC returns an array, get the first item
+  if (!data || data.length === 0) {
+    return null;
+  }
+
+  return data[0];
 }
 
 // =========================================================================
