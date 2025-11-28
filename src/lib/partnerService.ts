@@ -44,7 +44,6 @@ export async function getCurrentUserProfile(): Promise<UserProfile | null> {
 
   if (error) {
     console.error('Error fetching user profile:', error);
-    console.error('Error details:', JSON.stringify(error, null, 2));
     return null;
   }
 
