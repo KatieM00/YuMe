@@ -27,9 +27,18 @@ export interface PartnerInfo {
 // =========================================================================
 
 export async function getCurrentUserProfile(): Promise<UserProfile | null> {
+  // Get current user
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    console.error('No authenticated user');
+    return null;
+  }
+
   const { data, error } = await supabase
     .from('user_profiles')
     .select('*')
+    .eq('id', user.id)
     .single();
 
   if (error) {

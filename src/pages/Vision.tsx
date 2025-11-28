@@ -593,8 +593,8 @@ export default function Vision() {
 
         {/* Add Event Modal */}
         {showEventModal && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-gray-900 rounded-2xl max-w-md w-full p-6 border border-gray-700">
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
+            <div className="bg-gray-900 rounded-2xl max-w-md w-full p-6 border border-gray-700 my-8 max-h-[90vh] overflow-y-auto">
               <h2 className="text-2xl font-bold text-white mb-4">
                 {editingEvent ? 'Edit Event' : 'Add Event'}
               </h2>
