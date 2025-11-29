@@ -346,7 +346,7 @@ export default function Map() {
         {/* Mobile add form sheet */}
         {showAddForm && (
           <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 rounded-t-2xl p-6 z-50 max-h-[80vh] overflow-y-auto">
-            <div ref={addLocationFormRef}>
+            <div>
               <h3 className="text-white font-semibold mb-4 text-lg">Add a Location</h3>
               <div className="space-y-3">
                 {/* Search location */}
@@ -440,7 +440,7 @@ export default function Map() {
         )}
 
         {/* Mobile view - same as before */}
-        <div className="lg:hidden space-y-6">
+        <div className={`lg:hidden space-y-6 transition-all duration-300 ${showAddForm ? 'pb-[80vh]' : ''}`}>
           {/* Map Section */}
           <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-4 border border-gray-700 shadow-xl">
             {!hasMapboxToken ? (
