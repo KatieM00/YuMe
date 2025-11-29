@@ -114,6 +114,7 @@ export default function Map() {
       lng,
     });
     setSearchQuery(suggestion.place_name);
+    setSuggestions([]); // Clear suggestions immediately
     setShowSuggestions(false);
 
     // Center map on selected location
