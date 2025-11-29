@@ -1,12 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
 import { MapPin, Plus, Trash2, Loader, Check, Search } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import UserBadge from '../components/UserBadge';
 
 // Declare mapboxgl as a global variable (loaded from CDN)
 declare const mapboxgl: any;
 
 interface Location {
   id?: string;
+  user_id?: string;
   name: string;
   lat: number;
   lng: number;
@@ -750,6 +752,13 @@ export default function Map() {
                             </div>
                           )}
 
+                          {/* User Badge - bottom left */}
+                          {location.user_id && (
+                            <div className="absolute bottom-1 left-1">
+                              <UserBadge userId={location.user_id} size={16} />
+                            </div>
+                          )}
+
                           {/* Delete button - always top right */}
                           <button
                             onClick={(e) => {
@@ -787,6 +796,13 @@ export default function Map() {
                           {location.notes && (
                             <div className="absolute inset-0 bg-black/90 rounded-lg opacity-0 group-hover:opacity-100 transition flex flex-col items-center justify-center p-3 text-center pointer-events-none">
                               <p className="text-gray-400 text-xs line-clamp-3">{location.notes}</p>
+                            </div>
+                          )}
+
+                          {/* User Badge - bottom left */}
+                          {location.user_id && (
+                            <div className="absolute bottom-1 left-1">
+                              <UserBadge userId={location.user_id} size={16} />
                             </div>
                           )}
 

@@ -9,6 +9,7 @@ import {
   toggleReaction,
   uploadMessageMedia,
 } from '../lib/messageService';
+import { useUser } from '../contexts/UserContext';
 
 const reactionOptions = [
   { icon: '♥️', label: 'heart' },
@@ -22,6 +23,7 @@ const reactionOptions = [
 ];
 
 export default function Messages() {
+  const { currentUser, partner } = useUser();
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -577,6 +579,21 @@ export default function Messages() {
     return message.reactions?.map(r => r.emoji) || [];
   };
 
+  // Format message header based on sender
+  const getMessageHeader = (message: Message): string => {
+    const isFromCurrentUser = message.user_id === currentUser?.id;
+
+    if (isFromCurrentUser) {
+      // Message sent by current user
+      const toName = partner?.display_name || partner?.email || 'Partner';
+      return `To ${toName}`;
+    } else {
+      // Message from partner
+      const fromName = partner?.display_name || partner?.email || 'Partner';
+      return `From ${fromName}`;
+    }
+  };
+
   // Render message card
   const renderMessageCard = (message: Message, showDelete: boolean = false) => {
     const isExpanded = expandedReactions === message.id;
@@ -591,7 +608,7 @@ export default function Messages() {
             <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
             <div className="w-2 h-2 rounded-full bg-green-500"></div>
             <span className="text-white text-xs font-medium ml-1">
-              {message.from_user} → {message.to_user}
+              {getMessageHeader(message)}
             </span>
           </div>
           <div className="flex items-center space-x-1">

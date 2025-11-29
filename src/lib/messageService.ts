@@ -2,6 +2,7 @@ import { supabase } from './supabase';
 
 export interface Message {
   id: string;
+  user_id: string;
   from_user: string;
   to_user: string;
   type: 'text' | 'voice' | 'video' | 'image';

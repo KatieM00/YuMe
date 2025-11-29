@@ -16,6 +16,7 @@ import {
   Trash2
 } from 'lucide-react';
 import Masonry from 'react-masonry-css';
+import UserBadge from '../components/UserBadge';
 import {
   VisionItem,
   VisionComment,
@@ -509,6 +510,9 @@ export default function Vision() {
                             <h3 className="text-white font-semibold text-lg">{item.title}</h3>
                           </div>
                         </div>
+                        <div className="absolute bottom-2 right-2">
+                          <UserBadge userId={item.user_id} size={20} />
+                        </div>
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -528,6 +532,9 @@ export default function Vision() {
                           {item.content && (
                             <p className="text-white/90 text-xs line-clamp-3">{item.content}</p>
                           )}
+                        </div>
+                        <div className="absolute bottom-2 right-2">
+                          <UserBadge userId={item.user_id} size={20} />
                         </div>
                         <button
                           onClick={(e) => {
@@ -569,6 +576,9 @@ export default function Vision() {
                               )}
                             </div>
                           </div>
+                        </div>
+                        <div className="absolute bottom-2 right-2">
+                          <UserBadge userId={item.user_id} size={20} />
                         </div>
                         <button
                           onClick={(e) => {
@@ -724,6 +734,21 @@ export default function Vision() {
                 >
                   {editingEvent ? 'Update Event' : 'Add Event'}
                 </button>
+                {editingEvent && editingEvent.id && (
+                  <button
+                    onClick={() => {
+                      if (confirm('Are you sure you want to delete this event?')) {
+                        handleDeleteItem(editingEvent.id, null);
+                        setShowEventModal(false);
+                        setEditingEvent(null);
+                      }
+                    }}
+                    className="px-4 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition flex items-center space-x-2"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    <span>Delete</span>
+                  </button>
+                )}
                 <button
                   onClick={() => {
                     setShowEventModal(false);
@@ -870,7 +895,7 @@ export default function Vision() {
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
                   <h2 className="text-2xl font-bold text-white mb-2">{selectedItem.title}</h2>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-2 flex-wrap">
                     <span className="inline-block px-3 py-1 bg-blue-600 text-white text-xs rounded-full">
                       {selectedItem.type.toUpperCase()}
                     </span>
@@ -880,6 +905,10 @@ export default function Vision() {
                         {new Date(selectedItem.event_date).toLocaleDateString()}
                       </span>
                     )}
+                    <div className="flex items-center space-x-2 px-3 py-1 bg-gray-800 rounded-full">
+                      <UserBadge userId={selectedItem.user_id} size={18} />
+                      <span className="text-gray-300 text-xs">Created by</span>
+                    </div>
                   </div>
                 </div>
                 <button

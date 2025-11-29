@@ -2,6 +2,7 @@ import { supabase } from './supabase';
 
 export interface MediaItem {
   id: string;
+  user_id: string;
   storage_path: string;
   public_url: string;
   file_name: string;

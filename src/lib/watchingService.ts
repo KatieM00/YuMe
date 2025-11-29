@@ -2,6 +2,7 @@ import { supabase } from './supabase';
 
 export interface WatchingItem {
   id: string;
+  user_id: string;
   tmdb_id: number;
   media_type: 'movie' | 'tv';
   title: string;

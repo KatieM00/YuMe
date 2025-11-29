@@ -6,6 +6,7 @@ import { supabase } from './supabase';
 
 export interface VisionItem {
   id: string;
+  user_id: string;
   type: 'text' | 'goal' | 'image';
   title: string;
   content: string | null;

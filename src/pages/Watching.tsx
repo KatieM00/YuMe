@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Plus, Search, X, Star, Clock, Calendar, Film, Tv, Loader } from 'lucide-react';
+import UserBadge from '../components/UserBadge';
 import {
   searchMulti,
   getMovieDetails,
@@ -474,6 +475,11 @@ function WatchingCard({
           }`}>
             {displayRating.rating.toFixed(1)}
           </span>
+        </div>
+
+        {/* User Badge - Bottom Right */}
+        <div className="absolute bottom-2 right-2">
+          <UserBadge userId={item.user_id} size={20} />
         </div>
 
         {/* Hover Overlay - Similar to Album page */}

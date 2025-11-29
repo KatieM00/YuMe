@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, MapPin, Calendar, MessageSquare, X, Trash2, Loader, Pencil } from 'lucide-react';
 import { UploadModal } from '../components/UploadModal';
+import UserBadge from '../components/UserBadge';
 import {
   MediaItem,
   getAllMedia,
@@ -222,6 +223,9 @@ export default function Images() {
                     VIDEO
                   </div>
                 )}
+                <div className="absolute bottom-2 right-2">
+                  <UserBadge userId={image.user_id} size={20} />
+                </div>
               </div>
             ))}
           </div>
@@ -266,12 +270,10 @@ export default function Images() {
                             <span>{selectedImage.taken_date}</span>
                           </div>
                         )}
-                        {selectedImage.added_by && (
-                          <div className="flex items-center space-x-1">
-                            <span className="text-gray-500">Added by:</span>
-                            <span className="text-gray-300">{selectedImage.added_by}</span>
-                          </div>
-                        )}
+                        <div className="flex items-center space-x-2">
+                          <UserBadge userId={selectedImage.user_id} size={20} />
+                          <span className="text-gray-400 text-sm">Added by</span>
+                        </div>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">

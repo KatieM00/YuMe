@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Play, Music, MessageSquare, X, Plus, Trash2, ExternalLink, Loader2, Edit2, PlayCircle, StopCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import UserBadge from '../components/UserBadge';
 
 interface SongComment {
   id: string;
@@ -11,6 +12,7 @@ interface SongComment {
 
 interface Song {
   id: string;
+  user_id: string;
   playlist_id: string;
   title: string;
   artist: string;
@@ -24,6 +26,7 @@ interface Song {
 
 interface Playlist {
   id: string;
+  user_id: string;
   title: string;
   description: string;
   cover: string;
@@ -600,6 +603,9 @@ export default function Mixtape() {
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
                     <Play className="w-12 h-12 text-white" />
                   </div>
+                  <div className="absolute bottom-2 right-2">
+                    <UserBadge userId={playlist.user_id} size={20} />
+                  </div>
                 </div>
                 <h3 className="text-lg font-bold text-white mb-1">{playlist.title}</h3>
                 <p className="text-sm text-gray-400 line-clamp-2">{playlist.description}</p>
@@ -888,7 +894,10 @@ export default function Mixtape() {
                             <div className="flex items-start justify-between mb-2">
                               <div className="flex-1 min-w-0">
                                 <p className="text-white font-medium truncate">{song.title}</p>
-                                <p className="text-gray-400 text-sm truncate">{song.artist}</p>
+                                <div className="flex items-center space-x-2">
+                                  <p className="text-gray-400 text-sm truncate">{song.artist}</p>
+                                  <UserBadge userId={song.user_id} size={16} />
+                                </div>
                               </div>
                               <button
                                 onClick={(e) => handleDeleteSong(song.id, e)}
