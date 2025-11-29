@@ -113,7 +113,7 @@ export default function Map() {
       lat,
       lng,
     });
-    setSearchQuery(suggestion.place_name);
+    // Don't update searchQuery - it would trigger the debounced search again
     setSuggestions([]); // Clear suggestions immediately
     setShowSuggestions(false);
 
