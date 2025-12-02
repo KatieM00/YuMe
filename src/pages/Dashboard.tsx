@@ -253,7 +253,7 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
   const ButtonBox = ({ id, name, iconSrc, bg }: typeof navButtons[0]) => (
     <button
         onClick={() => setPage(id)}
-        className={`relative flex flex-col items-center justify-center p-6 h-full min-h-[150px] sm:min-h-[180px] rounded-2xl border border-gray-700 shadow-xl transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl ${bg}`}
+        className={`relative flex flex-col items-center justify-center p-6 h-full min-h-[120px] md:min-h-[150px] lg:min-h-[180px] rounded-2xl border border-gray-700 shadow-xl transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl ${bg}`}
     >
       <div className={`w-14 h-14 sm:w-20 sm:h-20 rounded-full flex items-center justify-center mb-3 bg-gray-900/50 ring-2 ring-gray-600`}>
         <img src={iconSrc} alt={name} className="w-7 h-7 sm:w-10 sm:h-10" />
@@ -264,7 +264,7 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
 
   return (
     <>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 md:mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6 md:mb-8">
         <InfoBoxContainer><TimeBox /></InfoBoxContainer>
         <InfoBoxContainer><CountdownBox /></InfoBoxContainer>
         <InfoBoxContainer><MessageBox /></InfoBoxContainer>
