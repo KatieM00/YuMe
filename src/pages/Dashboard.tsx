@@ -7,15 +7,15 @@ import {
   Clock,
   Calendar,
   MessageSquare,
-  Music,
-  Map,
-  Image,
-  Mail,
-  Tv,
-  HeartHandshake,
   Play,
   X
 } from 'lucide-react';
+import MusicIcon from '../images/MusicIcon.png';
+import MapIcon from '../images/MapIcon.png';
+import AlbumIcon from '../images/AlbumIcon.png';
+import MessagesIcon from '../images/MessagesIcon.png';
+import WatchingIcon from '../images/watchingIcon.png';
+import CalendarIcon from '../images/CalendarIcon.png';
 import { getCurrentUserProfile, getPartnerInfo, type UserProfile, type PartnerInfo } from '../lib/partnerService';
 import { getAllVisionItems, type VisionItem } from '../lib/visionService';
 import { getAllMessages, type Message } from '../lib/messageService';
@@ -248,21 +248,21 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
   );
 
   const navButtons = [
-    { id: 'mixtape', name: 'Mixtape', icon: Music, color: 'text-pink-400', bg: 'bg-pink-900/40' },
-    { id: 'map', name: 'Map', icon: Map, color: 'text-red-400', bg: 'bg-red-900/40' },
-    { id: 'images', name: 'Album', icon: Image, color: 'text-orange-400', bg: 'bg-orange-900/40' },
-    { id: 'messages', name: 'Messages', icon: Mail, color: 'text-yellow-400', bg: 'bg-yellow-900/40' },
-    { id: 'watching', name: 'Watching', icon: Tv, color: 'text-lime-400', bg: 'bg-lime-900/40' },
-    { id: 'vision', name: 'Vision', icon: HeartHandshake, color: 'text-fuchsia-400', bg: 'bg-fuchsia-900/40' },
+    { id: 'mixtape', name: 'Mixtape', iconSrc: MusicIcon, bg: 'bg-pink-900/40' },
+    { id: 'map', name: 'Map', iconSrc: MapIcon, bg: 'bg-red-900/40' },
+    { id: 'images', name: 'Album', iconSrc: AlbumIcon, bg: 'bg-orange-900/40' },
+    { id: 'messages', name: 'Messages', iconSrc: MessagesIcon, bg: 'bg-yellow-900/40' },
+    { id: 'watching', name: 'Watching', iconSrc: WatchingIcon, bg: 'bg-lime-900/40' },
+    { id: 'vision', name: 'Vision', iconSrc: CalendarIcon, bg: 'bg-fuchsia-900/40' },
   ];
 
-  const ButtonBox = ({ id, name, icon: Icon, color, bg }: typeof navButtons[0]) => (
+  const ButtonBox = ({ id, name, iconSrc, bg }: typeof navButtons[0]) => (
     <button
         onClick={() => setPage(id)}
         className={`relative flex flex-col items-center justify-center p-6 h-full min-h-[150px] sm:min-h-[180px] rounded-2xl border border-gray-700 shadow-xl transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl ${bg}`}
     >
       <div className={`w-14 h-14 sm:w-20 sm:h-20 rounded-full flex items-center justify-center mb-3 bg-gray-900/50 ring-2 ring-gray-600`}>
-        <Icon className={`w-7 h-7 sm:w-10 sm:h-10 ${color}`} />
+        <img src={iconSrc} alt={name} className="w-7 h-7 sm:w-10 sm:h-10" />
       </div>
       <span className="text-white text-base sm:text-lg font-semibold text-center mt-2">{name}</span>
     </button>
