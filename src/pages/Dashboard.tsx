@@ -10,12 +10,6 @@ import {
   Play,
   X
 } from 'lucide-react';
-import MusicIcon from '../images/MusicIcon.png';
-import MapIcon from '../images/MapIcon.png';
-import AlbumIcon from '../images/AlbumIcon.png';
-import MessagesIcon from '../images/MessagesIcon.png';
-import WatchingIcon from '../images/watchingIcon.png';
-import CalendarIcon from '../images/CalendarIcon.png';
 import { getCurrentUserProfile, getPartnerInfo, type UserProfile, type PartnerInfo } from '../lib/partnerService';
 import { getAllVisionItems, type VisionItem } from '../lib/visionService';
 import { getAllMessages, type Message } from '../lib/messageService';
@@ -248,12 +242,12 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
   );
 
   const navButtons = [
-    { id: 'mixtape', name: 'Mixtape', iconSrc: MusicIcon, bg: 'bg-pink-900/40' },
-    { id: 'map', name: 'Map', iconSrc: MapIcon, bg: 'bg-red-900/40' },
-    { id: 'images', name: 'Album', iconSrc: AlbumIcon, bg: 'bg-orange-900/40' },
-    { id: 'messages', name: 'Messages', iconSrc: MessagesIcon, bg: 'bg-yellow-900/40' },
-    { id: 'watching', name: 'Watching', iconSrc: WatchingIcon, bg: 'bg-lime-900/40' },
-    { id: 'vision', name: 'Vision', iconSrc: CalendarIcon, bg: 'bg-fuchsia-900/40' },
+    { id: 'mixtape', name: 'Mixtape', iconSrc: '/images/MusicIcon.png', bg: 'bg-pink-900/40' },
+    { id: 'map', name: 'Map', iconSrc: '/images/MapIcon.png', bg: 'bg-red-900/40' },
+    { id: 'images', name: 'Album', iconSrc: '/images/AlbumIcon.png', bg: 'bg-orange-900/40' },
+    { id: 'messages', name: 'Messages', iconSrc: '/images/MessagesIcon.png', bg: 'bg-yellow-900/40' },
+    { id: 'watching', name: 'Watching', iconSrc: '/images/watchingIcon.png', bg: 'bg-lime-900/40' },
+    { id: 'vision', name: 'Vision', iconSrc: '/images/CalendarIcon.png', bg: 'bg-fuchsia-900/40' },
   ];
 
   const ButtonBox = ({ id, name, iconSrc, bg }: typeof navButtons[0]) => (

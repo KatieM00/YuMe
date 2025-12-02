@@ -1,12 +1,4 @@
 import { Settings, LogOut } from 'lucide-react';
-import HomeIcon from '../images/HomeIcon.png';
-import MusicIcon from '../images/MusicIcon.png';
-import MapIcon from '../images/MapIcon.png';
-import AlbumIcon from '../images/AlbumIcon.png';
-import MessagesIcon from '../images/MessagesIcon.png';
-import WatchingIcon from '../images/watchingIcon.png';
-import CalendarIcon from '../images/CalendarIcon.png';
-import YuMeIcon from '../images/YuMeIcon.png';
 
 interface NavbarProps {
   currentPage: string;
@@ -16,13 +8,13 @@ interface NavbarProps {
 
 export default function Navbar({ currentPage, setCurrentPage, onLogout }: NavbarProps) {
   const navItems = [
-    { id: 'dashboard', label: 'Dashboard', iconSrc: HomeIcon },
-    { id: 'mixtape', label: 'Mixtape', iconSrc: MusicIcon },
-    { id: 'map', label: 'Map', iconSrc: MapIcon },
-    { id: 'images', label: 'Images', iconSrc: AlbumIcon },
-    { id: 'messages', label: 'Messages', iconSrc: MessagesIcon },
-    { id: 'watching', label: 'Watching', iconSrc: WatchingIcon },
-    { id: 'vision', label: 'Vision', iconSrc: CalendarIcon },
+    { id: 'dashboard', label: 'Dashboard', iconSrc: '/images/HomeIcon.png' },
+    { id: 'mixtape', label: 'Mixtape', iconSrc: '/images/MusicIcon.png' },
+    { id: 'map', label: 'Map', iconSrc: '/images/MapIcon.png' },
+    { id: 'images', label: 'Images', iconSrc: '/images/AlbumIcon.png' },
+    { id: 'messages', label: 'Messages', iconSrc: '/images/MessagesIcon.png' },
+    { id: 'watching', label: 'Watching', iconSrc: '/images/watchingIcon.png' },
+    { id: 'vision', label: 'Vision', iconSrc: '/images/CalendarIcon.png' },
   ];
 
   return (
@@ -31,7 +23,7 @@ export default function Navbar({ currentPage, setCurrentPage, onLogout }: Navbar
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center space-x-8">
             <div className="flex items-center space-x-2">
-              <img src={YuMeIcon} alt="YuMe" className="w-6 h-6" />
+              <img src="/images/YuMeIcon.png" alt="YuMe" className="w-6 h-6" />
               <span className="text-xl font-bold text-white">YuMe</span>
             </div>
 
