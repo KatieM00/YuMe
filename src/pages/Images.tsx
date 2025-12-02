@@ -252,9 +252,9 @@ export default function Images() {
                 </div>
 
                 <div className="p-6 flex flex-col max-h-[90vh] overflow-y-auto">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <h2 className="text-2xl font-bold text-white mb-2">
+                  <div className="flex items-start justify-between mb-4 gap-4">
+                    <div className="flex-1 min-w-0">
+                      <h2 className="text-2xl font-bold text-white mb-2 break-words">
                         {selectedImage.description || selectedImage.file_name}
                       </h2>
                       <div className="flex flex-wrap items-center gap-4 text-sm text-gray-400">
@@ -276,7 +276,7 @@ export default function Images() {
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2 flex-shrink-0">
                       <button
                         onClick={() => setIsEditMode(!isEditMode)}
                         className="w-10 h-10 bg-blue-500/20 hover:bg-blue-500/30 rounded-full flex items-center justify-center transition"
