@@ -251,12 +251,23 @@ export default function Images() {
                   )}
                 </div>
 
-                <div className="p-6 flex flex-col overflow-y-auto">
+                <div className="p-6 flex flex-col overflow-y-auto overflow-x-hidden">
                   <div className="flex items-start gap-4 mb-4">
                     <div className="flex-1 min-w-0">
-                      <h2 className="text-2xl font-bold text-white mb-2 break-words" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
-                        {selectedImage.description || selectedImage.file_name}
-                      </h2>
+                      {isEditMode ? (
+                        <input
+                          type="text"
+                          name="description"
+                          form="edit-media-form"
+                          defaultValue={selectedImage.description || selectedImage.file_name}
+                          className="w-full text-xl md:text-2xl font-bold text-white mb-2 bg-gray-800 border border-blue-500 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="Image title..."
+                        />
+                      ) : (
+                        <h2 className="text-xl md:text-2xl font-bold text-white mb-2 break-words whitespace-normal" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
+                          {selectedImage.description || selectedImage.file_name}
+                        </h2>
+                      )}
                       <div className="flex flex-wrap items-center gap-4 text-sm text-gray-400">
                         {selectedImage.location && (
                           <div className="flex items-center space-x-1">
@@ -307,19 +318,7 @@ export default function Images() {
                   {isEditMode && (
                     <div className="border-t border-gray-700 pt-4 mb-4">
                       <h3 className="text-lg font-semibold text-white mb-4">Edit Details</h3>
-                      <form onSubmit={handleUpdateMedia} className="space-y-4">
-                        <div>
-                          <label className="block mb-2 text-sm font-medium text-gray-300">
-                            Description
-                          </label>
-                          <textarea
-                            name="description"
-                            defaultValue={selectedImage.description || ''}
-                            placeholder="Add a description..."
-                            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            rows={3}
-                          />
-                        </div>
+                      <form id="edit-media-form" onSubmit={handleUpdateMedia} className="space-y-4">
 
                         <div>
                           <label className="block mb-2 text-sm font-medium text-gray-300">
