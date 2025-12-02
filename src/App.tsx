@@ -68,7 +68,7 @@ function App() {
   const renderPage = () => {
     switch (currentPage) {
       case 'dashboard':
-        return <Dashboard setCurrentPage={setCurrentPage} />;
+        return <Dashboard setCurrentPage={setCurrentPage} onLogout={handleLogout} />;
       case 'mixtape':
         return <Mixtape />;
       case 'map':
@@ -84,15 +84,17 @@ function App() {
       case 'settings':
         return <Settings />;
       default:
-        return <Dashboard setCurrentPage={setCurrentPage} />;
+        return <Dashboard setCurrentPage={setCurrentPage} onLogout={handleLogout} />;
     }
   };
 
   return (
     <UserProvider>
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-gray-900">
-        <Navbar currentPage={currentPage} setCurrentPage={setCurrentPage} onLogout={handleLogout} />
-        <main className="pt-16">
+        {currentPage !== 'dashboard' && (
+          <Navbar currentPage={currentPage} setCurrentPage={setCurrentPage} onLogout={handleLogout} />
+        )}
+        <main>
           {renderPage()}
         </main>
       </div>

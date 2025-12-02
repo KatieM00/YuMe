@@ -8,7 +8,9 @@ import {
   Calendar,
   MessageSquare,
   Play,
-  X
+  X,
+  Settings,
+  LogOut
 } from 'lucide-react';
 import { getCurrentUserProfile, getPartnerInfo, type UserProfile, type PartnerInfo } from '../lib/partnerService';
 import { getAllVisionItems, type VisionItem } from '../lib/visionService';
@@ -326,9 +328,29 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
 // MAIN DASHBOARD COMPONENT
 // =========================================================================
 
-export default function Dashboard({ setCurrentPage }: { setCurrentPage: (page: string) => void }) {
+export default function Dashboard({ setCurrentPage, onLogout }: { setCurrentPage: (page: string) => void; onLogout?: () => void }) {
     return (
         <div className="min-h-screen p-4 md:p-8">
+            {/* Settings and Logout buttons - top right */}
+            <div className="fixed top-4 right-4 z-10 flex items-center space-x-2">
+                <button
+                    onClick={() => setCurrentPage('settings')}
+                    className="flex items-center space-x-2 px-4 py-2 bg-gray-800/80 backdrop-blur-sm hover:bg-gray-700 rounded-lg text-sm font-medium text-gray-400 hover:text-white transition border border-gray-700"
+                >
+                    <Settings className="w-4 h-4" />
+                    <span className="hidden sm:inline">Settings</span>
+                </button>
+                {onLogout && (
+                    <button
+                        onClick={onLogout}
+                        className="flex items-center space-x-2 px-4 py-2 bg-gray-800/80 backdrop-blur-sm hover:bg-gray-700 rounded-lg text-sm font-medium text-gray-400 hover:text-white transition border border-gray-700"
+                    >
+                        <LogOut className="w-4 h-4" />
+                        <span className="hidden sm:inline">Logout</span>
+                    </button>
+                )}
+            </div>
+
             <div className="max-w-7xl mx-auto">
                 <DashboardContent setPage={setCurrentPage} />
             </div>
