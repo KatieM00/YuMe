@@ -115,7 +115,7 @@ export default function Map() {
       lat,
       lng,
     });
-    setSearchQuery(suggestion.place_name.split(',')[0]); // Update search field with selected location
+    // Don't update searchQuery - it would trigger the debounced search again
     setSuggestions([]);
     setShowSuggestions(false);
 
