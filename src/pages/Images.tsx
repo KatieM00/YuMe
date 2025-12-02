@@ -345,19 +345,6 @@ export default function Images() {
                           />
                         </div>
 
-                        <div>
-                          <label className="block mb-2 text-sm font-medium text-gray-300">
-                            Added by
-                          </label>
-                          <input
-                            type="text"
-                            name="added_by"
-                            defaultValue={selectedImage.added_by || ''}
-                            placeholder="Who added this?"
-                            className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          />
-                        </div>
-
                         <div className="flex gap-3">
                           <button
                             type="button"
