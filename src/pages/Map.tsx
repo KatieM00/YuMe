@@ -39,6 +39,8 @@ export default function Map() {
 
   // Add location form state
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showNotes, setShowNotes] = useState(false);
+  const [showVisitDate, setShowVisitDate] = useState(false);
   const [newLocation, setNewLocation] = useState<Partial<Location>>({
     name: '',
     lat: 0,
@@ -113,8 +115,8 @@ export default function Map() {
       lat,
       lng,
     });
-    // Don't update searchQuery - it would trigger the debounced search again
-    setSuggestions([]); // Clear suggestions immediately
+    setSearchQuery(suggestion.place_name.split(',')[0]); // Update search field with selected location
+    setSuggestions([]);
     setShowSuggestions(false);
 
     // Center map on selected location
@@ -357,11 +359,21 @@ export default function Map() {
                     <input
                       type="text"
                       value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                        // Clear selected location when user starts typing again
+                        if (newLocation.lat !== 0) {
+                          setNewLocation({ ...newLocation, lat: 0, lng: 0, name: '' });
+                        }
+                      }}
                       onFocus={() => {
                         if (suggestions.length > 0) setShowSuggestions(true);
                       }}
-                      className="w-full pl-10 pr-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className={`w-full pl-10 pr-3 py-2 bg-gray-800 border rounded-lg text-white text-sm focus:outline-none focus:ring-2 ${
+                        newLocation.lat !== 0
+                          ? 'border-green-500 focus:ring-green-500'
+                          : 'border-gray-700 focus:ring-blue-500'
+                      }`}
                       placeholder="e.g., Paris, Tokyo"
                     />
                     {isSearching && (
@@ -386,6 +398,7 @@ export default function Map() {
                   )}
                 </div>
 
+                {/* Type Selection */}
                 <div>
                   <label className="text-xs text-gray-400 mb-1 block">Type</label>
                   <select
@@ -398,9 +411,24 @@ export default function Map() {
                   </select>
                 </div>
 
+                {/* Optional Fields Toggles */}
                 {newLocation.type === 'visited' && (
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="showVisitDate"
+                      checked={showVisitDate}
+                      onChange={(e) => setShowVisitDate(e.target.checked)}
+                      className="w-4 h-4 text-blue-600 bg-gray-800 border-gray-600 rounded focus:ring-blue-500"
+                    />
+                    <label htmlFor="showVisitDate" className="text-xs text-gray-400 cursor-pointer">
+                      Add visit date
+                    </label>
+                  </div>
+                )}
+
+                {showVisitDate && newLocation.type === 'visited' && (
                   <div>
-                    <label className="text-xs text-gray-400 mb-1 block">Visit Date (optional)</label>
                     <input
                       type="month"
                       value={newLocation.visit_date}
@@ -410,20 +438,28 @@ export default function Map() {
                   </div>
                 )}
 
-                <div>
-                  <label className="text-xs text-gray-400 mb-1 block">Notes (optional)</label>
+                <div className="flex items-center space-x-2">
                   <input
-                    type="text"
-                    value={newLocation.notes}
-                    onChange={(e) => setNewLocation({ ...newLocation, notes: e.target.value })}
-                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Add a note..."
+                    type="checkbox"
+                    id="showNotes"
+                    checked={showNotes}
+                    onChange={(e) => setShowNotes(e.target.checked)}
+                    className="w-4 h-4 text-blue-600 bg-gray-800 border-gray-600 rounded focus:ring-blue-500"
                   />
+                  <label htmlFor="showNotes" className="text-xs text-gray-400 cursor-pointer">
+                    Add notes
+                  </label>
                 </div>
 
-                {newLocation.lat !== 0 && newLocation.lng !== 0 && (
-                  <div className="bg-green-500/10 border border-green-500/30 rounded p-2">
-                    <p className="text-green-400 text-xs">✓ {newLocation.name}</p>
+                {showNotes && (
+                  <div>
+                    <input
+                      type="text"
+                      value={newLocation.notes}
+                      onChange={(e) => setNewLocation({ ...newLocation, notes: e.target.value })}
+                      className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Add a note..."
+                    />
                   </div>
                 )}
 
@@ -625,11 +661,21 @@ export default function Map() {
                       <input
                         type="text"
                         value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onChange={(e) => {
+                          setSearchQuery(e.target.value);
+                          // Clear selected location when user starts typing again
+                          if (newLocation.lat !== 0) {
+                            setNewLocation({ ...newLocation, lat: 0, lng: 0, name: '' });
+                          }
+                        }}
                         onFocus={() => {
                           if (suggestions.length > 0) setShowSuggestions(true);
                         }}
-                        className="w-full pl-10 pr-3 py-2 bg-gray-900/50 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className={`w-full pl-10 pr-3 py-2 bg-gray-900/50 border rounded-lg text-white text-sm focus:outline-none focus:ring-2 ${
+                          newLocation.lat !== 0
+                            ? 'border-green-500 focus:ring-green-500'
+                            : 'border-gray-700 focus:ring-blue-500'
+                        }`}
                         placeholder="e.g., Paris, Tokyo"
                       />
                       {isSearching && (
@@ -666,9 +712,24 @@ export default function Map() {
                     </select>
                   </div>
 
+                  {/* Optional Fields Toggles */}
                   {newLocation.type === 'visited' && (
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="showVisitDateDesktop"
+                        checked={showVisitDate}
+                        onChange={(e) => setShowVisitDate(e.target.checked)}
+                        className="w-4 h-4 text-blue-600 bg-gray-800 border-gray-600 rounded focus:ring-blue-500"
+                      />
+                      <label htmlFor="showVisitDateDesktop" className="text-sm text-gray-400 cursor-pointer">
+                        Add visit date
+                      </label>
+                    </div>
+                  )}
+
+                  {showVisitDate && newLocation.type === 'visited' && (
                     <div>
-                      <label className="text-sm text-gray-400 mb-2 block">Visit Date (optional)</label>
                       <input
                         type="month"
                         value={newLocation.visit_date}
@@ -678,20 +739,28 @@ export default function Map() {
                     </div>
                   )}
 
-                  <div>
-                    <label className="text-sm text-gray-400 mb-2 block">Notes (optional)</label>
-                    <textarea
-                      value={newLocation.notes}
-                      onChange={(e) => setNewLocation({ ...newLocation, notes: e.target.value })}
-                      className="w-full px-3 py-2 bg-gray-900/50 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                      rows={3}
-                      placeholder="Add a note..."
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="showNotesDesktop"
+                      checked={showNotes}
+                      onChange={(e) => setShowNotes(e.target.checked)}
+                      className="w-4 h-4 text-blue-600 bg-gray-800 border-gray-600 rounded focus:ring-blue-500"
                     />
+                    <label htmlFor="showNotesDesktop" className="text-sm text-gray-400 cursor-pointer">
+                      Add notes
+                    </label>
                   </div>
 
-                  {newLocation.lat !== 0 && newLocation.lng !== 0 && (
-                    <div className="bg-green-500/10 border border-green-500/30 rounded p-3">
-                      <p className="text-green-400 text-sm">✓ {newLocation.name}</p>
+                  {showNotes && (
+                    <div>
+                      <input
+                        type="text"
+                        value={newLocation.notes}
+                        onChange={(e) => setNewLocation({ ...newLocation, notes: e.target.value })}
+                        className="w-full px-3 py-2 bg-gray-900/50 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Add a note..."
+                      />
                     </div>
                   )}
 
