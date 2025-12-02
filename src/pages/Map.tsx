@@ -440,7 +440,7 @@ export default function Map() {
         )}
 
         {/* Mobile view - same as before */}
-        <div className="lg:hidden space-y-6 transition-all duration-300">
+        <div className={`lg:hidden space-y-6 transition-all duration-300 ${showAddForm ? 'pb-[65vh]' : ''}`}>
           {/* Map Section */}
           <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-4 border border-gray-700 shadow-xl">
             {!hasMapboxToken ? (
