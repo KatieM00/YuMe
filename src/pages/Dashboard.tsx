@@ -255,9 +255,9 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
   const ButtonBox = ({ id, name, iconSrc }: typeof navButtons[0]) => (
     <button
         onClick={() => setPage(id)}
-        className="relative flex items-center justify-center aspect-square w-full rounded-2xl border border-gray-700 bg-gray-800/50 backdrop-blur-sm shadow-lg transition-all duration-300 hover:scale-[1.05] hover:bg-gray-700/50 hover:shadow-xl"
+        className="transition-all duration-300 hover:scale-110 hover:opacity-80"
     >
-      <img src={iconSrc} alt={name} className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12" />
+      <img src={iconSrc} alt={name} className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-28 lg:h-28" />
     </button>
   );
 
