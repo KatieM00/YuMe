@@ -266,18 +266,21 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
   );
 
   return (
-    <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6 md:mb-8">
-        <InfoBoxContainer><TimeBox /></InfoBoxContainer>
-        <InfoBoxContainer><CountdownBox /></InfoBoxContainer>
-        <InfoBoxContainer><MessageBox /></InfoBoxContainer>
-      </div>
+    <div className="flex flex-col items-center justify-center min-h-screen">
+      <div className="w-full max-w-7xl space-y-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <InfoBoxContainer><TimeBox /></InfoBoxContainer>
+          <InfoBoxContainer><CountdownBox /></InfoBoxContainer>
+          <InfoBoxContainer><MessageBox /></InfoBoxContainer>
+        </div>
 
-      <div className="grid grid-cols-3 gap-8 md:gap-12 justify-items-center">
-        {navButtons.map((button, index) => (
-          <ButtonBox key={index} {...button} />
-        ))}
+        <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-6 gap-8 md:gap-12 justify-items-center">
+          {navButtons.map((button, index) => (
+            <ButtonBox key={index} {...button} />
+          ))}
+        </div>
       </div>
+    </div>
 
       {/* Media Modal */}
       {showMediaModal && mediaModalUrl && (
