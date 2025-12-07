@@ -259,9 +259,12 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
   const ButtonBox = ({ id, name, iconSrc }: typeof navButtons[0]) => (
     <button
         onClick={() => setPage(id)}
-        className="transition-all duration-300 hover:scale-110 hover:opacity-80"
+        className="relative group transition-all duration-300 hover:scale-110"
     >
       <img src={iconSrc} alt={name} className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-28 lg:h-28" />
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+        <span className="text-white text-sm sm:text-base font-semibold">{name}</span>
+      </div>
     </button>
   );
 
