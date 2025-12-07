@@ -121,8 +121,12 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
   }, [visionItems]);
 
   const InfoBoxContainer = ({ children }: { children: React.ReactNode }) => (
-    <div className="bg-gray-800/70 backdrop-blur-sm rounded-xl p-3 h-20 sm:h-24 md:h-28 border border-gray-700 shadow-lg flex items-center justify-center transition-all duration-300 hover:shadow-xl">
-      {children}
+    <div className="relative bg-gray-800/70 backdrop-blur-sm rounded-xl p-3 h-20 sm:h-24 md:h-28 shadow-lg flex items-center justify-center transition-all duration-300 hover:shadow-xl">
+      <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-cyan-400 via-blue-500 to-pink-500 opacity-75 blur-[1px]" style={{ padding: '2px' }}></div>
+      <div className="absolute inset-[2px] bg-gray-800/90 backdrop-blur-sm rounded-xl"></div>
+      <div className="relative z-10 w-full">
+        {children}
+      </div>
     </div>
   );
 
@@ -269,7 +273,7 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
         <InfoBoxContainer><MessageBox /></InfoBoxContainer>
       </div>
 
-      <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-6 gap-8 md:gap-12 justify-items-center">
+      <div className="grid grid-cols-3 gap-8 md:gap-12 justify-items-center">
         {navButtons.map((button, index) => (
           <ButtonBox key={index} {...button} />
         ))}
