@@ -244,20 +244,20 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
   );
 
   const navButtons = [
-    { id: 'mixtape', name: 'Mixtape', iconSrc: '/images/MusicIcon.png', bg: 'bg-pink-900/40' },
-    { id: 'map', name: 'Map', iconSrc: '/images/MapIcon.png', bg: 'bg-red-900/40' },
-    { id: 'images', name: 'Album', iconSrc: '/images/AlbumIcon.png', bg: 'bg-orange-900/40' },
-    { id: 'messages', name: 'Messages', iconSrc: '/images/MessagesIcon.png', bg: 'bg-yellow-900/40' },
-    { id: 'watching', name: 'Watching', iconSrc: '/images/watchingIcon.png', bg: 'bg-lime-900/40' },
-    { id: 'vision', name: 'Vision', iconSrc: '/images/CalendarIcon.png', bg: 'bg-fuchsia-900/40' },
+    { id: 'mixtape', name: 'Mixtape', iconSrc: '/images/MusicIcon.png' },
+    { id: 'map', name: 'Map', iconSrc: '/images/MapIcon.png' },
+    { id: 'images', name: 'Album', iconSrc: '/images/AlbumIcon.png' },
+    { id: 'messages', name: 'Messages', iconSrc: '/images/MessagesIcon.png' },
+    { id: 'watching', name: 'Watching', iconSrc: '/images/watchingIcon.png' },
+    { id: 'vision', name: 'Vision', iconSrc: '/images/CalendarIcon.png' },
   ];
 
-  const ButtonBox = ({ id, name, iconSrc, bg }: typeof navButtons[0]) => (
+  const ButtonBox = ({ id, name, iconSrc }: typeof navButtons[0]) => (
     <button
         onClick={() => setPage(id)}
-        className={`relative flex items-center justify-center aspect-square w-full rounded-2xl border border-gray-700 shadow-xl transition-all duration-300 hover:scale-[1.03] hover:shadow-2xl ${bg}`}
+        className="relative flex items-center justify-center aspect-square w-full rounded-2xl border border-gray-700 bg-gray-800/50 backdrop-blur-sm shadow-lg transition-all duration-300 hover:scale-[1.05] hover:bg-gray-700/50 hover:shadow-xl"
     >
-      <img src={iconSrc} alt={name} className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 lg:w-24 lg:h-24" />
+      <img src={iconSrc} alt={name} className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12" />
     </button>
   );
 
