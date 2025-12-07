@@ -332,18 +332,16 @@ export default function Dashboard({ setCurrentPage, onLogout }: { setCurrentPage
             <div className="fixed top-4 right-4 z-10 flex items-center space-x-2">
                 <button
                     onClick={() => setCurrentPage('settings')}
-                    className="flex items-center space-x-2 px-4 py-2 bg-gray-800/80 backdrop-blur-sm hover:bg-gray-700 rounded-lg text-sm font-medium text-gray-400 hover:text-white transition border border-gray-700"
+                    className="flex items-center justify-center p-2 bg-gray-800/80 backdrop-blur-sm hover:bg-gray-700 rounded-lg text-gray-400 hover:text-white transition border border-gray-700"
                 >
-                    <Settings className="w-4 h-4" />
-                    <span className="hidden sm:inline">Settings</span>
+                    <Settings className="w-5 h-5" />
                 </button>
                 {onLogout && (
                     <button
                         onClick={onLogout}
-                        className="flex items-center space-x-2 px-4 py-2 bg-gray-800/80 backdrop-blur-sm hover:bg-gray-700 rounded-lg text-sm font-medium text-gray-400 hover:text-white transition border border-gray-700"
+                        className="flex items-center justify-center p-2 bg-gray-800/80 backdrop-blur-sm hover:bg-gray-700 rounded-lg text-gray-400 hover:text-white transition border border-gray-700"
                     >
-                        <LogOut className="w-4 h-4" />
-                        <span className="hidden sm:inline">Logout</span>
+                        <LogOut className="w-5 h-5" />
                     </button>
                 )}
             </div>
