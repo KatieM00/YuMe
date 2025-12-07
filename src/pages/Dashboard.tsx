@@ -269,7 +269,7 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
         <InfoBoxContainer><MessageBox /></InfoBoxContainer>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
+      <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-6 gap-8 md:gap-12 justify-items-center">
         {navButtons.map((button, index) => (
           <ButtonBox key={index} {...button} />
         ))}
