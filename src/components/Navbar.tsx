@@ -46,30 +46,29 @@ export default function Navbar({ currentPage, setCurrentPage, onLogout }: Navbar
 
   return (
     <>
-      <nav className={`fixed top-0 left-0 right-0 z-50 bg-black/90 backdrop-blur-md border-b border-gray-800 transform ${isNavVisible ? 'translate-y-0' : '-translate-y-full'} transition-transform duration-300 ease-in-out`}>
+      <nav className={`fixed top-4 left-0 right-0 z-50 transform ${isNavVisible ? 'translate-y-0' : '-translate-y-full'} transition-transform duration-300 ease-in-out`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-8">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
                 <img src="/images/YuMeIcon.png" alt="YuMe" className="w-6 h-6" />
                 <span className="text-xl font-bold text-white">YuMe</span>
               </div>
 
-              <div className="hidden md:flex items-center space-x-1">
+              <div className="hidden md:flex items-center space-x-2">
                 {navItems.map((item) => {
                   const isActive = currentPage === item.id;
                   return (
                     <button
                       key={item.id}
                       onClick={() => setCurrentPage(item.id)}
-                      className={`flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium transition ${
+                      className={`p-2 rounded-lg transition ${
                         isActive
-                          ? 'bg-blue-500/20 text-blue-400'
-                          : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                          ? 'bg-blue-500/20'
+                          : 'hover:bg-gray-800/50'
                       }`}
                     >
-                      <img src={item.iconSrc} alt={item.label} className="w-4 h-4" />
-                      <span>{item.label}</span>
+                      <img src={item.iconSrc} alt={item.label} className="w-5 h-5" />
                     </button>
                   );
                 })}
@@ -80,27 +79,21 @@ export default function Navbar({ currentPage, setCurrentPage, onLogout }: Navbar
               {/* Desktop: Settings and Logout */}
               <button
                 onClick={() => setCurrentPage('settings')}
-                className={`hidden md:flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition ${
-                  currentPage === 'settings'
-                    ? 'bg-blue-500/20 text-blue-400'
-                    : 'text-gray-400 hover:text-white hover:bg-gray-800'
-                }`}
+                className="hidden md:flex items-center justify-center p-2 bg-gray-800/80 backdrop-blur-sm hover:bg-gray-700 rounded-lg text-gray-400 hover:text-white transition border border-gray-700"
               >
-                <Settings className="w-4 h-4" />
-                <span className="hidden sm:inline">Settings</span>
+                <Settings className="w-5 h-5" />
               </button>
               <button
                 onClick={onLogout}
-                className="hidden md:flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-gray-800 transition"
+                className="hidden md:flex items-center justify-center p-2 bg-gray-800/80 backdrop-blur-sm hover:bg-gray-700 rounded-lg text-gray-400 hover:text-white transition border border-gray-700"
               >
-                <LogOut className="w-4 h-4" />
-                <span className="hidden sm:inline">Logout</span>
+                <LogOut className="w-5 h-5" />
               </button>
 
               {/* Mobile: Hamburger */}
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="md:hidden flex items-center justify-center w-10 h-10 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 transition"
+                className="md:hidden flex items-center justify-center p-2 bg-gray-800/80 backdrop-blur-sm hover:bg-gray-700 rounded-lg text-gray-400 hover:text-white transition border border-gray-700"
               >
                 {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
