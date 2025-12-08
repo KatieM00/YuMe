@@ -317,7 +317,7 @@ export default function Map() {
   const wishlistLocations = locations.filter((loc) => loc.type === 'wishlist');
 
   return (
-    <div className="min-h-screen p-4 md:p-8 relative">
+    <div className="min-h-screen p-4 md:p-8 pt-20 relative">
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl md:text-4xl font-bold text-white mb-8">Our Map</h1>
 
