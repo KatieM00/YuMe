@@ -318,8 +318,7 @@ export default function Map() {
 
   return (
     <div className="min-h-screen p-4 md:p-8 pt-20 md:pt-24 relative">
-      <div className="flex items-center justify-end mb-8">
-
+      <div className="max-w-7xl mx-auto">
         {error && (
           <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-4 mb-6">
             <p className="text-red-400">{error}</p>
