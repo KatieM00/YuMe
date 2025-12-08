@@ -259,13 +259,18 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
   const ButtonBox = ({ id, name, iconSrc }: typeof navButtons[0]) => (
     <button
         onClick={() => setPage(id)}
-        className="block"
+        className="relative group block"
     >
       <img
         src={iconSrc}
         alt={name}
         className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-28 lg:h-28 block"
       />
+      <div className="absolute inset-0 bg-white/[0.03] opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center pointer-events-none">
+        <span className="text-white text-sm sm:text-base font-semibold" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}>
+          {name}
+        </span>
+      </div>
     </button>
   );
 
