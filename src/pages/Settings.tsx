@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Heart, Copy, Check, UserPlus, X, Loader, User, Globe } from 'lucide-react';
+import { Heart, Copy, Check, UserPlus, Loader, User, Globe, Music } from 'lucide-react';
 import {
   getCurrentUserProfile,
   getPartnerInfo,
@@ -10,10 +10,17 @@ import {
   type UserProfile,
   type PartnerInfo,
 } from '../lib/partnerService';
+import {
+  checkSpotifyConnection,
+  getSpotifyAuthUrl,
+  disconnectSpotify,
+  type SpotifyConnectionStatus,
+} from '../lib/spotifyService';
 
 export default function Settings() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [partner, setPartner] = useState<PartnerInfo | null>(null);
+  const [spotifyConnection, setSpotifyConnection] = useState<SpotifyConnectionStatus>({ connected: false });
   const [isLoading, setIsLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [inviteCode, setInviteCode] = useState('');
@@ -23,11 +30,28 @@ export default function Settings() {
   const [isUnlinking, setIsUnlinking] = useState(false);
   const [isUpdatingName, setIsUpdatingName] = useState(false);
   const [isUpdatingTimezone, setIsUpdatingTimezone] = useState(false);
+  const [isDisconnectingSpotify, setIsDisconnectingSpotify] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
   useEffect(() => {
     loadProfile();
+    loadSpotifyConnection();
+  }, []);
+
+  useEffect(() => {
+    // Check for Spotify connection status from URL params
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('spotify_connected') === 'true') {
+      setSuccess('Spotify account connected successfully!');
+      loadSpotifyConnection();
+      // Clean up URL
+      window.history.replaceState({}, '', window.location.pathname);
+    } else if (params.get('spotify_error')) {
+      setError(`Failed to connect Spotify: ${params.get('spotify_error')}`);
+      // Clean up URL
+      window.history.replaceState({}, '', window.location.pathname);
+    }
   }, []);
 
   const loadProfile = async () => {
@@ -46,6 +70,15 @@ export default function Settings() {
       console.error('Error loading profile:', err);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadSpotifyConnection = async () => {
+    try {
+      const connection = await checkSpotifyConnection();
+      setSpotifyConnection(connection);
+    } catch (err) {
+      console.error('Error checking Spotify connection:', err);
     }
   };
 
@@ -154,6 +187,36 @@ export default function Settings() {
       setError('Failed to update timezone');
     } finally {
       setIsUpdatingTimezone(false);
+    }
+  };
+
+  const handleConnectSpotify = () => {
+    if (!profile?.id) {
+      setError('User profile not loaded');
+      return;
+    }
+
+    const authUrl = getSpotifyAuthUrl(profile.id);
+    window.location.href = authUrl;
+  };
+
+  const handleDisconnectSpotify = async () => {
+    if (!confirm('Are you sure you want to disconnect your Spotify account? You will lose access to Spotify features.')) {
+      return;
+    }
+
+    setIsDisconnectingSpotify(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      await disconnectSpotify();
+      setSuccess('Spotify account disconnected successfully');
+      await loadSpotifyConnection();
+    } catch (err) {
+      setError('Failed to disconnect Spotify account');
+    } finally {
+      setIsDisconnectingSpotify(false);
     }
   };
 
@@ -412,6 +475,90 @@ export default function Settings() {
                     <li>Both partners can create, view, and edit shared content</li>
                     <li>You can unlink at any time</li>
                   </ul>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Spotify Integration Section */}
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700">
+            <h2 className="text-xl font-bold text-white mb-4 flex items-center">
+              <Music className="w-6 h-6 mr-2 text-green-500" />
+              Spotify Integration
+            </h2>
+
+            {spotifyConnection.connected ? (
+              /* Spotify Connected */
+              <div className="space-y-4">
+                <div className="p-4 bg-green-900/20 border border-green-500/30 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      {spotifyConnection.avatar_url && (
+                        <img
+                          src={spotifyConnection.avatar_url}
+                          alt="Spotify Profile"
+                          className="w-12 h-12 rounded-full"
+                        />
+                      )}
+                      <div>
+                        <p className="text-green-400 font-medium mb-1">Spotify Connected</p>
+                        <p className="text-gray-300">
+                          {spotifyConnection.display_name || 'Spotify User'}
+                        </p>
+                        {spotifyConnection.user_id && (
+                          <p className="text-gray-500 text-sm">ID: {spotifyConnection.user_id}</p>
+                        )}
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleDisconnectSpotify}
+                      disabled={isDisconnectingSpotify}
+                      className="px-4 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded-lg text-sm font-medium transition border border-red-500/30 disabled:opacity-50"
+                    >
+                      {isDisconnectingSpotify ? 'Disconnecting...' : 'Disconnect'}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="text-sm text-gray-400">
+                  <p>✓ Search and add tracks from your Spotify library</p>
+                  <p>✓ View your Spotify playlists and recently played</p>
+                  <p>✓ Get personalized music recommendations</p>
+                  <p>✓ Create and sync playlists</p>
+                </div>
+              </div>
+            ) : (
+              /* Spotify Not Connected */
+              <div className="space-y-4">
+                <p className="text-gray-300">
+                  Connect your Spotify account to unlock music features in YuMe's Mixtape section.
+                </p>
+
+                <button
+                  onClick={handleConnectSpotify}
+                  className="w-full px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition flex items-center justify-center space-x-2"
+                >
+                  <Music className="w-5 h-5" />
+                  <span>Connect Spotify Account</span>
+                </button>
+
+                <div className="text-sm text-gray-400 bg-gray-900/50 border border-gray-700 rounded-lg p-4">
+                  <p className="font-medium text-gray-300 mb-2">What you can do with Spotify:</p>
+                  <ul className="space-y-1 list-disc list-inside">
+                    <li>Search millions of tracks directly from Spotify</li>
+                    <li>Import your existing Spotify playlists</li>
+                    <li>View your recently played and top tracks</li>
+                    <li>Get AI-powered music recommendations</li>
+                    <li>Create shared playlists with your partner</li>
+                  </ul>
+                </div>
+
+                <div className="text-xs text-gray-500 bg-blue-900/20 border border-blue-500/30 rounded-lg p-3">
+                  <p className="font-medium text-blue-400 mb-1">Privacy Notice:</p>
+                  <p>
+                    We only request access to view and manage your Spotify playlists and library.
+                    We never share your data with third parties.
+                  </p>
                 </div>
               </div>
             )}
