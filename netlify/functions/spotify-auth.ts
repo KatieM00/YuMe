@@ -1,5 +1,4 @@
 import { Handler, HandlerEvent, HandlerContext } from '@netlify/functions';
-import { createClient } from '@supabase/supabase-js';
 
 const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
 const SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
@@ -8,11 +7,15 @@ const SUPABASE_URL = process.env.VITE_SUPABASE_URL;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
 
 export const handler: Handler = async (event: HandlerEvent, context: HandlerContext) => {
-  // CORS headers
+  // Get origin from request or use production URL
+  const origin = event.headers.origin || process.env.URL || 'https://yume-app.netlify.app';
+
+  // CORS headers - only allow requests from our domain
   const headers = {
-    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Headers': 'Content-Type',
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    'Access-Control-Allow-Credentials': 'true',
   };
 
   // Handle preflight requests
@@ -52,7 +55,7 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
       statusCode: 302,
       headers: {
         ...headers,
-        Location: `${process.env.URL || 'http://localhost:5173'}/settings?spotify_error=${encodeURIComponent(error)}`,
+        Location: `${process.env.URL}/settings?spotify_error=${encodeURIComponent(error)}`,
       },
       body: '',
     };
@@ -104,54 +107,67 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
 
     const spotifyProfile = await profileResponse.json();
 
-    // Initialize Supabase client with service key for admin operations
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
-
     // The state parameter contains our YuMe user ID
     const yumeUserId = state;
 
-    // Check if user exists in our users table
-    const { data: existingUser, error: userFetchError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', yumeUserId)
-      .single();
+    // Check if user exists in users table
+    const existingUserResponse = await fetch(`${SUPABASE_URL}/rest/v1/users?id=eq.${yumeUserId}&select=*`, {
+      headers: {
+        'apikey': SUPABASE_SERVICE_KEY,
+        'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+      },
+    });
 
-    if (userFetchError && userFetchError.code !== 'PGRST116') {
-      console.error('Error fetching user:', userFetchError);
-      throw new Error('Database error');
+    let existingUser = null;
+    if (existingUserResponse.ok) {
+      const users = await existingUserResponse.json();
+      existingUser = users[0];
     }
 
     // Upsert user data with Spotify info
-    const { error: userUpsertError } = await supabase
-      .from('users')
-      .upsert({
+    const upsertUserResponse = await fetch(`${SUPABASE_URL}/rest/v1/users`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_SERVICE_KEY,
+        'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'resolution=merge-duplicates',
+      },
+      body: JSON.stringify({
         id: yumeUserId,
         spotify_id: spotifyProfile.id,
         display_name: spotifyProfile.display_name || spotifyProfile.id,
         email: spotifyProfile.email || existingUser?.email,
         avatar_url: spotifyProfile.images?.[0]?.url || null,
-      });
+      }),
+    });
 
-    if (userUpsertError) {
-      console.error('Error upserting user:', userUpsertError);
+    if (!upsertUserResponse.ok) {
+      console.error('Error upserting user:', await upsertUserResponse.text());
       throw new Error('Failed to update user profile');
     }
 
     // Store tokens in spotify_tokens table
     const expiresAt = Date.now() + (expires_in * 1000);
 
-    const { error: tokenError } = await supabase
-      .from('spotify_tokens')
-      .upsert({
+    const upsertTokenResponse = await fetch(`${SUPABASE_URL}/rest/v1/spotify_tokens`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_SERVICE_KEY,
+        'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'resolution=merge-duplicates',
+      },
+      body: JSON.stringify({
         user_id: yumeUserId,
         access_token: access_token,
         refresh_token: refresh_token,
         expires_at: expiresAt,
-      });
+      }),
+    });
 
-    if (tokenError) {
-      console.error('Error storing tokens:', tokenError);
+    if (!upsertTokenResponse.ok) {
+      console.error('Error storing tokens:', await upsertTokenResponse.text());
       throw new Error('Failed to store tokens');
     }
 
@@ -160,7 +176,7 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
       statusCode: 302,
       headers: {
         ...headers,
-        Location: `${process.env.URL || 'http://localhost:5173'}/settings?spotify_connected=true`,
+        Location: `${process.env.URL}/settings?spotify_connected=true`,
       },
       body: '',
     };
@@ -171,7 +187,7 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
       statusCode: 302,
       headers: {
         ...headers,
-        Location: `${process.env.URL || 'http://localhost:5173'}/settings?spotify_error=auth_failed`,
+        Location: `${process.env.URL}/settings?spotify_error=auth_failed`,
       },
       body: '',
     };

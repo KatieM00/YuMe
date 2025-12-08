@@ -57,9 +57,16 @@ export interface SpotifyConnectionStatus {
 
 /**
  * Get the Spotify OAuth URL to initiate authentication
+ * Note: Client ID will be fetched from backend to avoid exposing it in frontend bundle
  */
-export function getSpotifyAuthUrl(userId: string): string {
-  const clientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID;
+export async function getSpotifyAuthUrl(userId: string): Promise<string> {
+  // Fetch client ID from backend
+  const response = await fetch(`${window.location.origin}/.netlify/functions/spotify-client-id`);
+  if (!response.ok) {
+    throw new Error('Failed to get Spotify client configuration');
+  }
+  const { client_id } = await response.json();
+
   const redirectUri = `${window.location.origin}/.netlify/functions/spotify-auth`;
 
   const scopes = [
@@ -78,7 +85,7 @@ export function getSpotifyAuthUrl(userId: string): string {
   ];
 
   const params = new URLSearchParams({
-    client_id: clientId,
+    client_id: client_id,
     response_type: 'code',
     redirect_uri: redirectUri,
     state: userId, // Pass YuMe user ID as state

@@ -1,5 +1,4 @@
 import { Handler, HandlerEvent, HandlerContext } from '@netlify/functions';
-import { createClient } from '@supabase/supabase-js';
 
 const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
 const SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
@@ -8,11 +7,15 @@ const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY;
 const SPOTIFY_BASE_URL = 'https://api.spotify.com/v1';
 
 export const handler: Handler = async (event: HandlerEvent, context: HandlerContext) => {
-  // CORS headers
+  // Get origin from request or use production URL
+  const origin = event.headers.origin || process.env.URL || 'https://yume-app.netlify.app';
+
+  // CORS headers - only allow requests from our domain
   const headers = {
-    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Credentials': 'true',
     'Content-Type': 'application/json',
   };
 
@@ -57,18 +60,16 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
   }
 
   try {
-    // Initialize Supabase client
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
-
     // Get access token for user
-    const { data: tokenData, error: tokenError } = await supabase
-      .from('spotify_tokens')
-      .select('access_token, expires_at, refresh_token')
-      .eq('user_id', user_id)
-      .single();
+    const tokenResponse = await fetch(`${SUPABASE_URL}/rest/v1/spotify_tokens?user_id=eq.${user_id}&select=access_token,expires_at,refresh_token`, {
+      headers: {
+        'apikey': SUPABASE_SERVICE_KEY,
+        'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+      },
+    });
 
-    if (tokenError || !tokenData) {
-      console.error('Error fetching token:', tokenError);
+    if (!tokenResponse.ok) {
+      console.error('Error fetching token');
       return {
         statusCode: 404,
         headers,
@@ -76,15 +77,25 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
       };
     }
 
-    let accessToken = tokenData.access_token;
-    const expiresAt = tokenData.expires_at;
+    const tokenData = await tokenResponse.json();
+    if (!tokenData || tokenData.length === 0) {
+      return {
+        statusCode: 404,
+        headers,
+        body: JSON.stringify({ error: 'No Spotify account connected' }),
+      };
+    }
+
+    let accessToken = tokenData[0].access_token;
+    const expiresAt = tokenData[0].expires_at;
+    const refreshToken = tokenData[0].refresh_token;
 
     // Check if token is expired or about to expire (within 5 minutes)
     if (expiresAt < Date.now() + (5 * 60 * 1000)) {
       console.log('Token expired or about to expire, refreshing...');
 
       // Refresh the token
-      const tokenResponse = await fetch('https://accounts.spotify.com/api/token', {
+      const refreshResponse = await fetch('https://accounts.spotify.com/api/token', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
@@ -92,12 +103,12 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
         },
         body: new URLSearchParams({
           grant_type: 'refresh_token',
-          refresh_token: tokenData.refresh_token,
+          refresh_token: refreshToken,
         }),
       });
 
-      if (!tokenResponse.ok) {
-        const errorData = await tokenResponse.json();
+      if (!refreshResponse.ok) {
+        const errorData = await refreshResponse.json();
         console.error('Token refresh failed:', errorData);
 
         if (errorData.error === 'invalid_grant') {
@@ -114,19 +125,24 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
         throw new Error('Failed to refresh token');
       }
 
-      const newTokenData = await tokenResponse.json();
+      const newTokenData = await refreshResponse.json();
       accessToken = newTokenData.access_token;
 
       // Update token in database
       const newExpiresAt = Date.now() + (newTokenData.expires_in * 1000);
-      await supabase
-        .from('spotify_tokens')
-        .update({
+      await fetch(`${SUPABASE_URL}/rest/v1/spotify_tokens?user_id=eq.${user_id}`, {
+        method: 'PATCH',
+        headers: {
+          'apikey': SUPABASE_SERVICE_KEY,
+          'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           access_token: accessToken,
-          refresh_token: newTokenData.refresh_token || tokenData.refresh_token,
+          refresh_token: newTokenData.refresh_token || refreshToken,
           expires_at: newExpiresAt,
-        })
-        .eq('user_id', user_id);
+        }),
+      });
     }
 
     // Build Spotify API URL

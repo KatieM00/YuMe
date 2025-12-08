@@ -190,14 +190,19 @@ export default function Settings() {
     }
   };
 
-  const handleConnectSpotify = () => {
+  const handleConnectSpotify = async () => {
     if (!profile?.id) {
       setError('User profile not loaded');
       return;
     }
 
-    const authUrl = getSpotifyAuthUrl(profile.id);
-    window.location.href = authUrl;
+    try {
+      const authUrl = await getSpotifyAuthUrl(profile.id);
+      window.location.href = authUrl;
+    } catch (err) {
+      console.error('Error getting Spotify auth URL:', err);
+      setError('Failed to connect to Spotify. Please try again.');
+    }
   };
 
   const handleDisconnectSpotify = async () => {
