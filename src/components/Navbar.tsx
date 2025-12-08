@@ -46,36 +46,37 @@ export default function Navbar({ currentPage, setCurrentPage, onLogout }: Navbar
 
   return (
     <>
-      <nav className={`fixed top-4 left-0 right-0 z-50 transform ${isNavVisible ? 'translate-y-0' : '-translate-y-full'} transition-transform duration-300 ease-in-out`}>
+      <nav className={`fixed top-4 left-0 right-0 z-40 transform ${isNavVisible ? 'translate-y-0' : '-translate-y-full'} transition-transform duration-300 ease-in-out pointer-events-none`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <img src="/images/YuMeIcon.png" alt="YuMe" className="w-6 h-6" />
-                <span className="text-xl font-bold text-white">YuMe</span>
-              </div>
-
-              <div className="hidden md:flex items-center space-x-2">
-                {navItems.map((item) => {
-                  const isActive = currentPage === item.id;
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => setCurrentPage(item.id)}
-                      className={`p-2 rounded-lg transition ${
-                        isActive
-                          ? 'bg-blue-500/20'
-                          : 'hover:bg-gray-800/50'
-                      }`}
-                    >
-                      <img src={item.iconSrc} alt={item.label} className="w-5 h-5" />
-                    </button>
-                  );
-                })}
-              </div>
+            {/* Logo on far left */}
+            <div className="flex items-center space-x-2 pointer-events-auto">
+              <img src="/images/YuMeIcon.png" alt="YuMe" className="w-8 h-8" />
+              <span className="text-2xl font-bold text-white">YuMe</span>
             </div>
 
-            <div className="flex items-center space-x-2">
+            {/* Center navigation icons */}
+            <div className="hidden md:flex items-center justify-center flex-1 mx-8 space-x-6 pointer-events-auto">
+              {navItems.map((item) => {
+                const isActive = currentPage === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => setCurrentPage(item.id)}
+                    className={`p-2 rounded-lg transition ${
+                      isActive
+                        ? 'bg-blue-500/20'
+                        : 'hover:bg-gray-800/50'
+                    }`}
+                  >
+                    <img src={item.iconSrc} alt={item.label} className="w-10 h-10" />
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Settings and Logout on far right */}
+            <div className="flex items-center space-x-2 pointer-events-auto">
               {/* Desktop: Settings and Logout */}
               <button
                 onClick={() => setCurrentPage('settings')}
