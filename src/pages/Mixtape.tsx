@@ -538,7 +538,7 @@ export default function Mixtape() {
   }
 
   return (
-    <div className="min-h-screen p-4 md:p-8 pt-24 md:pt-32">
+    <div className="min-h-screen p-4 md:p-8 pt-20 md:pt-24">
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl md:text-4xl font-bold text-white">Mixtape</h1>
