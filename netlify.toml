@@ -1,0 +1,11 @@
+# Netlify configuration
+
+[build]
+  publish = "dist"
+  command = "npm run build"
+
+# Redirect all routes to index.html for client-side routing
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

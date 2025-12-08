@@ -34,6 +34,16 @@ function App() {
     };
   }, []);
 
+  useEffect(() => {
+    // Handle Spotify OAuth redirect
+    const params = new URLSearchParams(window.location.search);
+    const path = window.location.pathname;
+
+    if (path === '/settings' || params.get('spotify_connected') || params.get('spotify_error')) {
+      setCurrentPage('settings');
+    }
+  }, []);
+
   const handleLogin = () => {
     setIsAuthenticated(true);
   };
