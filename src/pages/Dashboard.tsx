@@ -256,50 +256,23 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
     { id: 'vision', name: 'Vision', iconSrc: '/images/CalendarIcon.png' },
   ];
 
-  const ButtonBox = ({ id, name, iconSrc }: typeof navButtons[0]) => {
-    const [isHovered, setIsHovered] = useState(false);
-
-    return (
-      <button
-          onClick={() => setPage(id)}
-          onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
-          className="relative block"
-          style={{
-            WebkitTapHighlightColor: 'transparent',
-            touchAction: 'manipulation'
-          }}
-      >
-        <div
-          className="relative transition-transform duration-300"
-          style={{
-            transform: isHovered ? 'scale(1.05)' : 'scale(1)'
-          }}
-        >
-          <img
-            src={iconSrc}
-            alt={name}
-            className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-28 lg:h-28 block"
-            draggable={false}
-          />
-          <div
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-white/[0.03] rounded-full flex items-center justify-center"
-            style={{
-              opacity: isHovered ? 1 : 0,
-              transition: 'opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1)'
-            }}
-          >
-            <span
-              className="text-white text-sm sm:text-base font-semibold"
-              style={{
-                textShadow: '0 2px 8px rgba(0,0,0,0.8)'
-              }}
-            >{name}</span>
-          </div>
-        </div>
-      </button>
-    );
-  };
+  const ButtonBox = ({ id, name, iconSrc }: typeof navButtons[0]) => (
+    <button
+        onClick={() => setPage(id)}
+        className="relative group block hover:scale-105 transition-transform duration-300"
+    >
+      <img
+        src={iconSrc}
+        alt={name}
+        className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-28 lg:h-28 block"
+      />
+      <div className="absolute inset-0 bg-white/[0.03] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-center justify-center">
+        <span className="text-white text-sm sm:text-base font-semibold" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}>
+          {name}
+        </span>
+      </div>
+    </button>
+  );
 
   return (
     <>
