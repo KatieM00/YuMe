@@ -60,7 +60,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           <img
             src="/images/YuMeLogoTag.png"
             alt="YuMe Logo"
-            className="mx-auto w-32 h-auto mb-4"
+            className="mx-auto w-36 h-auto mb-4"
           />
         </div>
 
