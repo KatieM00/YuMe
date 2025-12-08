@@ -58,7 +58,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
           <img
-            src="/YuMeLogoTag.png"
+            src="/images/YuMeLogoTag.png"
             alt="YuMe Logo"
             className="mx-auto w-32 h-auto mb-4"
           />
