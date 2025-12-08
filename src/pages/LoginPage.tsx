@@ -57,11 +57,11 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-gray-900 flex items-center justify-center p-4">
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-full mb-4">
-            <Heart className="w-8 h-8 text-white" />
-          </div>
-          <h1 className="text-4xl font-bold text-white mb-2">YuMe</h1>
-          <p className="text-gray-400">Our private space for memories</p>
+          <img
+            src="/YuMeLogoTag.png"
+            alt="YuMe Logo"
+            className="mx-auto w-32 h-auto mb-4"
+          />
         </div>
 
         <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-gray-700">
