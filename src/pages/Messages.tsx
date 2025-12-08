@@ -755,7 +755,7 @@ export default function Messages() {
   return (
     <div className="min-h-screen p-4 md:p-8 pt-20 md:pt-24 relative overflow-hidden">
       <div className="max-w-7xl mx-auto relative" style={{ minHeight: '600px' }}>
-        <div className="flex items-center justify-end mb-8">
+        <div className="flex items-center justify-start mb-8">
           <div className="flex items-center space-x-3">
             <button
               onClick={() => setShowInbox(true)}
