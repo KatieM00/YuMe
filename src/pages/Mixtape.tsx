@@ -101,7 +101,7 @@ export default function Mixtape() {
   const [loadingBrowse, setLoadingBrowse] = useState(false);
   const [importingPlaylist, setImportingPlaylist] = useState<string | null>(null);
   const [showImportModal, setShowImportModal] = useState(false);
-  const [targetPlaylistForImport, setTargetPlaylistForImport] = useState<Playlist | null>(null);
+  const [targetPlaylistForImport, setTargetPlaylistForImport] = useState<Playlist | 'new' | null>(null);
 
   useEffect(() => {
     fetchPlaylists();
@@ -292,7 +292,7 @@ export default function Mixtape() {
     }
   };
 
-  const handleImportSpotifyPlaylist = async (spotifyPlaylist: SpotifyPlaylist, targetPlaylist: Playlist) => {
+  const handleImportSpotifyPlaylist = async (spotifyPlaylist: SpotifyPlaylist, targetPlaylist: Playlist | 'new') => {
     try {
       setImportingPlaylist(spotifyPlaylist.id);
       setError(null);
@@ -311,26 +311,40 @@ export default function Mixtape() {
         throw new Error('User not authenticated');
       }
 
-      // Get max position for ordering
-      const { data: existingSongs } = await supabase
-        .from('songs')
-        .select('position')
-        .eq('playlist_id', targetPlaylist.id)
-        .order('position', { ascending: false })
-        .limit(1);
+      let playlistId: string;
+      let playlistTitle: string;
 
-      let nextPosition = (existingSongs && existingSongs.length > 0 ? existingSongs[0].position : -1) + 1;
+      // Create new playlist if needed
+      if (targetPlaylist === 'new') {
+        const { data: newPlaylist, error: createError } = await supabase
+          .from('playlists')
+          .insert({
+            user_id: user.id,
+            title: spotifyPlaylist.name,
+            description: spotifyPlaylist.description || `Imported from Spotify`,
+            cover: spotifyPlaylist.images[0]?.url || coverGradients[0],
+          })
+          .select()
+          .single();
+
+        if (createError) throw createError;
+        playlistId = newPlaylist.id;
+        playlistTitle = newPlaylist.title;
+      } else {
+        playlistId = targetPlaylist.id;
+        playlistTitle = targetPlaylist.title;
+      }
 
       // Insert all tracks
-      const songsToInsert = tracks.map((track) => ({
+      const songsToInsert = tracks.map((track, index) => ({
         user_id: user.id,
-        playlist_id: targetPlaylist.id,
+        playlist_id: playlistId,
         title: track.name,
         artist: track.artists.map(a => a.name).join(', '),
         spotify_id: track.id,
         duration: `${Math.floor(track.duration_ms / 60000)}:${String(Math.floor((track.duration_ms % 60000) / 1000)).padStart(2, '0')}`,
         album_art: track.album.images[0]?.url || null,
-        position: nextPosition++,
+        position: index,
       }));
 
       const { error: insertError } = await supabase
@@ -344,7 +358,10 @@ export default function Mixtape() {
       setTargetPlaylistForImport(null);
 
       // Show success message
-      alert(`Successfully imported ${tracks.length} songs from "${spotifyPlaylist.name}" into "${targetPlaylist.title}"`);
+      const message = targetPlaylist === 'new'
+        ? `Successfully created "${playlistTitle}" with ${tracks.length} songs from Spotify!`
+        : `Successfully imported ${tracks.length} songs from "${spotifyPlaylist.name}" into "${playlistTitle}"`;
+      alert(message);
     } catch (err) {
       console.error('Error importing playlist:', err);
       setError('Failed to import playlist. Please try again.');
@@ -1481,67 +1498,118 @@ export default function Mixtape() {
                 </div>
                 <p className="text-gray-400 text-sm mb-4">
                   {targetPlaylistForImport
-                    ? `Select a Spotify playlist to import into "${targetPlaylistForImport.title}"`
-                    : 'First, select which YuMe playlist to import into:'
+                    ? targetPlaylistForImport === 'new'
+                      ? 'Select a Spotify playlist to import as a new YuMe playlist:'
+                      : `Select a Spotify playlist to import into "${targetPlaylistForImport.title}"`
+                    : 'First, select where to import:'
                   }
                 </p>
 
                 {!targetPlaylistForImport ? (
-                  /* Step 1: Select YuMe Playlist */
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                    {playlists.map((playlist) => (
-                      <button
-                        key={playlist.id}
-                        onClick={() => {
-                          setTargetPlaylistForImport(playlist);
-                          loadBrowseData('playlists');
-                        }}
-                        className="bg-gray-800/50 hover:bg-gray-800 rounded-lg p-3 border border-gray-700 transition text-left"
-                      >
-                        <div className={`w-full aspect-square rounded-lg mb-2 flex items-center justify-center ${playlist.cover.startsWith('http') ? '' : playlist.cover}`}>
-                          {playlist.cover.startsWith('http') ? (
-                            <img
-                              src={playlist.cover}
-                              alt={playlist.title}
-                              className="w-full h-full object-cover rounded-lg"
-                            />
-                          ) : (
-                            <Music className="w-8 h-8 text-white/50" />
-                          )}
+                  /* Step 1: Select YuMe Playlist or Create New */
+                  <div className="space-y-4">
+                    {/* Create New Playlist Option */}
+                    <button
+                      onClick={() => {
+                        setTargetPlaylistForImport('new');
+                        loadBrowseData('playlists');
+                      }}
+                      className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-lg p-4 border-2 border-green-500/50 transition text-left flex items-center space-x-4"
+                    >
+                      <div className="w-16 h-16 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <Plus className="w-8 h-8 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-white text-lg font-bold">Create New Playlist</p>
+                        <p className="text-white/80 text-sm">Import with the same name as your Spotify playlist</p>
+                      </div>
+                    </button>
+
+                    {/* Existing Playlists */}
+                    {playlists.length > 0 && (
+                      <>
+                        <div className="flex items-center space-x-3">
+                          <div className="flex-1 h-px bg-gray-700"></div>
+                          <p className="text-gray-500 text-xs uppercase">Or add to existing</p>
+                          <div className="flex-1 h-px bg-gray-700"></div>
                         </div>
-                        <p className="text-white text-sm font-medium truncate">{playlist.title}</p>
-                        <p className="text-gray-500 text-xs">{playlist.songs?.length || 0} songs</p>
-                      </button>
-                    ))}
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                          {playlists.map((playlist) => (
+                            <button
+                              key={playlist.id}
+                              onClick={() => {
+                                setTargetPlaylistForImport(playlist);
+                                loadBrowseData('playlists');
+                              }}
+                              className="bg-gray-800/50 hover:bg-gray-800 rounded-lg p-3 border border-gray-700 transition text-left"
+                            >
+                              <div className={`w-full aspect-square rounded-lg mb-2 flex items-center justify-center ${playlist.cover.startsWith('http') ? '' : playlist.cover}`}>
+                                {playlist.cover.startsWith('http') ? (
+                                  <img
+                                    src={playlist.cover}
+                                    alt={playlist.title}
+                                    className="w-full h-full object-cover rounded-lg"
+                                  />
+                                ) : (
+                                  <Music className="w-8 h-8 text-white/50" />
+                                )}
+                              </div>
+                              <p className="text-white text-sm font-medium truncate">{playlist.title}</p>
+                              <p className="text-gray-500 text-xs">{playlist.songs?.length || 0} songs</p>
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    )}
                   </div>
                 ) : (
                   /* Step 2: Select Spotify Playlist to Import */
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <div className={`w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 ${targetPlaylistForImport.cover.startsWith('http') ? '' : targetPlaylistForImport.cover}`}>
-                          {targetPlaylistForImport.cover.startsWith('http') ? (
-                            <img
-                              src={targetPlaylistForImport.cover}
-                              alt={targetPlaylistForImport.title}
-                              className="w-full h-full object-cover rounded-lg"
-                            />
-                          ) : (
-                            <Music className="w-6 h-6 text-white" />
-                          )}
+                    {targetPlaylistForImport === 'new' ? (
+                      <div className="flex items-center justify-between p-3 bg-green-900/20 border border-green-500/30 rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <Plus className="w-6 h-6 text-white" />
+                          </div>
+                          <div>
+                            <p className="text-white font-medium">Creating new playlist</p>
+                            <p className="text-gray-400 text-xs">Will use Spotify playlist name</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-white font-medium">Importing into: {targetPlaylistForImport.title}</p>
-                          <p className="text-gray-400 text-xs">{targetPlaylistForImport.songs?.length || 0} existing songs</p>
-                        </div>
+                        <button
+                          onClick={() => setTargetPlaylistForImport(null)}
+                          className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white text-sm rounded-lg transition"
+                        >
+                          Change
+                        </button>
                       </div>
-                      <button
-                        onClick={() => setTargetPlaylistForImport(null)}
-                        className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white text-sm rounded-lg transition"
-                      >
-                        Change
-                      </button>
-                    </div>
+                    ) : (
+                      <div className="flex items-center justify-between p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          <div className={`w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 ${targetPlaylistForImport.cover.startsWith('http') ? '' : targetPlaylistForImport.cover}`}>
+                            {targetPlaylistForImport.cover.startsWith('http') ? (
+                              <img
+                                src={targetPlaylistForImport.cover}
+                                alt={targetPlaylistForImport.title}
+                                className="w-full h-full object-cover rounded-lg"
+                              />
+                            ) : (
+                              <Music className="w-6 h-6 text-white" />
+                            )}
+                          </div>
+                          <div>
+                            <p className="text-white font-medium">Importing into: {targetPlaylistForImport.title}</p>
+                            <p className="text-gray-400 text-xs">{targetPlaylistForImport.songs?.length || 0} existing songs</p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => setTargetPlaylistForImport(null)}
+                          className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white text-sm rounded-lg transition"
+                        >
+                          Change
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
