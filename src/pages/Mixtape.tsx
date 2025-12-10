@@ -99,6 +99,7 @@ export default function Mixtape() {
   const [recentTracks, setRecentTracks] = useState<SpotifyTrack[]>([]);
   const [spotifyPlaylists, setSpotifyPlaylists] = useState<SpotifyPlaylist[]>([]);
   const [loadingBrowse, setLoadingBrowse] = useState(false);
+  const [importingPlaylist, setImportingPlaylist] = useState<string | null>(null);
 
   useEffect(() => {
     fetchPlaylists();
@@ -286,6 +287,92 @@ export default function Mixtape() {
       setError('Failed to load Spotify data. Please try again.');
     } finally {
       setLoadingBrowse(false);
+    }
+  };
+
+  const handleImportSpotifyPlaylist = async (spotifyPlaylist: SpotifyPlaylist) => {
+    if (!selectedPlaylist) {
+      setError('Please select a YuMe playlist first');
+      return;
+    }
+
+    try {
+      setImportingPlaylist(spotifyPlaylist.id);
+      setError(null);
+
+      // Fetch tracks from Spotify playlist
+      const tracks = await getPlaylistTracks(spotifyPlaylist.id, 100);
+
+      if (tracks.length === 0) {
+        setError('This Spotify playlist is empty');
+        return;
+      }
+
+      // Get current user ID
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      // Get max position for ordering
+      const { data: existingSongs } = await supabase
+        .from('songs')
+        .select('position')
+        .eq('playlist_id', selectedPlaylist.id)
+        .order('position', { ascending: false })
+        .limit(1);
+
+      let nextPosition = (existingSongs && existingSongs.length > 0 ? existingSongs[0].position : -1) + 1;
+
+      // Insert all tracks
+      const songsToInsert = tracks.map((track) => ({
+        user_id: user.id,
+        playlist_id: selectedPlaylist.id,
+        title: track.name,
+        artist: track.artists.map(a => a.name).join(', '),
+        spotify_id: track.id,
+        duration: `${Math.floor(track.duration_ms / 60000)}:${String(Math.floor((track.duration_ms % 60000) / 1000)).padStart(2, '0')}`,
+        album_art: track.album.images[0]?.url || null,
+        position: nextPosition++,
+      }));
+
+      const { error: insertError } = await supabase
+        .from('songs')
+        .insert(songsToInsert);
+
+      if (insertError) throw insertError;
+
+      // Fetch updated data
+      const { data: updatedData } = await supabase
+        .from('playlists')
+        .select(`
+          *,
+          songs (
+            *,
+            song_comments (*)
+          )
+        `)
+        .eq('id', selectedPlaylist.id)
+        .single();
+
+      if (updatedData) {
+        const playlistWithSortedSongs = {
+          ...updatedData,
+          songs: updatedData.songs.sort((a: Song, b: Song) => a.position - b.position)
+        };
+        setSelectedPlaylist(playlistWithSortedSongs);
+      }
+
+      await fetchPlaylists();
+      setShowBrowse(false);
+
+      // Show success message
+      alert(`Successfully imported ${tracks.length} songs from "${spotifyPlaylist.name}"`);
+    } catch (err) {
+      console.error('Error importing playlist:', err);
+      setError('Failed to import playlist. Please try again.');
+    } finally {
+      setImportingPlaylist(null);
     }
   };
 
@@ -1552,16 +1639,37 @@ export default function Mixtape() {
                           <p className="text-gray-400 text-sm truncate">{playlist.description}</p>
                           <p className="text-gray-500 text-xs">{playlist.tracks.total} tracks</p>
                         </div>
-                        <a
-                          href={playlist.external_urls.spotify}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg transition flex items-center space-x-1"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <ExternalLink className="w-3 h-3" />
-                          <span>Open</span>
-                        </a>
+                        <div className="flex items-center space-x-2">
+                          {selectedPlaylist && (
+                            <button
+                              onClick={() => handleImportSpotifyPlaylist(playlist)}
+                              disabled={importingPlaylist === playlist.id}
+                              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-sm rounded-lg transition flex items-center space-x-1"
+                            >
+                              {importingPlaylist === playlist.id ? (
+                                <>
+                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                  <span>Importing...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Plus className="w-3 h-3" />
+                                  <span>Import</span>
+                                </>
+                              )}
+                            </button>
+                          )}
+                          <a
+                            href={playlist.external_urls.spotify}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg transition flex items-center space-x-1"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <ExternalLink className="w-3 h-3" />
+                            <span>Open</span>
+                          </a>
+                        </div>
                       </div>
                     ))}
                   </div>
