@@ -100,6 +100,8 @@ export default function Mixtape() {
   const [spotifyPlaylists, setSpotifyPlaylists] = useState<SpotifyPlaylist[]>([]);
   const [loadingBrowse, setLoadingBrowse] = useState(false);
   const [importingPlaylist, setImportingPlaylist] = useState<string | null>(null);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [targetPlaylistForImport, setTargetPlaylistForImport] = useState<Playlist | null>(null);
 
   useEffect(() => {
     fetchPlaylists();
@@ -290,12 +292,7 @@ export default function Mixtape() {
     }
   };
 
-  const handleImportSpotifyPlaylist = async (spotifyPlaylist: SpotifyPlaylist) => {
-    if (!selectedPlaylist) {
-      setError('Please select a YuMe playlist first');
-      return;
-    }
-
+  const handleImportSpotifyPlaylist = async (spotifyPlaylist: SpotifyPlaylist, targetPlaylist: Playlist) => {
     try {
       setImportingPlaylist(spotifyPlaylist.id);
       setError(null);
@@ -318,7 +315,7 @@ export default function Mixtape() {
       const { data: existingSongs } = await supabase
         .from('songs')
         .select('position')
-        .eq('playlist_id', selectedPlaylist.id)
+        .eq('playlist_id', targetPlaylist.id)
         .order('position', { ascending: false })
         .limit(1);
 
@@ -327,7 +324,7 @@ export default function Mixtape() {
       // Insert all tracks
       const songsToInsert = tracks.map((track) => ({
         user_id: user.id,
-        playlist_id: selectedPlaylist.id,
+        playlist_id: targetPlaylist.id,
         title: track.name,
         artist: track.artists.map(a => a.name).join(', '),
         spotify_id: track.id,
@@ -342,32 +339,12 @@ export default function Mixtape() {
 
       if (insertError) throw insertError;
 
-      // Fetch updated data
-      const { data: updatedData } = await supabase
-        .from('playlists')
-        .select(`
-          *,
-          songs (
-            *,
-            song_comments (*)
-          )
-        `)
-        .eq('id', selectedPlaylist.id)
-        .single();
-
-      if (updatedData) {
-        const playlistWithSortedSongs = {
-          ...updatedData,
-          songs: updatedData.songs.sort((a: Song, b: Song) => a.position - b.position)
-        };
-        setSelectedPlaylist(playlistWithSortedSongs);
-      }
-
       await fetchPlaylists();
-      setShowBrowse(false);
+      setShowImportModal(false);
+      setTargetPlaylistForImport(null);
 
       // Show success message
-      alert(`Successfully imported ${tracks.length} songs from "${spotifyPlaylist.name}"`);
+      alert(`Successfully imported ${tracks.length} songs from "${spotifyPlaylist.name}" into "${targetPlaylist.title}"`);
     } catch (err) {
       console.error('Error importing playlist:', err);
       setError('Failed to import playlist. Please try again.');
@@ -779,7 +756,7 @@ export default function Mixtape() {
   return (
     <div className="min-h-screen p-4 md:p-8 pt-20 md:pt-24">
       <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-start mb-8">
+        <div className="flex items-center justify-start gap-3 mb-8">
           <button
             onClick={openCreateModal}
             className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-full font-medium hover:from-blue-600 hover:to-cyan-600 transition hover:scale-105"
@@ -787,6 +764,22 @@ export default function Mixtape() {
             <Plus className="w-5 h-5" />
             <span>Create Playlist</span>
           </button>
+          {spotifyConnected.connected && (
+            <button
+              onClick={() => {
+                if (playlists.length === 0) {
+                  setError('Please create a YuMe playlist first before importing from Spotify');
+                  return;
+                }
+                setShowImportModal(true);
+                loadBrowseData('playlists');
+              }}
+              className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-full font-medium hover:from-green-600 hover:to-emerald-600 transition hover:scale-105"
+            >
+              <List className="w-5 h-5" />
+              <span>Import from Spotify</span>
+            </button>
+          )}
         </div>
 
         {error && (
@@ -1284,90 +1277,71 @@ export default function Mixtape() {
                               <span className="text-green-400 text-sm">Spotify Connected</span>
                             </div>
 
-                            {!showSpotifySearch ? (
-                              <div className="grid grid-cols-2 gap-2">
-                                <button
-                                  onClick={() => setShowSpotifySearch(true)}
-                                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition flex items-center justify-center space-x-2"
-                                >
-                                  <Search className="w-4 h-4" />
-                                  <span>Search Spotify</span>
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    setShowBrowse(true);
-                                    loadBrowseData('top');
-                                  }}
-                                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition flex items-center justify-center space-x-2"
-                                >
-                                  <TrendingUp className="w-4 h-4" />
-                                  <span>Browse Your Music</span>
-                                </button>
-                              </div>
-                            ) : (
-                              <div className="space-y-3">
+                            {/* Inline Search Field - Always visible */}
+                            <div className="space-y-3">
+                              <div className="relative">
                                 <div className="relative">
-                                  <div className="relative">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-                                    <input
-                                      type="text"
-                                      value={searchQuery}
-                                      onChange={(e) => setSearchQuery(e.target.value)}
-                                      placeholder="Type to search for songs..."
-                                      className="w-full pl-10 pr-10 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
-                                      disabled={isSearching}
-                                      autoFocus
-                                    />
-                                    {isSearching && (
-                                      <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 animate-spin" />
-                                    )}
-                                  </div>
-
-                                  {/* Inline suggestions dropdown */}
-                                  {searchResults.length > 0 && (
-                                    <div className="absolute z-10 w-full mt-1 bg-gray-900 border border-gray-700 rounded-lg shadow-xl max-h-96 overflow-y-auto">
-                                      {searchResults.map((track) => (
-                                        <div
-                                          key={track.id}
-                                          className="flex items-center space-x-3 p-3 hover:bg-gray-800 transition cursor-pointer border-b border-gray-800 last:border-b-0"
-                                          onClick={() => {
-                                            handleAddSpotifyTrack(track);
-                                            setSearchQuery('');
-                                            setSearchResults([]);
-                                          }}
-                                        >
-                                          {track.album.images[2] && (
-                                            <img
-                                              src={track.album.images[2].url}
-                                              alt={track.name}
-                                              className="w-12 h-12 rounded object-cover"
-                                            />
-                                          )}
-                                          <div className="flex-1 min-w-0">
-                                            <p className="text-white text-sm font-medium truncate">{track.name}</p>
-                                            <p className="text-gray-400 text-xs truncate">
-                                              {track.artists.map(a => a.name).join(', ')}
-                                            </p>
-                                          </div>
-                                          <Plus className="w-5 h-5 text-green-400 flex-shrink-0" />
-                                        </div>
-                                      ))}
-                                    </div>
+                                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                                  <input
+                                    type="text"
+                                    value={searchQuery}
+                                    onChange={(e) => {
+                                      setSearchQuery(e.target.value);
+                                      setShowSpotifySearch(true);
+                                    }}
+                                    placeholder="Search Spotify for songs or artists..."
+                                    className="w-full pl-10 pr-10 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
+                                    disabled={isSearching}
+                                  />
+                                  {isSearching && (
+                                    <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 animate-spin" />
                                   )}
                                 </div>
 
-                                <button
-                                  onClick={() => {
-                                    setShowSpotifySearch(false);
-                                    setSearchQuery('');
-                                    setSearchResults([]);
-                                  }}
-                                  className="w-full px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition"
-                                >
-                                  Back
-                                </button>
+                                {/* Inline suggestions dropdown */}
+                                {searchResults.length > 0 && (
+                                  <div className="absolute z-10 w-full mt-1 bg-gray-900 border border-gray-700 rounded-lg shadow-xl max-h-96 overflow-y-auto">
+                                    {searchResults.map((track) => (
+                                      <div
+                                        key={track.id}
+                                        className="flex items-center space-x-3 p-3 hover:bg-gray-800 transition cursor-pointer border-b border-gray-800 last:border-b-0"
+                                        onClick={() => {
+                                          handleAddSpotifyTrack(track);
+                                          setSearchQuery('');
+                                          setSearchResults([]);
+                                        }}
+                                      >
+                                        {track.album.images[2] && (
+                                          <img
+                                            src={track.album.images[2].url}
+                                            alt={track.name}
+                                            className="w-12 h-12 rounded object-cover"
+                                          />
+                                        )}
+                                        <div className="flex-1 min-w-0">
+                                          <p className="text-white text-sm font-medium truncate">{track.name}</p>
+                                          <p className="text-gray-400 text-xs truncate">
+                                            {track.artists.map(a => a.name).join(', ')}
+                                          </p>
+                                        </div>
+                                        <Plus className="w-5 h-5 text-green-400 flex-shrink-0" />
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
                               </div>
-                            )}
+
+                              <button
+                                onClick={() => {
+                                  setShowBrowse(true);
+                                  loadBrowseData('top');
+                                }}
+                                className="w-full px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition flex items-center justify-center space-x-2"
+                              >
+                                <TrendingUp className="w-4 h-4" />
+                                <span>Browse Your Music</span>
+                              </button>
+                            </div>
 
                             <div className="pt-2 border-t border-gray-700">
                               <p className="text-xs text-gray-500 mb-2">Or paste a Spotify URL:</p>
@@ -1484,6 +1458,142 @@ export default function Mixtape() {
                   </div>
                 )}
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Import from Spotify Modal */}
+        {showImportModal && spotifyConnected.connected && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-gray-900 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden border border-gray-700">
+              <div className="p-6 border-b border-gray-700">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-2xl font-bold text-white">Import from Spotify</h2>
+                  <button
+                    onClick={() => {
+                      setShowImportModal(false);
+                      setTargetPlaylistForImport(null);
+                    }}
+                    className="w-10 h-10 bg-gray-800 hover:bg-gray-700 rounded-full flex items-center justify-center transition"
+                  >
+                    <X className="w-5 h-5 text-white" />
+                  </button>
+                </div>
+                <p className="text-gray-400 text-sm mb-4">
+                  {targetPlaylistForImport
+                    ? `Select a Spotify playlist to import into "${targetPlaylistForImport.title}"`
+                    : 'First, select which YuMe playlist to import into:'
+                  }
+                </p>
+
+                {!targetPlaylistForImport ? (
+                  /* Step 1: Select YuMe Playlist */
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                    {playlists.map((playlist) => (
+                      <button
+                        key={playlist.id}
+                        onClick={() => {
+                          setTargetPlaylistForImport(playlist);
+                          loadBrowseData('playlists');
+                        }}
+                        className="bg-gray-800/50 hover:bg-gray-800 rounded-lg p-3 border border-gray-700 transition text-left"
+                      >
+                        <div className={`w-full aspect-square rounded-lg mb-2 flex items-center justify-center ${playlist.cover.startsWith('http') ? '' : playlist.cover}`}>
+                          {playlist.cover.startsWith('http') ? (
+                            <img
+                              src={playlist.cover}
+                              alt={playlist.title}
+                              className="w-full h-full object-cover rounded-lg"
+                            />
+                          ) : (
+                            <Music className="w-8 h-8 text-white/50" />
+                          )}
+                        </div>
+                        <p className="text-white text-sm font-medium truncate">{playlist.title}</p>
+                        <p className="text-gray-500 text-xs">{playlist.songs?.length || 0} songs</p>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  /* Step 2: Select Spotify Playlist to Import */
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 ${targetPlaylistForImport.cover.startsWith('http') ? '' : targetPlaylistForImport.cover}`}>
+                          {targetPlaylistForImport.cover.startsWith('http') ? (
+                            <img
+                              src={targetPlaylistForImport.cover}
+                              alt={targetPlaylistForImport.title}
+                              className="w-full h-full object-cover rounded-lg"
+                            />
+                          ) : (
+                            <Music className="w-6 h-6 text-white" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="text-white font-medium">Importing into: {targetPlaylistForImport.title}</p>
+                          <p className="text-gray-400 text-xs">{targetPlaylistForImport.songs?.length || 0} existing songs</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setTargetPlaylistForImport(null)}
+                        className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white text-sm rounded-lg transition"
+                      >
+                        Change
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {targetPlaylistForImport && (
+                <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+                  {loadingBrowse ? (
+                    <div className="flex items-center justify-center py-12">
+                      <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {spotifyPlaylists.map((playlist) => (
+                        <div
+                          key={playlist.id}
+                          className="flex items-center space-x-3 p-3 bg-gray-800/50 rounded-lg hover:bg-gray-800 transition"
+                        >
+                          {playlist.images[0] && (
+                            <img
+                              src={playlist.images[0].url}
+                              alt={playlist.name}
+                              className="w-14 h-14 rounded object-cover"
+                            />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-white font-medium truncate">{playlist.name}</p>
+                            <p className="text-gray-400 text-sm truncate">{playlist.description}</p>
+                            <p className="text-gray-500 text-xs">{playlist.tracks.total} tracks</p>
+                          </div>
+                          <button
+                            onClick={() => handleImportSpotifyPlaylist(playlist, targetPlaylistForImport)}
+                            disabled={importingPlaylist === playlist.id}
+                            className="px-3 py-1.5 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-sm rounded-lg transition flex items-center space-x-1"
+                          >
+                            {importingPlaylist === playlist.id ? (
+                              <>
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                                <span>Importing...</span>
+                              </>
+                            ) : (
+                              <>
+                                <Plus className="w-3 h-3" />
+                                <span>Import</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -1639,37 +1749,16 @@ export default function Mixtape() {
                           <p className="text-gray-400 text-sm truncate">{playlist.description}</p>
                           <p className="text-gray-500 text-xs">{playlist.tracks.total} tracks</p>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          {selectedPlaylist && (
-                            <button
-                              onClick={() => handleImportSpotifyPlaylist(playlist)}
-                              disabled={importingPlaylist === playlist.id}
-                              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-sm rounded-lg transition flex items-center space-x-1"
-                            >
-                              {importingPlaylist === playlist.id ? (
-                                <>
-                                  <Loader2 className="w-3 h-3 animate-spin" />
-                                  <span>Importing...</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Plus className="w-3 h-3" />
-                                  <span>Import</span>
-                                </>
-                              )}
-                            </button>
-                          )}
-                          <a
-                            href={playlist.external_urls.spotify}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg transition flex items-center space-x-1"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <ExternalLink className="w-3 h-3" />
-                            <span>Open</span>
-                          </a>
-                        </div>
+                        <a
+                          href={playlist.external_urls.spotify}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg transition flex items-center space-x-1"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <ExternalLink className="w-3 h-3" />
+                          <span>Open in Spotify</span>
+                        </a>
                       </div>
                     ))}
                   </div>
