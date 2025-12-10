@@ -85,6 +85,7 @@ export default function Mixtape() {
 
   // Play all functionality
   const [isPlayingAll, setIsPlayingAll] = useState(false);
+  const [showEmbedPlayer, setShowEmbedPlayer] = useState(false);
 
   // Spotify integration
   const [spotifyConnected, setSpotifyConnected] = useState<SpotifyConnectionStatus>({ connected: false });
@@ -115,16 +116,8 @@ export default function Mixtape() {
   const handlePlayAll = () => {
     if (!selectedPlaylist?.songs || selectedPlaylist.songs.length === 0) return;
 
-    // Create a list of Spotify track URIs
-    const trackUris = selectedPlaylist.songs.map(song => `spotify:track:${song.spotify_id}`).join(',');
-
-    // Open Spotify with the playlist of tracks
-    // This will open in the Spotify app if installed, or web player if not
-    const spotifyPlayUrl = `https://open.spotify.com/track/${selectedPlaylist.songs[0].spotify_id}`;
-
-    // Try to open in Spotify app first, fallback to web
-    window.open(spotifyPlayUrl, '_blank');
-
+    // Toggle the embedded player view
+    setShowEmbedPlayer(!showEmbedPlayer);
     setIsPlayingAll(!isPlayingAll);
   };
 
@@ -999,6 +992,7 @@ export default function Mixtape() {
                     setSelectedPlaylist(null);
                     setShowAddSong(false);
                     setIsPlayingAll(false);
+                    setShowEmbedPlayer(false);
                   }}
                   className="absolute top-4 right-4 w-10 h-10 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center transition"
                   title="Close"
@@ -1030,6 +1024,48 @@ export default function Mixtape() {
               </div>
 
               <div className="p-6 overflow-y-auto max-h-[calc(90vh-250px)]">
+                {/* Play All Embedded Player View */}
+                {showEmbedPlayer && selectedPlaylist.songs && selectedPlaylist.songs.length > 0 && (
+                  <div className="mb-6 bg-gradient-to-br from-green-900/20 to-blue-900/20 border border-green-500/30 rounded-xl p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-white font-semibold text-lg flex items-center">
+                        <PlayCircle className="w-5 h-5 mr-2 text-green-400" />
+                        Now Playing - {selectedPlaylist.songs.length} {selectedPlaylist.songs.length === 1 ? 'track' : 'tracks'}
+                      </h3>
+                      <button
+                        onClick={() => {
+                          setShowEmbedPlayer(false);
+                          setIsPlayingAll(false);
+                        }}
+                        className="text-gray-400 hover:text-white transition"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+                    <div className="space-y-3 max-h-[400px] overflow-y-auto">
+                      {selectedPlaylist.songs.map((song, index) => (
+                        <div key={song.id} className="bg-gray-800/50 rounded-lg p-3">
+                          <div className="flex items-center space-x-3 mb-2">
+                            <span className="text-gray-400 text-sm font-medium w-6">{index + 1}</span>
+                            <div className="flex-1">
+                              <p className="text-white text-sm font-medium">{song.title}</p>
+                              <p className="text-gray-400 text-xs">{song.artist}</p>
+                            </div>
+                          </div>
+                          <iframe
+                            src={`https://open.spotify.com/embed/track/${song.spotify_id}?theme=0`}
+                            width="100%"
+                            height="80"
+                            frameBorder="0"
+                            allow="encrypted-media"
+                            className="rounded-lg"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {selectedPlaylist.songs?.length === 0 && !showAddSong ? (
                   <div className="text-center py-12">
                     <Music className="w-16 h-16 text-gray-600 mx-auto mb-4" />
