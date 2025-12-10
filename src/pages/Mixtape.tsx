@@ -1,7 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
-import { Play, Music, MessageSquare, X, Plus, Trash2, ExternalLink, Loader2, Edit2, PlayCircle, StopCircle } from 'lucide-react';
+import { Play, Music, MessageSquare, X, Plus, Trash2, ExternalLink, Loader2, Edit2, PlayCircle, StopCircle, Search, TrendingUp, Clock, List } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import UserBadge from '../components/UserBadge';
+import {
+  checkSpotifyConnection,
+  searchTracks,
+  getTopTracks,
+  getRecentlyPlayed,
+  getUserPlaylists,
+  getPlaylistTracks,
+  type SpotifyTrack,
+  type SpotifyPlaylist,
+  type SpotifyConnectionStatus,
+} from '../lib/spotifyService';
 
 interface SongComment {
   id: string;
@@ -74,11 +85,23 @@ export default function Mixtape() {
 
   // Play all functionality
   const [isPlayingAll, setIsPlayingAll] = useState(false);
-  const [currentPlayingIndex, setCurrentPlayingIndex] = useState(0);
-  const iframeRefs = useRef<{ [key: string]: HTMLIFrameElement | null }>({});
+
+  // Spotify integration
+  const [spotifyConnected, setSpotifyConnected] = useState<SpotifyConnectionStatus>({ connected: false });
+  const [showSpotifySearch, setShowSpotifySearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<SpotifyTrack[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showBrowse, setShowBrowse] = useState(false);
+  const [browseTab, setBrowseTab] = useState<'top' | 'recent' | 'playlists'>('top');
+  const [topTracks, setTopTracks] = useState<SpotifyTrack[]>([]);
+  const [recentTracks, setRecentTracks] = useState<SpotifyTrack[]>([]);
+  const [spotifyPlaylists, setSpotifyPlaylists] = useState<SpotifyPlaylist[]>([]);
+  const [loadingBrowse, setLoadingBrowse] = useState(false);
 
   useEffect(() => {
     fetchPlaylists();
+    checkSpotifyStatus();
   }, []);
 
   const scrollToAddSongForm = () => {
@@ -134,6 +157,124 @@ export default function Mixtape() {
       setError('Couldn\'t load playlists. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const checkSpotifyStatus = async () => {
+    try {
+      const status = await checkSpotifyConnection();
+      setSpotifyConnected(status);
+    } catch (err) {
+      console.error('Error checking Spotify connection:', err);
+    }
+  };
+
+  const handleSpotifySearch = async () => {
+    if (!searchQuery.trim()) return;
+
+    try {
+      setIsSearching(true);
+      const results = await searchTracks(searchQuery, 20);
+      setSearchResults(results);
+    } catch (err) {
+      console.error('Error searching Spotify:', err);
+      setError('Failed to search Spotify. Please try again.');
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleAddSpotifyTrack = async (track: SpotifyTrack) => {
+    if (!selectedPlaylist) return;
+
+    try {
+      setAddingSong(true);
+      setAddSongError(null);
+
+      // Get max position for ordering
+      const { data: existingSongs } = await supabase
+        .from('songs')
+        .select('position')
+        .eq('playlist_id', selectedPlaylist.id)
+        .order('position', { ascending: false })
+        .limit(1);
+
+      const nextPosition = (existingSongs && existingSongs.length > 0 ? existingSongs[0].position : -1) + 1;
+
+      // Get current user ID
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      // Insert song with Spotify data
+      const { error: insertError } = await supabase
+        .from('songs')
+        .insert({
+          user_id: user.id,
+          playlist_id: selectedPlaylist.id,
+          title: track.name,
+          artist: track.artists.map(a => a.name).join(', '),
+          spotify_id: track.id,
+          duration: `${Math.floor(track.duration_ms / 60000)}:${String(Math.floor((track.duration_ms % 60000) / 1000)).padStart(2, '0')}`,
+          album_art: track.album.images[0]?.url || null,
+          position: nextPosition,
+        });
+
+      if (insertError) throw insertError;
+
+      // Fetch updated data
+      const { data: updatedData } = await supabase
+        .from('playlists')
+        .select(`
+          *,
+          songs (
+            *,
+            song_comments (*)
+          )
+        `)
+        .eq('id', selectedPlaylist.id)
+        .single();
+
+      if (updatedData) {
+        const playlistWithSortedSongs = {
+          ...updatedData,
+          songs: updatedData.songs.sort((a: Song, b: Song) => a.position - b.position)
+        };
+        setSelectedPlaylist(playlistWithSortedSongs);
+      }
+
+      await fetchPlaylists();
+      setShowSpotifySearch(false);
+      setSearchQuery('');
+      setSearchResults([]);
+    } catch (err) {
+      console.error('Error adding song:', err);
+      setAddSongError('Couldn\'t add song. Please try again.');
+    } finally {
+      setAddingSong(false);
+    }
+  };
+
+  const loadBrowseData = async (tab: 'top' | 'recent' | 'playlists') => {
+    try {
+      setLoadingBrowse(true);
+
+      if (tab === 'top' && topTracks.length === 0) {
+        const tracks = await getTopTracks(20, 'medium_term');
+        setTopTracks(tracks);
+      } else if (tab === 'recent' && recentTracks.length === 0) {
+        const tracks = await getRecentlyPlayed(20);
+        setRecentTracks(tracks);
+      } else if (tab === 'playlists' && spotifyPlaylists.length === 0) {
+        const playlists = await getUserPlaylists(50);
+        setSpotifyPlaylists(playlists);
+      }
+    } catch (err) {
+      console.error('Error loading browse data:', err);
+      setError('Failed to load Spotify data. Please try again.');
+    } finally {
+      setLoadingBrowse(false);
     }
   };
 
@@ -993,52 +1134,206 @@ export default function Mixtape() {
                             {addSongError}
                           </div>
                         )}
-                        <div className="space-y-3">
-                          <div>
-                            <input
-                              ref={spotifyInputRef}
-                              type="text"
-                              value={spotifyInput}
-                              onChange={(e) => {
-                                setSpotifyInput(e.target.value);
-                                setAddSongError(null);
-                              }}
-                              placeholder="Paste Spotify Song URL or Track ID"
-                              className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              disabled={addingSong}
-                            />
-                            <p className="text-xs text-gray-500 mt-1">
-                              e.g., https://open.spotify.com/track/...
-                            </p>
-                          </div>
-                          <div className="flex space-x-2">
-                            <button
-                              onClick={() => {
-                                setShowAddSong(false);
-                                setSpotifyInput('');
-                                setAddSongError(null);
-                              }}
-                              className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition"
-                              disabled={addingSong}
-                            >
-                              Cancel
-                            </button>
-                            <button
-                              onClick={handleAddSong}
-                              disabled={addingSong || !spotifyInput.trim()}
-                              className="flex-1 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-                            >
-                              {addingSong ? (
-                                <>
-                                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                                  Adding...
-                                </>
-                              ) : (
-                                'Add Song'
+
+                        {/* Spotify Connected - Show Search */}
+                        {spotifyConnected.connected ? (
+                          <div className="space-y-3">
+                            <div className="flex items-center space-x-2 p-2 bg-green-900/20 border border-green-500/30 rounded-lg">
+                              <Music className="w-4 h-4 text-green-400" />
+                              <span className="text-green-400 text-sm">Spotify Connected</span>
+                            </div>
+
+                            {!showSpotifySearch ? (
+                              <div className="grid grid-cols-2 gap-2">
+                                <button
+                                  onClick={() => setShowSpotifySearch(true)}
+                                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition flex items-center justify-center space-x-2"
+                                >
+                                  <Search className="w-4 h-4" />
+                                  <span>Search Spotify</span>
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setShowBrowse(true);
+                                    loadBrowseData('top');
+                                  }}
+                                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition flex items-center justify-center space-x-2"
+                                >
+                                  <TrendingUp className="w-4 h-4" />
+                                  <span>Browse Your Music</span>
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="space-y-3">
+                                <div className="flex space-x-2">
+                                  <input
+                                    type="text"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter' && searchQuery.trim()) {
+                                        handleSpotifySearch();
+                                      }
+                                    }}
+                                    placeholder="Search for songs..."
+                                    className="flex-1 px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
+                                    disabled={isSearching}
+                                  />
+                                  <button
+                                    onClick={handleSpotifySearch}
+                                    disabled={isSearching || !searchQuery.trim()}
+                                    className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                  >
+                                    {isSearching ? (
+                                      <Loader2 className="w-5 h-5 animate-spin" />
+                                    ) : (
+                                      <Search className="w-5 h-5" />
+                                    )}
+                                  </button>
+                                </div>
+
+                                {searchResults.length > 0 && (
+                                  <div className="max-h-96 overflow-y-auto space-y-2">
+                                    {searchResults.map((track) => (
+                                      <div
+                                        key={track.id}
+                                        className="flex items-center space-x-3 p-2 bg-gray-900/50 rounded-lg hover:bg-gray-900/70 transition cursor-pointer"
+                                        onClick={() => handleAddSpotifyTrack(track)}
+                                      >
+                                        {track.album.images[2] && (
+                                          <img
+                                            src={track.album.images[2].url}
+                                            alt={track.name}
+                                            className="w-12 h-12 rounded object-cover"
+                                          />
+                                        )}
+                                        <div className="flex-1 min-w-0">
+                                          <p className="text-white text-sm font-medium truncate">{track.name}</p>
+                                          <p className="text-gray-400 text-xs truncate">
+                                            {track.artists.map(a => a.name).join(', ')}
+                                          </p>
+                                        </div>
+                                        <Plus className="w-5 h-5 text-green-400 flex-shrink-0" />
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+
+                                <button
+                                  onClick={() => {
+                                    setShowSpotifySearch(false);
+                                    setSearchQuery('');
+                                    setSearchResults([]);
+                                  }}
+                                  className="w-full px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition"
+                                >
+                                  Back
+                                </button>
+                              </div>
+                            )}
+
+                            <div className="pt-2 border-t border-gray-700">
+                              <p className="text-xs text-gray-500 mb-2">Or paste a Spotify URL:</p>
+                              <input
+                                type="text"
+                                value={spotifyInput}
+                                onChange={(e) => {
+                                  setSpotifyInput(e.target.value);
+                                  setAddSongError(null);
+                                }}
+                                placeholder="https://open.spotify.com/track/..."
+                                className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                disabled={addingSong}
+                              />
+                            </div>
+
+                            <div className="flex space-x-2">
+                              <button
+                                onClick={() => {
+                                  setShowAddSong(false);
+                                  setSpotifyInput('');
+                                  setAddSongError(null);
+                                  setShowSpotifySearch(false);
+                                  setSearchQuery('');
+                                  setSearchResults([]);
+                                }}
+                                className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition"
+                                disabled={addingSong}
+                              >
+                                Cancel
+                              </button>
+                              {spotifyInput.trim() && (
+                                <button
+                                  onClick={handleAddSong}
+                                  disabled={addingSong}
+                                  className="flex-1 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                                >
+                                  {addingSong ? (
+                                    <>
+                                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                      Adding...
+                                    </>
+                                  ) : (
+                                    'Add from URL'
+                                  )}
+                                </button>
                               )}
-                            </button>
+                            </div>
                           </div>
-                        </div>
+                        ) : (
+                          /* Not Connected - Show URL Input Only */
+                          <div className="space-y-3">
+                            <div className="p-3 bg-yellow-900/20 border border-yellow-500/30 rounded-lg">
+                              <p className="text-yellow-400 text-sm">
+                                Connect Spotify in Settings to search and browse your music!
+                              </p>
+                            </div>
+                            <div>
+                              <input
+                                ref={spotifyInputRef}
+                                type="text"
+                                value={spotifyInput}
+                                onChange={(e) => {
+                                  setSpotifyInput(e.target.value);
+                                  setAddSongError(null);
+                                }}
+                                placeholder="Paste Spotify Song URL or Track ID"
+                                className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                disabled={addingSong}
+                              />
+                              <p className="text-xs text-gray-500 mt-1">
+                                e.g., https://open.spotify.com/track/...
+                              </p>
+                            </div>
+                            <div className="flex space-x-2">
+                              <button
+                                onClick={() => {
+                                  setShowAddSong(false);
+                                  setSpotifyInput('');
+                                  setAddSongError(null);
+                                }}
+                                className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition"
+                                disabled={addingSong}
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                onClick={handleAddSong}
+                                disabled={addingSong || !spotifyInput.trim()}
+                                className="flex-1 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                              >
+                                {addingSong ? (
+                                  <>
+                                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                    Adding...
+                                  </>
+                                ) : (
+                                  'Add Song'
+                                )}
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <button
@@ -1049,6 +1344,176 @@ export default function Mixtape() {
                         <span>Add Song</span>
                       </button>
                     )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Browse Your Spotify Modal */}
+        {showBrowse && spotifyConnected.connected && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div className="bg-gray-900 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden border border-gray-700">
+              <div className="p-6 border-b border-gray-700">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-2xl font-bold text-white">Browse Your Spotify</h2>
+                  <button
+                    onClick={() => {
+                      setShowBrowse(false);
+                      if (selectedPlaylist) setShowAddSong(false);
+                    }}
+                    className="w-10 h-10 bg-gray-800 hover:bg-gray-700 rounded-full flex items-center justify-center transition"
+                  >
+                    <X className="w-5 h-5 text-white" />
+                  </button>
+                </div>
+
+                {/* Tabs */}
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => {
+                      setBrowseTab('top');
+                      loadBrowseData('top');
+                    }}
+                    className={`px-4 py-2 rounded-lg transition flex items-center space-x-2 ${
+                      browseTab === 'top'
+                        ? 'bg-purple-600 text-white'
+                        : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                    }`}
+                  >
+                    <TrendingUp className="w-4 h-4" />
+                    <span>Top Tracks</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setBrowseTab('recent');
+                      loadBrowseData('recent');
+                    }}
+                    className={`px-4 py-2 rounded-lg transition flex items-center space-x-2 ${
+                      browseTab === 'recent'
+                        ? 'bg-purple-600 text-white'
+                        : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                    }`}
+                  >
+                    <Clock className="w-4 h-4" />
+                    <span>Recently Played</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setBrowseTab('playlists');
+                      loadBrowseData('playlists');
+                    }}
+                    className={`px-4 py-2 rounded-lg transition flex items-center space-x-2 ${
+                      browseTab === 'playlists'
+                        ? 'bg-purple-600 text-white'
+                        : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                    }`}
+                  >
+                    <List className="w-4 h-4" />
+                    <span>Your Playlists</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-6 overflow-y-auto max-h-[calc(90vh-150px)]">
+                {loadingBrowse ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {browseTab === 'top' && topTracks.map((track) => (
+                      <div
+                        key={track.id}
+                        className="flex items-center space-x-3 p-3 bg-gray-800/50 rounded-lg hover:bg-gray-800 transition cursor-pointer"
+                        onClick={() => {
+                          if (selectedPlaylist) {
+                            handleAddSpotifyTrack(track);
+                            setShowBrowse(false);
+                          }
+                        }}
+                      >
+                        {track.album.images[2] && (
+                          <img
+                            src={track.album.images[2].url}
+                            alt={track.name}
+                            className="w-14 h-14 rounded object-cover"
+                          />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-white font-medium truncate">{track.name}</p>
+                          <p className="text-gray-400 text-sm truncate">
+                            {track.artists.map(a => a.name).join(', ')}
+                          </p>
+                          <p className="text-gray-500 text-xs">{track.album.name}</p>
+                        </div>
+                        {selectedPlaylist && (
+                          <Plus className="w-5 h-5 text-purple-400 flex-shrink-0" />
+                        )}
+                      </div>
+                    ))}
+
+                    {browseTab === 'recent' && recentTracks.map((track) => (
+                      <div
+                        key={track.id}
+                        className="flex items-center space-x-3 p-3 bg-gray-800/50 rounded-lg hover:bg-gray-800 transition cursor-pointer"
+                        onClick={() => {
+                          if (selectedPlaylist) {
+                            handleAddSpotifyTrack(track);
+                            setShowBrowse(false);
+                          }
+                        }}
+                      >
+                        {track.album.images[2] && (
+                          <img
+                            src={track.album.images[2].url}
+                            alt={track.name}
+                            className="w-14 h-14 rounded object-cover"
+                          />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-white font-medium truncate">{track.name}</p>
+                          <p className="text-gray-400 text-sm truncate">
+                            {track.artists.map(a => a.name).join(', ')}
+                          </p>
+                          <p className="text-gray-500 text-xs">{track.album.name}</p>
+                        </div>
+                        {selectedPlaylist && (
+                          <Plus className="w-5 h-5 text-purple-400 flex-shrink-0" />
+                        )}
+                      </div>
+                    ))}
+
+                    {browseTab === 'playlists' && spotifyPlaylists.map((playlist) => (
+                      <div
+                        key={playlist.id}
+                        className="flex items-center space-x-3 p-3 bg-gray-800/50 rounded-lg hover:bg-gray-800 transition"
+                      >
+                        {playlist.images[0] && (
+                          <img
+                            src={playlist.images[0].url}
+                            alt={playlist.name}
+                            className="w-14 h-14 rounded object-cover"
+                          />
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-white font-medium truncate">{playlist.name}</p>
+                          <p className="text-gray-400 text-sm truncate">{playlist.description}</p>
+                          <p className="text-gray-500 text-xs">{playlist.tracks.total} tracks</p>
+                        </div>
+                        <a
+                          href={playlist.external_urls.spotify}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg transition flex items-center space-x-1"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <ExternalLink className="w-3 h-3" />
+                          <span>Open</span>
+                        </a>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
