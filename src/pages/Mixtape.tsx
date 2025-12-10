@@ -169,12 +169,15 @@ export default function Mixtape() {
     }
   };
 
-  const handleSpotifySearch = async () => {
-    if (!searchQuery.trim()) return;
+  const handleSpotifySearch = async (query: string) => {
+    if (!query.trim()) {
+      setSearchResults([]);
+      return;
+    }
 
     try {
       setIsSearching(true);
-      const results = await searchTracks(searchQuery, 20);
+      const results = await searchTracks(query, 20);
       setSearchResults(results);
     } catch (err) {
       console.error('Error searching Spotify:', err);
@@ -183,6 +186,21 @@ export default function Mixtape() {
       setIsSearching(false);
     }
   };
+
+  // Debounced search effect for inline search
+  useEffect(() => {
+    if (!showSpotifySearch || !spotifyConnected.connected) return;
+
+    const timer = setTimeout(() => {
+      if (searchQuery) {
+        handleSpotifySearch(searchQuery);
+      } else {
+        setSearchResults([]);
+      }
+    }, 300); // 300ms debounce
+
+    return () => clearTimeout(timer);
+  }, [searchQuery, showSpotifySearch, spotifyConnected.connected]);
 
   const handleAddSpotifyTrack = async (track: SpotifyTrack) => {
     if (!selectedPlaylist) return;
@@ -1165,59 +1183,55 @@ export default function Mixtape() {
                               </div>
                             ) : (
                               <div className="space-y-3">
-                                <div className="flex space-x-2">
-                                  <input
-                                    type="text"
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    onKeyDown={(e) => {
-                                      if (e.key === 'Enter' && searchQuery.trim()) {
-                                        handleSpotifySearch();
-                                      }
-                                    }}
-                                    placeholder="Search for songs..."
-                                    className="flex-1 px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
-                                    disabled={isSearching}
-                                  />
-                                  <button
-                                    onClick={handleSpotifySearch}
-                                    disabled={isSearching || !searchQuery.trim()}
-                                    className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
-                                  >
-                                    {isSearching ? (
-                                      <Loader2 className="w-5 h-5 animate-spin" />
-                                    ) : (
-                                      <Search className="w-5 h-5" />
+                                <div className="relative">
+                                  <div className="relative">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                                    <input
+                                      type="text"
+                                      value={searchQuery}
+                                      onChange={(e) => setSearchQuery(e.target.value)}
+                                      placeholder="Type to search for songs..."
+                                      className="w-full pl-10 pr-10 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
+                                      disabled={isSearching}
+                                      autoFocus
+                                    />
+                                    {isSearching && (
+                                      <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 animate-spin" />
                                     )}
-                                  </button>
-                                </div>
-
-                                {searchResults.length > 0 && (
-                                  <div className="max-h-96 overflow-y-auto space-y-2">
-                                    {searchResults.map((track) => (
-                                      <div
-                                        key={track.id}
-                                        className="flex items-center space-x-3 p-2 bg-gray-900/50 rounded-lg hover:bg-gray-900/70 transition cursor-pointer"
-                                        onClick={() => handleAddSpotifyTrack(track)}
-                                      >
-                                        {track.album.images[2] && (
-                                          <img
-                                            src={track.album.images[2].url}
-                                            alt={track.name}
-                                            className="w-12 h-12 rounded object-cover"
-                                          />
-                                        )}
-                                        <div className="flex-1 min-w-0">
-                                          <p className="text-white text-sm font-medium truncate">{track.name}</p>
-                                          <p className="text-gray-400 text-xs truncate">
-                                            {track.artists.map(a => a.name).join(', ')}
-                                          </p>
-                                        </div>
-                                        <Plus className="w-5 h-5 text-green-400 flex-shrink-0" />
-                                      </div>
-                                    ))}
                                   </div>
-                                )}
+
+                                  {/* Inline suggestions dropdown */}
+                                  {searchResults.length > 0 && (
+                                    <div className="absolute z-10 w-full mt-1 bg-gray-900 border border-gray-700 rounded-lg shadow-xl max-h-96 overflow-y-auto">
+                                      {searchResults.map((track) => (
+                                        <div
+                                          key={track.id}
+                                          className="flex items-center space-x-3 p-3 hover:bg-gray-800 transition cursor-pointer border-b border-gray-800 last:border-b-0"
+                                          onClick={() => {
+                                            handleAddSpotifyTrack(track);
+                                            setSearchQuery('');
+                                            setSearchResults([]);
+                                          }}
+                                        >
+                                          {track.album.images[2] && (
+                                            <img
+                                              src={track.album.images[2].url}
+                                              alt={track.name}
+                                              className="w-12 h-12 rounded object-cover"
+                                            />
+                                          )}
+                                          <div className="flex-1 min-w-0">
+                                            <p className="text-white text-sm font-medium truncate">{track.name}</p>
+                                            <p className="text-gray-400 text-xs truncate">
+                                              {track.artists.map(a => a.name).join(', ')}
+                                            </p>
+                                          </div>
+                                          <Plus className="w-5 h-5 text-green-400 flex-shrink-0" />
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
 
                                 <button
                                   onClick={() => {
