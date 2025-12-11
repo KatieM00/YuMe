@@ -821,24 +821,24 @@ export default function Mixtape() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
             {playlists.map((playlist) => (
               <div
                 key={playlist.id}
                 onClick={() => setSelectedPlaylist(playlist)}
-                className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-3 border border-gray-700 hover:bg-gray-800/70 hover:scale-105 transition-all cursor-pointer group relative"
+                className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-2.5 border border-gray-700 hover:bg-gray-800/70 hover:scale-105 transition-all cursor-pointer group relative"
               >
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     openEditModal(playlist);
                   }}
-                  className="absolute top-2 right-2 w-7 h-7 bg-blue-500/80 hover:bg-blue-600 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition z-10"
+                  className="absolute top-1.5 right-1.5 w-6 h-6 bg-blue-500/80 hover:bg-blue-600 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition z-10"
                   title="Edit playlist"
                 >
-                  <Edit2 className="w-3.5 h-3.5 text-white" />
+                  <Edit2 className="w-3 h-3 text-white" />
                 </button>
-                <div className={`w-full aspect-square rounded-lg mb-3 flex items-center justify-center relative overflow-hidden ${playlist.cover.startsWith('http') ? '' : playlist.cover}`}>
+                <div className={`w-full aspect-square rounded-md mb-2 flex items-center justify-center relative overflow-hidden ${playlist.cover.startsWith('http') ? '' : playlist.cover}`}>
                   {playlist.cover.startsWith('http') ? (
                     <img
                       src={playlist.cover}
@@ -846,18 +846,18 @@ export default function Mixtape() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <Music className="w-12 h-12 text-white/50" />
+                    <Music className="w-8 h-8 text-white/50" />
                   )}
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                    <Play className="w-10 h-10 text-white" />
+                    <Play className="w-8 h-8 text-white" />
                   </div>
-                  <div className="absolute bottom-2 right-2">
-                    <UserBadge userId={playlist.user_id} size={16} />
+                  <div className="absolute bottom-1.5 right-1.5">
+                    <UserBadge userId={playlist.user_id} size={14} />
                   </div>
                 </div>
-                <h3 className="text-base font-bold text-white mb-1">{playlist.title}</h3>
-                <p className="text-sm text-gray-400 line-clamp-2">{playlist.description}</p>
-                <p className="text-xs text-gray-500 mt-1.5">{playlist.songs?.length || 0} songs</p>
+                <h3 className="text-sm font-bold text-white mb-0.5 truncate">{playlist.title}</h3>
+                <p className="text-xs text-gray-400 line-clamp-1">{playlist.description}</p>
+                <p className="text-xs text-gray-500 mt-1">{playlist.songs?.length || 0} songs</p>
               </div>
             ))}
           </div>
@@ -1055,72 +1055,60 @@ export default function Mixtape() {
         {selectedPlaylist && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div className="bg-gray-900 rounded-xl max-w-3xl w-full max-h-[90vh] overflow-hidden border border-gray-700">
-              <div className="relative">
-                <div className={`${selectedPlaylist.cover.startsWith('http') ? 'bg-gradient-to-br from-gray-800 to-gray-900' : selectedPlaylist.cover} p-6 flex items-center space-x-4 relative`}>
-                  {selectedPlaylist.cover.startsWith('http') && (
-                    <div className="absolute inset-0 opacity-30">
-                      <img
-                        src={selectedPlaylist.cover}
-                        alt={selectedPlaylist.title}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  )}
-                  <div className="w-24 h-24 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center flex-shrink-0 relative z-10 overflow-hidden">
-                    {selectedPlaylist.cover.startsWith('http') ? (
-                      <img
-                        src={selectedPlaylist.cover}
-                        alt={selectedPlaylist.title}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <Music className="w-12 h-12 text-white" />
+              {/* Simple compact header */}
+              <div className={`${selectedPlaylist.cover.startsWith('http') ? 'bg-gradient-to-br from-gray-800 to-gray-900' : selectedPlaylist.cover} relative`}>
+                {selectedPlaylist.cover.startsWith('http') && (
+                  <div className="absolute inset-0 opacity-20 blur-sm">
+                    <img
+                      src={selectedPlaylist.cover}
+                      alt={selectedPlaylist.title}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+                <div className="relative flex items-center justify-between p-4">
+                  <div className="flex-1 min-w-0">
+                    <h2 className="text-xl font-bold text-white truncate">{selectedPlaylist.title}</h2>
+                    <p className="text-white/70 text-sm">{selectedPlaylist.songs?.length || 0} songs</p>
+                  </div>
+                  <div className="flex items-center space-x-2 ml-4">
+                    {selectedPlaylist.songs && selectedPlaylist.songs.length > 0 && (
+                      <button
+                        onClick={handlePlayAll}
+                        className="w-9 h-9 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center transition"
+                        title={isPlayingAll ? "Stop playing" : "Play all"}
+                      >
+                        {isPlayingAll ? (
+                          <StopCircle className="w-4.5 h-4.5 text-white" />
+                        ) : (
+                          <PlayCircle className="w-4.5 h-4.5 text-white" />
+                        )}
+                      </button>
                     )}
-                  </div>
-                  <div className="flex-1 min-w-0 relative z-10">
-                    <p className="text-white/80 text-xs font-medium mb-1.5 uppercase tracking-wider">Playlist</p>
-                    <h2 className="text-2xl font-bold text-white mb-1.5">{selectedPlaylist.title}</h2>
-                    <p className="text-white/90 text-sm">{selectedPlaylist.description}</p>
-                    <p className="text-white/70 text-xs mt-1.5">{selectedPlaylist.songs?.length || 0} songs</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => {
-                    setSelectedPlaylist(null);
-                    setShowAddSong(false);
-                    setIsPlayingAll(false);
-                    setShowEmbedPlayer(false);
-                  }}
-                  className="absolute top-3 right-3 w-8 h-8 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center transition"
-                  title="Close"
-                >
-                  <X className="w-4 h-4 text-white" />
-                </button>
-                <div className="absolute bottom-3 right-3 flex items-center space-x-2">
-                  {selectedPlaylist.songs && selectedPlaylist.songs.length > 0 && (
                     <button
-                      onClick={handlePlayAll}
-                      className="w-10 h-10 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center transition hover:scale-110 shadow-lg"
-                      title={isPlayingAll ? "Stop playing" : "Play all"}
+                      onClick={scrollToAddSongForm}
+                      className="w-9 h-9 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center transition"
+                      title="Add song"
                     >
-                      {isPlayingAll ? (
-                        <StopCircle className="w-5 h-5 text-white" />
-                      ) : (
-                        <PlayCircle className="w-5 h-5 text-white" />
-                      )}
+                      <Plus className="w-4.5 h-4.5 text-white" />
                     </button>
-                  )}
-                  <button
-                    onClick={scrollToAddSongForm}
-                    className="w-10 h-10 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center transition hover:scale-110 shadow-lg"
-                    title="Add song"
-                  >
-                    <Plus className="w-5 h-5 text-white" />
-                  </button>
+                    <button
+                      onClick={() => {
+                        setSelectedPlaylist(null);
+                        setShowAddSong(false);
+                        setIsPlayingAll(false);
+                        setShowEmbedPlayer(false);
+                      }}
+                      className="w-9 h-9 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center transition"
+                      title="Close"
+                    >
+                      <X className="w-4.5 h-4.5 text-white" />
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              <div className="p-6 overflow-y-auto max-h-[calc(90vh-250px)]">
+              <div className="p-4 overflow-y-auto max-h-[calc(90vh-100px)]">
                 {/* Play All Embedded Player View */}
                 {showEmbedPlayer && selectedPlaylist.songs && selectedPlaylist.songs.length > 0 && (
                   <div className="mb-6 bg-gradient-to-br from-green-900/20 to-blue-900/20 border border-green-500/30 rounded-xl p-6">
@@ -1176,25 +1164,25 @@ export default function Mixtape() {
                     </button>
                   </div>
                 ) : (
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     {selectedPlaylist.songs?.map((song, index) => (
                       <div key={song.id} className="group relative">
-                        <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition">
+                        <div className="absolute top-1.5 right-1.5 z-10 opacity-0 group-hover:opacity-100 transition">
                           <button
                             onClick={(e) => handleDeleteSong(song.id, e)}
-                            className="w-8 h-8 bg-black/70 hover:bg-red-500/70 rounded-full flex items-center justify-center transition"
+                            className="w-7 h-7 bg-black/70 hover:bg-red-500/70 rounded-full flex items-center justify-center transition"
                             title="Remove song"
                           >
-                            <Trash2 className="w-4 h-4 text-white" />
+                            <Trash2 className="w-3.5 h-3.5 text-white" />
                           </button>
                         </div>
                         <iframe
                           src={`https://open.spotify.com/embed/track/${song.spotify_id}?theme=0`}
                           width="100%"
-                          height="152"
+                          height="80"
                           frameBorder="0"
                           allow="encrypted-media"
-                          className="rounded-lg"
+                          className="rounded-md"
                         />
                       </div>
                     ))}
