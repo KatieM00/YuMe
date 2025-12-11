@@ -1176,103 +1176,26 @@ export default function Mixtape() {
                     </button>
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-2">
                     {selectedPlaylist.songs?.map((song, index) => (
-                      <div key={song.id} className="bg-gray-800/30 rounded-lg p-4 border border-gray-700/50">
-                        <div className="flex items-start space-x-4 mb-3">
-                          <span className="text-gray-400 text-sm w-6 mt-2">{index + 1}</span>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between mb-2">
-                              <div className="flex-1 min-w-0">
-                                <p className="text-white font-medium truncate">{song.title}</p>
-                                <div className="flex items-center space-x-2">
-                                  <p className="text-gray-400 text-sm truncate">{song.artist}</p>
-                                  <UserBadge userId={song.user_id} size={16} />
-                                </div>
-                              </div>
-                              <button
-                                onClick={(e) => handleDeleteSong(song.id, e)}
-                                className="ml-2 w-8 h-8 bg-red-500/20 hover:bg-red-500/40 rounded-full flex items-center justify-center transition flex-shrink-0"
-                                title="Remove song"
-                              >
-                                <Trash2 className="w-4 h-4 text-red-400" />
-                              </button>
-                            </div>
-
-                            {/* Spotify Embed */}
-                            <div className="mb-3">
-                              <iframe
-                                src={`https://open.spotify.com/embed/track/${song.spotify_id}?theme=0`}
-                                width="100%"
-                                height="80"
-                                frameBorder="0"
-                                allow="encrypted-media"
-                                className="rounded-lg"
-                              />
-                            </div>
-
-                            {/* External Links */}
-                            <div className="flex items-center space-x-2 mb-3">
-                              <a
-                                href={`https://open.spotify.com/track/${song.spotify_id}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center space-x-1 px-3 py-1.5 bg-green-500/20 hover:bg-green-500/30 text-green-400 text-xs rounded-full transition"
-                              >
-                                <ExternalLink className="w-3 h-3" />
-                                <span>Open in Spotify</span>
-                              </a>
-                              <a
-                                href={`https://music.youtube.com/search?q=${encodeURIComponent(song.title + ' ' + song.artist)}`}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center space-x-1 px-3 py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-400 text-xs rounded-full transition"
-                              >
-                                <ExternalLink className="w-3 h-3" />
-                                <span>YouTube Music</span>
-                              </a>
-                            </div>
-
-                            {/* Comments */}
-                            <div className="space-y-2">
-                              {song.song_comments?.map((comment) => (
-                                <div key={comment.id} className="bg-gray-900/50 rounded-lg p-3 border border-gray-700">
-                                  <div className="flex items-start space-x-2">
-                                    <MessageSquare className="w-4 h-4 text-blue-400 mt-0.5 flex-shrink-0" />
-                                    <p className="text-gray-300 text-sm flex-1">{comment.comment}</p>
-                                  </div>
-                                </div>
-                              ))}
-
-                              <div className="flex space-x-2">
-                                <input
-                                  type="text"
-                                  placeholder="Add a comment..."
-                                  value={newComment[song.id] || ''}
-                                  onChange={(e) => setNewComment({ ...newComment, [song.id]: e.target.value })}
-                                  className="flex-1 px-3 py-2 bg-gray-900/50 border border-gray-700 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                      handleAddComment(song.id);
-                                    }
-                                  }}
-                                  disabled={addingComment === song.id}
-                                />
-                                <button
-                                  onClick={() => handleAddComment(song.id)}
-                                  disabled={addingComment === song.id || !newComment[song.id]?.trim()}
-                                  className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
-                                >
-                                  {addingComment === song.id ? (
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                  ) : (
-                                    'Add'
-                                  )}
-                                </button>
-                              </div>
-                            </div>
-                          </div>
+                      <div key={song.id} className="group relative">
+                        <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 transition">
+                          <button
+                            onClick={(e) => handleDeleteSong(song.id, e)}
+                            className="w-8 h-8 bg-black/70 hover:bg-red-500/70 rounded-full flex items-center justify-center transition"
+                            title="Remove song"
+                          >
+                            <Trash2 className="w-4 h-4 text-white" />
+                          </button>
                         </div>
+                        <iframe
+                          src={`https://open.spotify.com/embed/track/${song.spotify_id}?theme=0`}
+                          width="100%"
+                          height="152"
+                          frameBorder="0"
+                          allow="encrypted-media"
+                          className="rounded-lg"
+                        />
                       </div>
                     ))}
 
@@ -1482,8 +1405,8 @@ export default function Mixtape() {
         {/* Import from Spotify Modal */}
         {showImportModal && spotifyConnected.connected && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-gray-900 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden border border-gray-700">
-              <div className="p-6 border-b border-gray-700">
+            <div className="bg-gray-900 rounded-2xl max-w-4xl w-full max-h-[90vh] flex flex-col border border-gray-700">
+              <div className="p-6 border-b border-gray-700 flex-shrink-0">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-2xl font-bold text-white">Import from Spotify</h2>
                   <button
@@ -1507,7 +1430,7 @@ export default function Mixtape() {
 
                 {!targetPlaylistForImport ? (
                   /* Step 1: Select YuMe Playlist or Create New */
-                  <div className="space-y-4">
+                  <div className="space-y-4 overflow-y-auto max-h-[calc(90vh-200px)]">
                     {/* Create New Playlist Option */}
                     <button
                       onClick={() => {
@@ -1521,7 +1444,6 @@ export default function Mixtape() {
                       </div>
                       <div className="flex-1">
                         <p className="text-white text-lg font-bold">Create New Playlist</p>
-                        <p className="text-white/80 text-sm">Import with the same name as your Spotify playlist</p>
                       </div>
                     </button>
 
