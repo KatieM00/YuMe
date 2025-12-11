@@ -236,40 +236,40 @@ export default function Settings() {
   return (
     <div className="min-h-screen p-4 md:p-8 pt-20 md:pt-24">
       <div className="max-w-4xl mx-auto">
-        <div className="flex items-center mb-8">
-          <Heart className="w-8 h-8 text-blue-400 mr-3" />
-          <h1 className="text-3xl md:text-4xl font-bold text-white">Settings</h1>
+        <div className="flex items-center mb-6">
+          <Heart className="w-6 h-6 text-blue-400 mr-2" />
+          <h1 className="text-2xl md:text-3xl font-bold text-white">Settings</h1>
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/50 rounded-lg text-red-400">
+          <div className="mb-4 p-3 bg-red-500/10 border border-red-500/50 rounded-lg text-red-400 text-sm">
             {error}
           </div>
         )}
 
         {success && (
-          <div className="mb-6 p-4 bg-green-500/10 border border-green-500/50 rounded-lg text-green-400">
+          <div className="mb-4 p-3 bg-green-500/10 border border-green-500/50 rounded-lg text-green-400 text-sm">
             {success}
           </div>
         )}
 
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Profile Section */}
-          <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700">
-            <h2 className="text-xl font-bold text-white mb-4">Your Profile</h2>
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-700">
+            <h2 className="text-base font-bold text-white mb-3">Your Profile</h2>
 
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-xs font-medium text-gray-300 mb-1">
                   Email
                 </label>
-                <div className="px-4 py-3 bg-gray-900/50 border border-gray-600 rounded-lg text-gray-400">
+                <div className="px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-gray-400 text-sm">
                   {profile?.email}
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
+                <label className="block text-xs font-medium text-gray-300 mb-1">
                   Display Name
                 </label>
                 <div className="flex space-x-2">
@@ -277,13 +277,13 @@ export default function Settings() {
                     type="text"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
-                    className="flex-1 px-4 py-3 bg-gray-900/50 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Enter your name"
                   />
                   <button
                     onClick={handleUpdateDisplayName}
                     disabled={isUpdatingName || displayName === profile?.display_name}
-                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isUpdatingName ? 'Saving...' : 'Save'}
                   </button>
@@ -291,15 +291,15 @@ export default function Settings() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2 flex items-center">
-                  <Globe className="w-4 h-4 mr-2" />
+                <label className="block text-xs font-medium text-gray-300 mb-1 flex items-center">
+                  <Globe className="w-3.5 h-3.5 mr-1.5" />
                   Your Timezone
                 </label>
                 <div className="flex space-x-2">
                   <select
                     value={timezone}
                     onChange={(e) => setTimezone(e.target.value)}
-                    className="flex-1 px-4 py-3 bg-gray-900/50 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <optgroup label="Common Timezones">
                       <option value="Europe/London">London (GMT)</option>
@@ -354,12 +354,12 @@ export default function Settings() {
                   <button
                     onClick={handleUpdateTimezone}
                     disabled={isUpdatingTimezone || timezone === profile?.timezone}
-                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isUpdatingTimezone ? 'Saving...' : 'Save'}
                   </button>
                 </div>
-                <p className="mt-2 text-xs text-gray-400">
+                <p className="mt-1.5 text-xs text-gray-400">
                   This will be shown on the dashboard alongside your partner's timezone
                 </p>
               </div>
@@ -367,62 +367,62 @@ export default function Settings() {
           </div>
 
           {/* Partner Linking Section */}
-          <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700">
-            <h2 className="text-xl font-bold text-white mb-4 flex items-center">
-              <UserPlus className="w-6 h-6 mr-2" />
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-700">
+            <h2 className="text-base font-bold text-white mb-3 flex items-center">
+              <UserPlus className="w-4 h-4 mr-1.5" />
               Partner Account
             </h2>
 
             {partner ? (
               /* Partner Linked */
-              <div className="space-y-4">
-                <div className="p-4 bg-green-900/20 border border-green-500/30 rounded-lg">
+              <div className="space-y-3">
+                <div className="p-3 bg-green-900/20 border border-green-500/30 rounded-md">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-green-400 font-medium mb-1">Partner Linked</p>
-                      <p className="text-gray-300">
-                        <User className="w-4 h-4 inline mr-2" />
+                      <p className="text-green-400 font-medium mb-0.5 text-sm">Partner Linked</p>
+                      <p className="text-gray-300 text-sm">
+                        <User className="w-3.5 h-3.5 inline mr-1.5" />
                         {partner.display_name || partner.email}
                       </p>
-                      <p className="text-gray-500 text-sm">{partner.email}</p>
+                      <p className="text-gray-500 text-xs">{partner.email}</p>
                     </div>
                     <button
                       onClick={handleUnlinkPartner}
                       disabled={isUnlinking}
-                      className="px-4 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded-lg text-sm font-medium transition border border-red-500/30 disabled:opacity-50"
+                      className="px-3 py-1.5 bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded-md text-xs font-medium transition border border-red-500/30 disabled:opacity-50"
                     >
                       {isUnlinking ? 'Unlinking...' : 'Unlink'}
                     </button>
                   </div>
                 </div>
 
-                <div className="text-sm text-gray-400">
+                <div className="text-xs text-gray-400">
                   <p>✓ You are sharing all your YuMe data with your partner</p>
                   <p>✓ You can see each other's memories, messages, and more</p>
                 </div>
               </div>
             ) : (
               /* No Partner */
-              <div className="space-y-6">
+              <div className="space-y-4">
                 {/* Your Invite Code */}
                 <div>
-                  <p className="text-gray-300 mb-3">Share this code with your partner:</p>
+                  <p className="text-gray-300 mb-2 text-sm">Share this code with your partner:</p>
                   <div className="flex items-center space-x-2">
-                    <div className="flex-1 px-4 py-3 bg-gray-900/50 border border-gray-600 rounded-lg text-white font-mono text-lg">
+                    <div className="flex-1 px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white font-mono text-base">
                       {profile?.invite_code}
                     </div>
                     <button
                       onClick={handleCopyInviteCode}
-                      className="px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition flex items-center space-x-2"
+                      className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm transition flex items-center space-x-1.5"
                     >
                       {copied ? (
                         <>
-                          <Check className="w-5 h-5" />
+                          <Check className="w-4 h-4" />
                           <span>Copied!</span>
                         </>
                       ) : (
                         <>
-                          <Copy className="w-5 h-5" />
+                          <Copy className="w-4 h-4" />
                           <span>Copy</span>
                         </>
                       )}
@@ -435,36 +435,36 @@ export default function Settings() {
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-gray-600"></div>
                   </div>
-                  <div className="relative flex justify-center text-sm">
-                    <span className="px-4 bg-gray-800 text-gray-400">OR</span>
+                  <div className="relative flex justify-center text-xs">
+                    <span className="px-3 bg-gray-800 text-gray-400">OR</span>
                   </div>
                 </div>
 
                 {/* Enter Partner's Code */}
                 <div>
-                  <p className="text-gray-300 mb-3">Enter your partner's invite code:</p>
+                  <p className="text-gray-300 mb-2 text-sm">Enter your partner's invite code:</p>
                   <div className="flex space-x-2">
                     <input
                       type="text"
                       value={inviteCode}
                       onChange={(e) => setInviteCode(e.target.value.trim())}
-                      className="flex-1 px-4 py-3 bg-gray-900/50 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+                      className="flex-1 px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
                       placeholder="Enter 8-character code"
                       maxLength={8}
                     />
                     <button
                       onClick={handleLinkPartner}
                       disabled={isLinking || !inviteCode.trim()}
-                      className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1.5"
                     >
                       {isLinking ? (
                         <>
-                          <Loader className="w-5 h-5 animate-spin" />
+                          <Loader className="w-4 h-4 animate-spin" />
                           <span>Linking...</span>
                         </>
                       ) : (
                         <>
-                          <UserPlus className="w-5 h-5" />
+                          <UserPlus className="w-4 h-4" />
                           <span>Link</span>
                         </>
                       )}
@@ -472,9 +472,9 @@ export default function Settings() {
                   </div>
                 </div>
 
-                <div className="text-sm text-gray-400 bg-blue-900/20 border border-blue-500/30 rounded-lg p-4">
-                  <p className="font-medium text-blue-400 mb-2">How Partner Linking Works:</p>
-                  <ul className="space-y-1 list-disc list-inside">
+                <div className="text-xs text-gray-400 bg-blue-900/20 border border-blue-500/30 rounded-md p-3">
+                  <p className="font-medium text-blue-400 mb-1.5">How Partner Linking Works:</p>
+                  <ul className="space-y-0.5 list-disc list-inside">
                     <li>Each account starts with their own private data</li>
                     <li>Once linked, you'll share all memories and content</li>
                     <li>Both partners can create, view, and edit shared content</li>
@@ -486,46 +486,46 @@ export default function Settings() {
           </div>
 
           {/* Spotify Integration Section */}
-          <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700">
-            <h2 className="text-xl font-bold text-white mb-4 flex items-center">
-              <Music className="w-6 h-6 mr-2 text-green-500" />
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-700">
+            <h2 className="text-base font-bold text-white mb-3 flex items-center">
+              <Music className="w-4 h-4 mr-1.5 text-green-500" />
               Spotify Integration
             </h2>
 
             {spotifyConnection.connected ? (
               /* Spotify Connected */
-              <div className="space-y-4">
-                <div className="p-4 bg-green-900/20 border border-green-500/30 rounded-lg">
+              <div className="space-y-3">
+                <div className="p-3 bg-green-900/20 border border-green-500/30 rounded-md">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-3">
                       {spotifyConnection.avatar_url && (
                         <img
                           src={spotifyConnection.avatar_url}
                           alt="Spotify Profile"
-                          className="w-12 h-12 rounded-full"
+                          className="w-10 h-10 rounded-full"
                         />
                       )}
                       <div>
-                        <p className="text-green-400 font-medium mb-1">Spotify Connected</p>
-                        <p className="text-gray-300">
+                        <p className="text-green-400 font-medium mb-0.5 text-sm">Spotify Connected</p>
+                        <p className="text-gray-300 text-sm">
                           {spotifyConnection.display_name || 'Spotify User'}
                         </p>
                         {spotifyConnection.user_id && (
-                          <p className="text-gray-500 text-sm">ID: {spotifyConnection.user_id}</p>
+                          <p className="text-gray-500 text-xs">ID: {spotifyConnection.user_id}</p>
                         )}
                       </div>
                     </div>
                     <button
                       onClick={handleDisconnectSpotify}
                       disabled={isDisconnectingSpotify}
-                      className="px-4 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded-lg text-sm font-medium transition border border-red-500/30 disabled:opacity-50"
+                      className="px-3 py-1.5 bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded-md text-xs font-medium transition border border-red-500/30 disabled:opacity-50"
                     >
                       {isDisconnectingSpotify ? 'Disconnecting...' : 'Disconnect'}
                     </button>
                   </div>
                 </div>
 
-                <div className="text-sm text-gray-400">
+                <div className="text-xs text-gray-400">
                   <p>✓ Search and add tracks from your Spotify library</p>
                   <p>✓ View your Spotify playlists and recently played</p>
                   <p>✓ Get personalized music recommendations</p>
@@ -534,22 +534,22 @@ export default function Settings() {
               </div>
             ) : (
               /* Spotify Not Connected */
-              <div className="space-y-4">
-                <p className="text-gray-300">
+              <div className="space-y-3">
+                <p className="text-gray-300 text-sm">
                   Connect your Spotify account to unlock music features in YuMe's Mixtape section.
                 </p>
 
                 <button
                   onClick={handleConnectSpotify}
-                  className="w-full px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition flex items-center justify-center space-x-2"
+                  className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm font-medium transition flex items-center justify-center space-x-1.5"
                 >
-                  <Music className="w-5 h-5" />
+                  <Music className="w-4 h-4" />
                   <span>Connect Spotify Account</span>
                 </button>
 
-                <div className="text-sm text-gray-400 bg-gray-900/50 border border-gray-700 rounded-lg p-4">
-                  <p className="font-medium text-gray-300 mb-2">What you can do with Spotify:</p>
-                  <ul className="space-y-1 list-disc list-inside">
+                <div className="text-xs text-gray-400 bg-gray-900/50 border border-gray-700 rounded-md p-3">
+                  <p className="font-medium text-gray-300 mb-1.5">What you can do with Spotify:</p>
+                  <ul className="space-y-0.5 list-disc list-inside">
                     <li>Search millions of tracks directly from Spotify</li>
                     <li>Import your existing Spotify playlists</li>
                     <li>View your recently played and top tracks</li>
@@ -558,7 +558,7 @@ export default function Settings() {
                   </ul>
                 </div>
 
-                <div className="text-xs text-gray-500 bg-blue-900/20 border border-blue-500/30 rounded-lg p-3">
+                <div className="text-xs text-gray-500 bg-blue-900/20 border border-blue-500/30 rounded-md p-2.5">
                   <p className="font-medium text-blue-400 mb-1">Privacy Notice:</p>
                   <p>
                     We only request access to view and manage your Spotify playlists and library.

@@ -328,13 +328,13 @@ export default function Map() {
         {/* Mobile floating add button */}
         <button
           onClick={() => setShowAddForm(!showAddForm)}
-          className="lg:hidden fixed bottom-6 right-6 w-14 h-14 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg flex items-center justify-center z-50 transition-transform hover:scale-110"
+          className="lg:hidden fixed bottom-6 right-6 w-12 h-12 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg flex items-center justify-center z-50 transition-transform hover:scale-110"
           title={showAddForm ? 'Close' : 'Add location'}
         >
           {showAddForm ? (
-            <span className="text-2xl">×</span>
+            <span className="text-xl">×</span>
           ) : (
-            <Plus className="w-6 h-6" />
+            <Plus className="w-5 h-5" />
           )}
         </button>
 
@@ -345,9 +345,9 @@ export default function Map() {
 
         {/* Mobile add form sheet */}
         {showAddForm && (
-          <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 rounded-t-2xl p-6 z-50 max-h-[60vh] overflow-y-auto">
+          <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 rounded-t-xl p-4 z-50 max-h-[60vh] overflow-y-auto">
             <div>
-              <h3 className="text-white font-semibold mb-4 text-lg">Add a Location</h3>
+              <h3 className="text-white font-semibold mb-3 text-base">Add a Location</h3>
               <div className="space-y-3">
                 {/* Search location */}
                 <div className="relative">
@@ -476,12 +476,12 @@ export default function Map() {
         {/* Mobile view - same as before */}
         <div className={`lg:hidden space-y-6 transition-all duration-300 ${showAddForm ? 'pb-[65vh]' : ''}`}>
           {/* Map Section */}
-          <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-4 border border-gray-700 shadow-xl">
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-3 border border-gray-700 shadow-xl">
             {!hasMapboxToken ? (
-              <div className="w-full h-64 bg-gradient-to-br from-blue-900/30 via-gray-900/50 to-green-900/30 rounded-xl flex items-center justify-center">
+              <div className="w-full h-64 bg-gradient-to-br from-blue-900/30 via-gray-900/50 to-green-900/30 rounded-lg flex items-center justify-center">
                 <div className="text-center p-4">
-                  <MapPin className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-                  <p className="text-gray-400 text-base font-semibold mb-2">Map Not Configured</p>
+                  <MapPin className="w-10 h-10 text-gray-600 mx-auto mb-3" />
+                  <p className="text-gray-400 text-sm font-semibold mb-2">Map Not Configured</p>
                   <p className="text-gray-500 text-xs mb-4">
                     Add <code className="bg-gray-800 px-2 py-1 rounded text-xs">VITE_MAPBOX_TOKEN</code> to Netlify
                   </p>
@@ -494,17 +494,17 @@ export default function Map() {
                 </div>
               </div>
             ) : (
-              <div ref={mapContainerRef} className="w-full h-64 rounded-xl overflow-hidden" />
+              <div ref={mapContainerRef} className="w-full h-64 rounded-lg overflow-hidden" />
             )}
 
-            <div className="mt-3 flex items-center justify-between text-sm">
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <MapPin className="w-4 h-4 text-green-500" />
+            <div className="mt-2 flex items-center justify-between text-sm">
+              <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-green-500" />
                   <span className="text-gray-400 text-xs">Visited: {visitedLocations.length}</span>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <MapPin className="w-4 h-4 text-red-500" />
+                <div className="flex items-center space-x-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-red-500" />
                   <span className="text-gray-400 text-xs">Wishlist: {wishlistLocations.length}</span>
                 </div>
               </div>
@@ -512,49 +512,49 @@ export default function Map() {
           </div>
 
           {/* Mobile Locations List */}
-          <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-4 border border-gray-700 shadow-xl">
-            <h2 className="text-lg font-semibold text-white mb-4">Your Locations</h2>
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-3 border border-gray-700 shadow-xl">
+            <h2 className="text-base font-semibold text-white mb-3">Your Locations</h2>
 
             {loading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader className="w-6 h-6 text-gray-400 animate-spin" />
+              <div className="flex items-center justify-center py-6">
+                <Loader className="w-5 h-5 text-gray-400 animate-spin" />
               </div>
             ) : locations.length === 0 ? (
-              <div className="text-center py-8">
-                <MapPin className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-                <p className="text-gray-400 text-sm mb-3">No locations yet</p>
+              <div className="text-center py-6">
+                <MapPin className="w-10 h-10 text-gray-600 mx-auto mb-2" />
+                <p className="text-gray-400 text-sm mb-2">No locations yet</p>
                 <p className="text-gray-500 text-xs">Tap the + button to add your first location</p>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {/* Visited Locations */}
                 {visitedLocations.length > 0 && (
                   <div>
-                    <h3 className="text-sm font-semibold text-green-400 mb-2 flex items-center">
-                      <Check className="w-4 h-4 mr-1" />
+                    <h3 className="text-xs font-semibold text-green-400 mb-1.5 flex items-center">
+                      <Check className="w-3.5 h-3.5 mr-1" />
                       Visited ({visitedLocations.length})
                     </h3>
-                    <div className="space-y-2">
+                    <div className="space-y-1.5">
                       {visitedLocations.map((location) => (
                         <div
                           key={location.id}
-                          className="group bg-green-500/10 border border-green-500/30 rounded-lg p-3 hover:bg-green-500/20 transition"
+                          className="group bg-green-500/10 border border-green-500/30 rounded-md p-2 hover:bg-green-500/20 transition"
                         >
                           <div className="flex items-start justify-between">
                             <div className="flex-1 min-w-0">
-                              <p className="text-white font-medium text-sm truncate">{location.name}</p>
+                              <p className="text-white font-medium text-xs truncate">{location.name}</p>
                               {location.visit_date && (
                                 <p className="text-gray-400 text-xs mt-0.5">{location.visit_date}</p>
                               )}
                               {location.notes && (
-                                <p className="text-gray-500 text-xs mt-1 line-clamp-2">{location.notes}</p>
+                                <p className="text-gray-500 text-xs mt-0.5 line-clamp-2">{location.notes}</p>
                               )}
                             </div>
                             <button
                               onClick={() => location.id && deleteLocation(location.id)}
-                              className="ml-2 p-1.5 text-gray-400 hover:text-red-400 transition flex-shrink-0"
+                              className="ml-2 p-1 text-gray-400 hover:text-red-400 transition flex-shrink-0"
                             >
-                              <Trash2 className="w-3.5 h-3.5" />
+                              <Trash2 className="w-3 h-3" />
                             </button>
                           </div>
                         </div>
@@ -566,28 +566,28 @@ export default function Map() {
                 {/* Wishlist Locations */}
                 {wishlistLocations.length > 0 && (
                   <div>
-                    <h3 className="text-sm font-semibold text-red-400 mb-2 flex items-center">
-                      <MapPin className="w-4 h-4 mr-1" />
+                    <h3 className="text-xs font-semibold text-red-400 mb-1.5 flex items-center">
+                      <MapPin className="w-3.5 h-3.5 mr-1" />
                       Want to Visit ({wishlistLocations.length})
                     </h3>
-                    <div className="space-y-2">
+                    <div className="space-y-1.5">
                       {wishlistLocations.map((location) => (
                         <div
                           key={location.id}
-                          className="group bg-red-500/10 border border-red-500/30 rounded-lg p-3 hover:bg-red-500/20 transition"
+                          className="group bg-red-500/10 border border-red-500/30 rounded-md p-2 hover:bg-red-500/20 transition"
                         >
                           <div className="flex items-start justify-between">
                             <div className="flex-1 min-w-0">
-                              <p className="text-white font-medium text-sm truncate">{location.name}</p>
+                              <p className="text-white font-medium text-xs truncate">{location.name}</p>
                               {location.notes && (
-                                <p className="text-gray-500 text-xs mt-1 line-clamp-2">{location.notes}</p>
+                                <p className="text-gray-500 text-xs mt-0.5 line-clamp-2">{location.notes}</p>
                               )}
                             </div>
                             <button
                               onClick={() => location.id && deleteLocation(location.id)}
-                              className="ml-2 p-1.5 text-gray-400 hover:text-red-400 transition flex-shrink-0"
+                              className="ml-2 p-1 text-gray-400 hover:text-red-400 transition flex-shrink-0"
                             >
-                              <Trash2 className="w-3.5 h-3.5" />
+                              <Trash2 className="w-3 h-3" />
                             </button>
                           </div>
                         </div>
@@ -601,18 +601,18 @@ export default function Map() {
         </div>
 
         {/* Desktop view - Map + Add Form on top, Locations below */}
-        <div className="hidden lg:block space-y-6">
+        <div className="hidden lg:block space-y-4">
           {/* Top row: Map (2/3) + Add Form (1/3) */}
-          <div className="grid grid-cols-3 gap-6 h-[500px]">
+          <div className="grid grid-cols-3 gap-4 h-[450px]">
             {/* Map - 2/3 width */}
             <div className="col-span-2">
-              <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 shadow-xl h-full flex flex-col">
+              <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-700 shadow-xl h-full flex flex-col">
                 {!hasMapboxToken ? (
-                  <div className="flex-1 bg-gradient-to-br from-blue-900/30 via-gray-900/50 to-green-900/30 rounded-xl flex items-center justify-center">
-                    <div className="text-center p-8">
-                      <MapPin className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                      <p className="text-gray-400 text-lg font-semibold mb-2">Map Not Configured</p>
-                      <p className="text-gray-500 text-sm mb-4">
+                  <div className="flex-1 bg-gradient-to-br from-blue-900/30 via-gray-900/50 to-green-900/30 rounded-lg flex items-center justify-center">
+                    <div className="text-center p-6">
+                      <MapPin className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+                      <p className="text-gray-400 text-base font-semibold mb-2">Map Not Configured</p>
+                      <p className="text-gray-500 text-sm mb-3">
                         Add <code className="bg-gray-800 px-2 py-1 rounded text-xs">VITE_MAPBOX_TOKEN</code> to Netlify
                       </p>
                       <p className="text-gray-600 text-xs">
@@ -624,18 +624,18 @@ export default function Map() {
                     </div>
                   </div>
                 ) : (
-                  <div ref={mapContainerRef} className="flex-1 rounded-xl overflow-hidden" />
+                  <div ref={mapContainerRef} className="flex-1 rounded-lg overflow-hidden" />
                 )}
 
-                <div className="mt-4 flex items-center justify-between text-sm">
-                  <div className="flex items-center space-x-6">
-                    <div className="flex items-center space-x-2">
-                      <MapPin className="w-4 h-4 text-green-500" />
-                      <span className="text-gray-400 text-sm">Visited: {visitedLocations.length}</span>
+                <div className="mt-3 flex items-center justify-between text-sm">
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-green-500" />
+                      <span className="text-gray-400 text-xs">Visited: {visitedLocations.length}</span>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <MapPin className="w-4 h-4 text-red-500" />
-                      <span className="text-gray-400 text-sm">Wishlist: {wishlistLocations.length}</span>
+                    <div className="flex items-center space-x-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-red-500" />
+                      <span className="text-gray-400 text-xs">Wishlist: {wishlistLocations.length}</span>
                     </div>
                   </div>
                 </div>
@@ -644,18 +644,18 @@ export default function Map() {
 
             {/* Add Location Form - 1/3 width */}
             <div className="col-span-1">
-              <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 shadow-xl h-full flex flex-col">
-                <h2 className="text-xl font-semibold text-white mb-4 flex items-center">
-                  <Plus className="w-5 h-5 mr-2" />
+              <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-700 shadow-xl h-full flex flex-col">
+                <h2 className="text-base font-semibold text-white mb-3 flex items-center">
+                  <Plus className="w-4 h-4 mr-1.5" />
                   Add Location
                 </h2>
 
-                <div className="space-y-4 flex-1 overflow-y-auto">
+                <div className="space-y-3 flex-1 overflow-y-auto">
                   {/* Search location */}
                   <div className="relative">
-                    <label className="text-sm text-gray-400 mb-2 block">Search Location</label>
+                    <label className="text-xs text-gray-400 mb-1 block">Search Location</label>
                     <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
                       <input
                         type="text"
                         value={searchQuery}
@@ -669,7 +669,7 @@ export default function Map() {
                         onFocus={() => {
                           if (suggestions.length > 0) setShowSuggestions(true);
                         }}
-                        className={`w-full pl-10 pr-3 py-2 bg-gray-900/50 border rounded-lg text-white text-sm focus:outline-none focus:ring-2 ${
+                        className={`w-full pl-9 pr-2.5 py-1.5 bg-gray-900/50 border rounded-md text-white text-xs focus:outline-none focus:ring-2 ${
                           newLocation.lat !== 0
                             ? 'border-green-500 focus:ring-green-500'
                             : 'border-gray-700 focus:ring-blue-500'
@@ -677,20 +677,20 @@ export default function Map() {
                         placeholder="e.g., Paris, Tokyo"
                       />
                       {isSearching && (
-                        <Loader className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 animate-spin" />
+                        <Loader className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500 animate-spin" />
                       )}
                     </div>
 
                     {/* Suggestions dropdown */}
                     {showSuggestions && suggestions.length > 0 && (
-                      <div className="absolute z-10 w-full mt-1 bg-gray-900 border border-gray-700 rounded-lg shadow-xl max-h-48 overflow-y-auto">
+                      <div className="absolute z-10 w-full mt-1 bg-gray-900 border border-gray-700 rounded-md shadow-xl max-h-40 overflow-y-auto">
                         {suggestions.map((suggestion, index) => (
                           <button
                             key={index}
                             onClick={() => selectSuggestion(suggestion)}
-                            className="w-full text-left px-3 py-2 hover:bg-gray-800 text-white text-sm border-b border-gray-800 last:border-b-0"
+                            className="w-full text-left px-2.5 py-1.5 hover:bg-gray-800 text-white text-xs border-b border-gray-800 last:border-b-0"
                           >
-                            <MapPin className="inline w-3 h-3 mr-2 text-gray-500" />
+                            <MapPin className="inline w-3 h-3 mr-1.5 text-gray-500" />
                             {suggestion.place_name}
                           </button>
                         ))}
@@ -699,11 +699,11 @@ export default function Map() {
                   </div>
 
                   <div>
-                    <label className="text-sm text-gray-400 mb-2 block">Type</label>
+                    <label className="text-xs text-gray-400 mb-1 block">Type</label>
                     <select
                       value={newLocation.type}
                       onChange={(e) => setNewLocation({ ...newLocation, type: e.target.value as 'visited' | 'wishlist' })}
-                      className="w-full px-3 py-2 bg-gray-900/50 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-2.5 py-1.5 bg-gray-900/50 border border-gray-700 rounded-md text-white text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
                     >
                       <option value="visited">✓ Visited</option>
                       <option value="wishlist">★ Want to Visit</option>
@@ -712,15 +712,15 @@ export default function Map() {
 
                   {/* Optional Fields Toggles */}
                   {newLocation.type === 'visited' && (
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-1.5">
                       <input
                         type="checkbox"
                         id="showVisitDateDesktop"
                         checked={showVisitDate}
                         onChange={(e) => setShowVisitDate(e.target.checked)}
-                        className="w-4 h-4 text-blue-600 bg-gray-800 border-gray-600 rounded focus:ring-blue-500"
+                        className="w-3.5 h-3.5 text-blue-600 bg-gray-800 border-gray-600 rounded focus:ring-blue-500"
                       />
-                      <label htmlFor="showVisitDateDesktop" className="text-sm text-gray-400 cursor-pointer">
+                      <label htmlFor="showVisitDateDesktop" className="text-xs text-gray-400 cursor-pointer">
                         Add visit date
                       </label>
                     </div>
@@ -732,20 +732,20 @@ export default function Map() {
                         type="month"
                         value={newLocation.visit_date}
                         onChange={(e) => setNewLocation({ ...newLocation, visit_date: e.target.value })}
-                        className="w-full px-3 py-2 bg-gray-900/50 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-2.5 py-1.5 bg-gray-900/50 border border-gray-700 rounded-md text-white text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
                     </div>
                   )}
 
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-1.5">
                     <input
                       type="checkbox"
                       id="showNotesDesktop"
                       checked={showNotes}
                       onChange={(e) => setShowNotes(e.target.checked)}
-                      className="w-4 h-4 text-blue-600 bg-gray-800 border-gray-600 rounded focus:ring-blue-500"
+                      className="w-3.5 h-3.5 text-blue-600 bg-gray-800 border-gray-600 rounded focus:ring-blue-500"
                     />
-                    <label htmlFor="showNotesDesktop" className="text-sm text-gray-400 cursor-pointer">
+                    <label htmlFor="showNotesDesktop" className="text-xs text-gray-400 cursor-pointer">
                       Add notes
                     </label>
                   </div>
@@ -756,7 +756,7 @@ export default function Map() {
                         type="text"
                         value={newLocation.notes}
                         onChange={(e) => setNewLocation({ ...newLocation, notes: e.target.value })}
-                        className="w-full px-3 py-2 bg-gray-900/50 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full px-2.5 py-1.5 bg-gray-900/50 border border-gray-700 rounded-md text-white text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="Add a note..."
                       />
                     </div>
@@ -765,7 +765,7 @@ export default function Map() {
                   <button
                     onClick={addLocation}
                     disabled={newLocation.lat === 0}
-                    className="w-full px-4 py-3 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg text-sm transition font-medium"
+                    className="w-full px-3 py-2 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-md text-xs transition font-medium"
                   >
                     Add Location
                   </button>
@@ -775,28 +775,28 @@ export default function Map() {
           </div>
 
           {/* Bottom row: Locations List (full width) */}
-          <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700 shadow-xl">
-            <h2 className="text-xl font-semibold text-white mb-4 flex items-center">
-              <MapPin className="w-5 h-5 mr-2" />
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-700 shadow-xl">
+            <h2 className="text-base font-semibold text-white mb-3 flex items-center">
+              <MapPin className="w-4 h-4 mr-1.5" />
               Your Locations
             </h2>
 
             {loading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader className="w-6 h-6 text-gray-400 animate-spin" />
+              <div className="flex items-center justify-center py-6">
+                <Loader className="w-5 h-5 text-gray-400 animate-spin" />
               </div>
             ) : locations.length === 0 ? (
-              <div className="text-center py-8">
-                <MapPin className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+              <div className="text-center py-6">
+                <MapPin className="w-10 h-10 text-gray-600 mx-auto mb-2" />
                 <p className="text-gray-400 text-sm">No locations yet. Use the form above to add your first location!</p>
               </div>
             ) : (
-              <div className="space-y-6">
+              <div className="space-y-4">
                 {/* Visited Locations */}
                 {visitedLocations.length > 0 && (
                   <div>
-                    <h3 className="text-sm font-semibold text-green-400 mb-3 flex items-center">
-                      <Check className="w-4 h-4 mr-1" />
+                    <h3 className="text-xs font-semibold text-green-400 mb-2 flex items-center">
+                      <Check className="w-3.5 h-3.5 mr-1" />
                       Visited ({visitedLocations.length})
                     </h3>
                     <div className="grid grid-cols-4 lg:grid-cols-6 gap-2">
@@ -804,15 +804,15 @@ export default function Map() {
                         <div
                           key={location.id}
                           onClick={() => zoomToLocation(location.lat, location.lng)}
-                          className="group relative bg-green-500/10 border border-green-500/30 rounded-lg p-3 hover:bg-green-500/20 transition cursor-pointer"
+                          className="group relative bg-green-500/10 border border-green-500/30 rounded-md p-2 hover:bg-green-500/20 transition cursor-pointer"
                         >
-                          <p className="text-white font-medium text-sm text-center truncate">{location.name}</p>
+                          <p className="text-white font-medium text-xs text-center truncate">{location.name}</p>
 
                           {/* Hover overlay with date/notes */}
                           {(location.visit_date || location.notes) && (
-                            <div className="absolute inset-0 bg-black/90 rounded-lg opacity-0 group-hover:opacity-100 transition flex flex-col items-center justify-center p-3 text-center pointer-events-none">
+                            <div className="absolute inset-0 bg-black/90 rounded-md opacity-0 group-hover:opacity-100 transition flex flex-col items-center justify-center p-2 text-center pointer-events-none">
                               {location.visit_date && (
-                                <p className="text-gray-300 text-xs mb-1">{location.visit_date}</p>
+                                <p className="text-gray-300 text-xs mb-0.5">{location.visit_date}</p>
                               )}
                               {location.notes && (
                                 <p className="text-gray-400 text-xs line-clamp-3">{location.notes}</p>
@@ -822,8 +822,8 @@ export default function Map() {
 
                           {/* User Badge - bottom left */}
                           {location.user_id && (
-                            <div className="absolute bottom-1 left-1">
-                              <UserBadge userId={location.user_id} size={16} />
+                            <div className="absolute bottom-0.5 left-0.5">
+                              <UserBadge userId={location.user_id} size={14} />
                             </div>
                           )}
 
@@ -833,7 +833,7 @@ export default function Map() {
                               e.stopPropagation();
                               location.id && deleteLocation(location.id);
                             }}
-                            className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-400 transition bg-black/50 rounded"
+                            className="absolute top-0.5 right-0.5 opacity-0 group-hover:opacity-100 p-0.5 text-gray-400 hover:text-red-400 transition bg-black/50 rounded"
                             title="Delete"
                           >
                             <Trash2 className="w-3 h-3" />
@@ -847,8 +847,8 @@ export default function Map() {
                 {/* Wishlist Locations */}
                 {wishlistLocations.length > 0 && (
                   <div>
-                    <h3 className="text-sm font-semibold text-red-400 mb-3 flex items-center">
-                      <MapPin className="w-4 h-4 mr-1" />
+                    <h3 className="text-xs font-semibold text-red-400 mb-2 flex items-center">
+                      <MapPin className="w-3.5 h-3.5 mr-1" />
                       Want to Visit ({wishlistLocations.length})
                     </h3>
                     <div className="grid grid-cols-4 lg:grid-cols-6 gap-2">
@@ -856,21 +856,21 @@ export default function Map() {
                         <div
                           key={location.id}
                           onClick={() => zoomToLocation(location.lat, location.lng)}
-                          className="group relative bg-red-500/10 border border-red-500/30 rounded-lg p-3 hover:bg-red-500/20 transition cursor-pointer"
+                          className="group relative bg-red-500/10 border border-red-500/30 rounded-md p-2 hover:bg-red-500/20 transition cursor-pointer"
                         >
-                          <p className="text-white font-medium text-sm text-center truncate">{location.name}</p>
+                          <p className="text-white font-medium text-xs text-center truncate">{location.name}</p>
 
                           {/* Hover overlay with notes if available */}
                           {location.notes && (
-                            <div className="absolute inset-0 bg-black/90 rounded-lg opacity-0 group-hover:opacity-100 transition flex flex-col items-center justify-center p-3 text-center pointer-events-none">
+                            <div className="absolute inset-0 bg-black/90 rounded-md opacity-0 group-hover:opacity-100 transition flex flex-col items-center justify-center p-2 text-center pointer-events-none">
                               <p className="text-gray-400 text-xs line-clamp-3">{location.notes}</p>
                             </div>
                           )}
 
                           {/* User Badge - bottom left */}
                           {location.user_id && (
-                            <div className="absolute bottom-1 left-1">
-                              <UserBadge userId={location.user_id} size={16} />
+                            <div className="absolute bottom-0.5 left-0.5">
+                              <UserBadge userId={location.user_id} size={14} />
                             </div>
                           )}
 
@@ -880,7 +880,7 @@ export default function Map() {
                               e.stopPropagation();
                               location.id && deleteLocation(location.id);
                             }}
-                            className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-400 transition bg-black/50 rounded"
+                            className="absolute top-0.5 right-0.5 opacity-0 group-hover:opacity-100 p-0.5 text-gray-400 hover:text-red-400 transition bg-black/50 rounded"
                             title="Delete"
                           >
                             <Trash2 className="w-3 h-3" />
