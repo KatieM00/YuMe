@@ -1418,59 +1418,50 @@ export default function Mixtape() {
 
                 {!targetPlaylistForImport ? (
                   /* Step 1: Select YuMe Playlist or Create New */
-                  <div className="space-y-3 overflow-y-auto max-h-[calc(90vh-140px)] mt-3">
-                    {/* Create New Playlist Option */}
-                    <button
-                      onClick={() => {
-                        setTargetPlaylistForImport('new');
-                        loadBrowseData('playlists');
-                      }}
-                      className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-lg p-2.5 border border-green-500/50 transition text-left flex items-center space-x-2.5"
-                    >
-                      <div className="w-8 h-8 bg-white/20 rounded-md flex items-center justify-center flex-shrink-0">
-                        <Plus className="w-4 h-4 text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-white text-sm font-semibold">Create New Playlist</p>
-                      </div>
-                    </button>
+                  <div className="overflow-y-auto max-h-[calc(90vh-140px)] mt-3">
+                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
+                      {/* Create New Playlist Card */}
+                      <button
+                        onClick={() => {
+                          setTargetPlaylistForImport('new');
+                          loadBrowseData('playlists');
+                        }}
+                        className="bg-gray-800/30 hover:bg-gray-800/50 rounded-md p-2 border-2 border-dashed border-gray-600 hover:border-green-500 transition text-left group"
+                      >
+                        <div className="w-full aspect-square rounded-sm mb-1.5 flex flex-col items-center justify-center bg-gray-700/30 group-hover:bg-gray-700/50 transition">
+                          <Plus className="w-6 h-6 text-gray-400 group-hover:text-green-400 transition mb-1" />
+                          <p className="text-gray-400 group-hover:text-green-400 text-xs font-medium transition">New</p>
+                        </div>
+                        <p className="text-gray-400 group-hover:text-white text-xs font-medium truncate transition">Create New</p>
+                        <p className="text-gray-600 text-xs">Empty playlist</p>
+                      </button>
 
-                    {/* Existing Playlists */}
-                    {playlists.length > 0 && (
-                      <>
-                        <div className="flex items-center space-x-2">
-                          <div className="flex-1 h-px bg-gray-700"></div>
-                          <p className="text-gray-500 text-xs uppercase">Or add to existing</p>
-                          <div className="flex-1 h-px bg-gray-700"></div>
-                        </div>
-                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
-                          {playlists.map((playlist) => (
-                            <button
-                              key={playlist.id}
-                              onClick={() => {
-                                setTargetPlaylistForImport(playlist);
-                                loadBrowseData('playlists');
-                              }}
-                              className="bg-gray-800/50 hover:bg-gray-800 rounded-md p-2 border border-gray-700 transition text-left"
-                            >
-                              <div className={`w-full aspect-square rounded-sm mb-1.5 flex items-center justify-center ${playlist.cover.startsWith('http') ? '' : playlist.cover}`}>
-                                {playlist.cover.startsWith('http') ? (
-                                  <img
-                                    src={playlist.cover}
-                                    alt={playlist.title}
-                                    className="w-full h-full object-cover rounded-sm"
-                                  />
-                                ) : (
-                                  <Music className="w-5 h-5 text-white/50" />
-                                )}
-                              </div>
-                              <p className="text-white text-xs font-medium truncate">{playlist.title}</p>
-                              <p className="text-gray-500 text-xs">{playlist.songs?.length || 0} songs</p>
-                            </button>
-                          ))}
-                        </div>
-                      </>
-                    )}
+                      {/* Existing Playlists */}
+                      {playlists.map((playlist) => (
+                        <button
+                          key={playlist.id}
+                          onClick={() => {
+                            setTargetPlaylistForImport(playlist);
+                            loadBrowseData('playlists');
+                          }}
+                          className="bg-gray-800/50 hover:bg-gray-800 rounded-md p-2 border border-gray-700 transition text-left"
+                        >
+                          <div className={`w-full aspect-square rounded-sm mb-1.5 flex items-center justify-center ${playlist.cover.startsWith('http') ? '' : playlist.cover}`}>
+                            {playlist.cover.startsWith('http') ? (
+                              <img
+                                src={playlist.cover}
+                                alt={playlist.title}
+                                className="w-full h-full object-cover rounded-sm"
+                              />
+                            ) : (
+                              <Music className="w-5 h-5 text-white/50" />
+                            )}
+                          </div>
+                          <p className="text-white text-xs font-medium truncate">{playlist.title}</p>
+                          <p className="text-gray-500 text-xs">{playlist.songs?.length || 0} songs</p>
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 ) : (
                   /* Step 2: Select Spotify Playlist to Import */
