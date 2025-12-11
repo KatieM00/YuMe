@@ -1394,20 +1394,20 @@ export default function Mixtape() {
         {showImportModal && spotifyConnected.connected && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div className="bg-gray-900 rounded-xl max-w-4xl w-full max-h-[90vh] flex flex-col border border-gray-700">
-              <div className="p-5 border-b border-gray-700 flex-shrink-0">
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="text-xl font-bold text-white">Import from Spotify</h2>
+              <div className="p-4 border-b border-gray-700 flex-shrink-0">
+                <div className="flex items-center justify-between mb-2">
+                  <h2 className="text-lg font-bold text-white">Import from Spotify</h2>
                   <button
                     onClick={() => {
                       setShowImportModal(false);
                       setTargetPlaylistForImport(null);
                     }}
-                    className="w-8 h-8 bg-gray-800 hover:bg-gray-700 rounded-full flex items-center justify-center transition"
+                    className="w-7 h-7 bg-gray-800 hover:bg-gray-700 rounded-full flex items-center justify-center transition"
                   >
-                    <X className="w-4 h-4 text-white" />
+                    <X className="w-3.5 h-3.5 text-white" />
                   </button>
                 </div>
-                <p className="text-gray-400 text-sm">
+                <p className="text-gray-400 text-xs">
                   {targetPlaylistForImport
                     ? targetPlaylistForImport === 'new'
                       ? 'Select a Spotify playlist to import as a new YuMe playlist:'
@@ -1418,20 +1418,20 @@ export default function Mixtape() {
 
                 {!targetPlaylistForImport ? (
                   /* Step 1: Select YuMe Playlist or Create New */
-                  <div className="space-y-4 overflow-y-auto max-h-[calc(90vh-200px)]">
+                  <div className="space-y-3 overflow-y-auto max-h-[calc(90vh-140px)] mt-3">
                     {/* Create New Playlist Option */}
                     <button
                       onClick={() => {
                         setTargetPlaylistForImport('new');
                         loadBrowseData('playlists');
                       }}
-                      className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-lg p-3 border border-green-500/50 transition text-left flex items-center space-x-3"
+                      className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-lg p-2.5 border border-green-500/50 transition text-left flex items-center space-x-2.5"
                     >
-                      <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <Plus className="w-5 h-5 text-white" />
+                      <div className="w-8 h-8 bg-white/20 rounded-md flex items-center justify-center flex-shrink-0">
+                        <Plus className="w-4 h-4 text-white" />
                       </div>
                       <div className="flex-1">
-                        <p className="text-white text-base font-semibold">Create New Playlist</p>
+                        <p className="text-white text-sm font-semibold">Create New Playlist</p>
                       </div>
                     </button>
 
@@ -1443,7 +1443,7 @@ export default function Mixtape() {
                           <p className="text-gray-500 text-xs uppercase">Or add to existing</p>
                           <div className="flex-1 h-px bg-gray-700"></div>
                         </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
                           {playlists.map((playlist) => (
                             <button
                               key={playlist.id}
@@ -1451,17 +1451,17 @@ export default function Mixtape() {
                                 setTargetPlaylistForImport(playlist);
                                 loadBrowseData('playlists');
                               }}
-                              className="bg-gray-800/50 hover:bg-gray-800 rounded-lg p-2.5 border border-gray-700 transition text-left"
+                              className="bg-gray-800/50 hover:bg-gray-800 rounded-md p-2 border border-gray-700 transition text-left"
                             >
-                              <div className={`w-full aspect-square rounded-md mb-2 flex items-center justify-center ${playlist.cover.startsWith('http') ? '' : playlist.cover}`}>
+                              <div className={`w-full aspect-square rounded-sm mb-1.5 flex items-center justify-center ${playlist.cover.startsWith('http') ? '' : playlist.cover}`}>
                                 {playlist.cover.startsWith('http') ? (
                                   <img
                                     src={playlist.cover}
                                     alt={playlist.title}
-                                    className="w-full h-full object-cover rounded-md"
+                                    className="w-full h-full object-cover rounded-sm"
                                   />
                                 ) : (
-                                  <Music className="w-6 h-6 text-white/50" />
+                                  <Music className="w-5 h-5 text-white/50" />
                                 )}
                               </div>
                               <p className="text-white text-xs font-medium truncate">{playlist.title}</p>
@@ -1474,47 +1474,47 @@ export default function Mixtape() {
                   </div>
                 ) : (
                   /* Step 2: Select Spotify Playlist to Import */
-                  <div className="space-y-3">
+                  <div className="space-y-2 mt-3">
                     {targetPlaylistForImport === 'new' ? (
-                      <div className="flex items-center justify-between p-3 bg-green-900/20 border border-green-500/30 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <Plus className="w-6 h-6 text-white" />
+                      <div className="flex items-center justify-between p-2 bg-green-900/20 border border-green-500/30 rounded-lg">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-500 rounded-md flex items-center justify-center flex-shrink-0">
+                            <Plus className="w-4 h-4 text-white" />
                           </div>
                           <div>
-                            <p className="text-white font-medium">Creating new playlist</p>
+                            <p className="text-white text-sm font-medium">Creating new playlist</p>
                             <p className="text-gray-400 text-xs">Will use Spotify playlist name</p>
                           </div>
                         </div>
                         <button
                           onClick={() => setTargetPlaylistForImport(null)}
-                          className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white text-sm rounded-lg transition"
+                          className="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded-md transition"
                         >
                           Change
                         </button>
                       </div>
                     ) : (
-                      <div className="flex items-center justify-between p-3 bg-blue-900/20 border border-blue-500/30 rounded-lg">
-                        <div className="flex items-center space-x-3">
-                          <div className={`w-12 h-12 rounded-lg flex items-center justify-center flex-shrink-0 ${targetPlaylistForImport.cover.startsWith('http') ? '' : targetPlaylistForImport.cover}`}>
+                      <div className="flex items-center justify-between p-2 bg-blue-900/20 border border-blue-500/30 rounded-lg">
+                        <div className="flex items-center space-x-2">
+                          <div className={`w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0 ${targetPlaylistForImport.cover.startsWith('http') ? '' : targetPlaylistForImport.cover}`}>
                             {targetPlaylistForImport.cover.startsWith('http') ? (
                               <img
                                 src={targetPlaylistForImport.cover}
                                 alt={targetPlaylistForImport.title}
-                                className="w-full h-full object-cover rounded-lg"
+                                className="w-full h-full object-cover rounded-md"
                               />
                             ) : (
-                              <Music className="w-6 h-6 text-white" />
+                              <Music className="w-4 h-4 text-white" />
                             )}
                           </div>
                           <div>
-                            <p className="text-white font-medium">Importing into: {targetPlaylistForImport.title}</p>
+                            <p className="text-white text-sm font-medium truncate max-w-[300px]">Importing into: {targetPlaylistForImport.title}</p>
                             <p className="text-gray-400 text-xs">{targetPlaylistForImport.songs?.length || 0} existing songs</p>
                           </div>
                         </div>
                         <button
                           onClick={() => setTargetPlaylistForImport(null)}
-                          className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white text-sm rounded-lg transition"
+                          className="px-2 py-1 bg-gray-700 hover:bg-gray-600 text-white text-xs rounded-md transition"
                         >
                           Change
                         </button>
@@ -1525,23 +1525,23 @@ export default function Mixtape() {
               </div>
 
               {targetPlaylistForImport && (
-                <div className="p-4 overflow-y-auto max-h-[calc(90vh-200px)]">
+                <div className="p-3 overflow-y-auto max-h-[calc(90vh-140px)]">
                   {loadingBrowse ? (
-                    <div className="flex items-center justify-center py-8">
-                      <Loader2 className="w-6 h-6 text-purple-500 animate-spin" />
+                    <div className="flex items-center justify-center py-6">
+                      <Loader2 className="w-5 h-5 text-purple-500 animate-spin" />
                     </div>
                   ) : (
-                    <div className="space-y-1.5">
+                    <div className="space-y-1">
                       {spotifyPlaylists.map((playlist) => (
                         <div
                           key={playlist.id}
-                          className="flex items-center space-x-2.5 p-2.5 bg-gray-800/50 rounded-lg hover:bg-gray-800 transition"
+                          className="flex items-center space-x-2 p-2 bg-gray-800/50 rounded-lg hover:bg-gray-800 transition"
                         >
                           {playlist.images[0] && (
                             <img
                               src={playlist.images[0].url}
                               alt={playlist.name}
-                              className="w-12 h-12 rounded object-cover flex-shrink-0"
+                              className="w-10 h-10 rounded object-cover flex-shrink-0"
                             />
                           )}
                           <div className="flex-1 min-w-0">
@@ -1552,17 +1552,17 @@ export default function Mixtape() {
                           <button
                             onClick={() => handleImportSpotifyPlaylist(playlist, targetPlaylistForImport)}
                             disabled={importingPlaylist === playlist.id}
-                            className="px-2.5 py-1.5 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-xs rounded-lg transition flex items-center space-x-1 flex-shrink-0"
+                            className="px-2 py-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-xs rounded-md transition flex items-center space-x-1 flex-shrink-0"
                           >
                             {importingPlaylist === playlist.id ? (
                               <>
                                 <Loader2 className="w-3 h-3 animate-spin" />
-                                <span>Importing...</span>
+                                <span className="hidden sm:inline">Importing...</span>
                               </>
                             ) : (
                               <>
                                 <Plus className="w-3 h-3" />
-                                <span>Import</span>
+                                <span className="hidden sm:inline">Import</span>
                               </>
                             )}
                           </button>
