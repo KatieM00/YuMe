@@ -1433,7 +1433,6 @@ export default function Mixtape() {
                           <p className="text-gray-400 group-hover:text-green-400 text-xs font-medium transition">New</p>
                         </div>
                         <p className="text-gray-400 group-hover:text-white text-xs font-medium truncate transition">Create New</p>
-                        <p className="text-gray-600 text-xs">Empty playlist</p>
                       </button>
 
                       {/* Existing Playlists */}
