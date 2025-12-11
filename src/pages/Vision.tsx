@@ -337,44 +337,44 @@ export default function Vision() {
         </div>
 
         {/* Split Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* LEFT: Calendar */}
-          <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white flex items-center">
-                <CalendarIcon className="w-6 h-6 mr-2" />
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-4 border border-gray-700">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-white flex items-center">
+                <CalendarIcon className="w-5 h-5 mr-1.5" />
                 Calendar
               </h2>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-1.5">
                 <button
                   onClick={handlePreviousMonth}
-                  className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition"
+                  className="p-1.5 bg-gray-700 hover:bg-gray-600 rounded-lg transition"
                 >
-                  <ChevronLeft className="w-5 h-5 text-white" />
+                  <ChevronLeft className="w-4 h-4 text-white" />
                 </button>
-                <span className="text-white font-semibold min-w-[200px] text-center">{monthName}</span>
+                <span className="text-white text-sm font-semibold min-w-[180px] text-center">{monthName}</span>
                 <button
                   onClick={handleNextMonth}
-                  className="p-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition"
+                  className="p-1.5 bg-gray-700 hover:bg-gray-600 rounded-lg transition"
                 >
-                  <ChevronRight className="w-5 h-5 text-white" />
+                  <ChevronRight className="w-4 h-4 text-white" />
                 </button>
               </div>
             </div>
 
             {/* Calendar Grid */}
-            <div className="bg-gray-900/50 rounded-xl p-4">
+            <div className="bg-gray-900/50 rounded-lg p-3">
               {/* Week days header */}
-              <div className="grid grid-cols-7 gap-2 mb-2">
+              <div className="grid grid-cols-7 gap-1.5 mb-1.5">
                 {weekDays.map(day => (
-                  <div key={day} className="text-center text-gray-400 text-sm font-medium py-2">
+                  <div key={day} className="text-center text-gray-400 text-xs font-medium py-1">
                     {day}
                   </div>
                 ))}
               </div>
 
               {/* Calendar days */}
-              <div className="grid grid-cols-7 gap-2">
+              <div className="grid grid-cols-7 gap-1.5">
                 {/* Empty cells for days before month starts */}
                 {Array.from({ length: startingDayOfWeek }).map((_, i) => (
                   <div key={`empty-${i}`} className="aspect-square" />
@@ -392,30 +392,30 @@ export default function Vision() {
                     <div
                       key={day}
                       onClick={() => handleDateClick(date)}
-                      className={`aspect-square p-2 rounded-lg cursor-pointer transition ${
+                      className={`aspect-square p-1.5 rounded cursor-pointer transition ${
                         isToday
                           ? 'bg-blue-600 hover:bg-blue-700'
                           : 'bg-gray-800 hover:bg-gray-700'
                       }`}
                     >
                       <div className="flex flex-col h-full">
-                        <span className={`text-sm font-medium ${isToday ? 'text-white' : 'text-gray-300'}`}>
+                        <span className={`text-xs font-medium ${isToday ? 'text-white' : 'text-gray-300'}`}>
                           {day}
                         </span>
                         {events.length > 0 && (
-                          <div className="mt-1 flex-1 overflow-hidden">
+                          <div className="mt-0.5 flex-1 overflow-hidden">
                             {events.slice(0, 2).map((event, idx) => (
                               <div
                                 key={event.id}
-                                className="text-[10px] text-white bg-cyan-600 hover:bg-cyan-700 rounded px-1 py-0.5 mb-0.5 truncate cursor-pointer transition"
+                                className="text-[9px] text-white bg-cyan-600 hover:bg-cyan-700 rounded px-0.5 py-0.5 mb-0.5 truncate cursor-pointer transition"
                                 onClick={(e) => handleEditEvent(event, e)}
                               >
                                 {event.title}
                               </div>
                             ))}
                             {events.length > 2 && (
-                              <div className="text-[9px] text-gray-400">
-                                +{events.length - 2} more
+                              <div className="text-[8px] text-gray-400">
+                                +{events.length - 2}
                               </div>
                             )}
                           </div>
@@ -429,43 +429,43 @@ export default function Vision() {
 
             {/* Events List for Selected Date */}
             {selectedDate && (
-              <div className="mt-6">
-                <h3 className="text-lg font-bold text-white mb-3">
+              <div className="mt-4">
+                <h3 className="text-base font-bold text-white mb-2">
                   Events on {selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
                 </h3>
-                <div className="space-y-2 max-h-60 overflow-y-auto">
+                <div className="space-y-1.5 max-h-48 overflow-y-auto">
                   {getEventsForDate(selectedDate).map(event => (
                     <div
                       key={event.id}
-                      className="bg-gray-800 rounded-lg p-3 group flex items-center justify-between"
+                      className="bg-gray-800 rounded p-2 group flex items-center justify-between"
                     >
                       <div
                         className="flex-1 cursor-pointer"
                         onClick={() => openDetailModal(event)}
                       >
-                        <h4 className="text-white font-medium">{event.title}</h4>
+                        <h4 className="text-white text-sm font-medium">{event.title}</h4>
                         {event.content && (
-                          <p className="text-gray-400 text-sm mt-1 line-clamp-1">{event.content}</p>
+                          <p className="text-gray-400 text-xs mt-0.5 line-clamp-1">{event.content}</p>
                         )}
                       </div>
-                      <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition">
+                      <div className="flex items-center space-x-1.5 opacity-0 group-hover:opacity-100 transition">
                         <button
                           onClick={(e) => handleEditEvent(event, e)}
                           className="p-1 bg-blue-600 hover:bg-blue-700 rounded"
                         >
-                          <Edit2 className="w-3 h-3 text-white" />
+                          <Edit2 className="w-2.5 h-2.5 text-white" />
                         </button>
                         <button
                           onClick={(e) => handleDeleteEvent(event, e)}
                           className="p-1 bg-red-600 hover:bg-red-700 rounded"
                         >
-                          <Trash2 className="w-3 h-3 text-white" />
+                          <Trash2 className="w-2.5 h-2.5 text-white" />
                         </button>
                       </div>
                     </div>
                   ))}
                   {getEventsForDate(selectedDate).length === 0 && (
-                    <p className="text-gray-400 text-sm italic">No events on this day</p>
+                    <p className="text-gray-400 text-xs italic">No events on this day</p>
                   )}
                 </div>
               </div>
@@ -473,14 +473,14 @@ export default function Vision() {
           </div>
 
           {/* RIGHT: Vision Board */}
-          <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 border border-gray-700">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white">Vision Board</h2>
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-4 border border-gray-700">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-white">Vision Board</h2>
               <button
                 onClick={() => setShowAddModal(true)}
-                className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-cyan-700 transition"
+                className="flex items-center space-x-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg text-sm font-medium hover:from-blue-700 hover:to-cyan-700 transition"
               >
-                <Plus className="w-5 h-5" />
+                <Plus className="w-4 h-4" />
                 <span>Add Item</span>
               </button>
             </div>
@@ -495,99 +495,99 @@ export default function Vision() {
                 {visionBoardItems.map((item, index) => (
                   <div
                     key={item.id}
-                    className="mb-4 group cursor-pointer"
+                    className="mb-3 group cursor-pointer"
                     onClick={() => openDetailModal(item)}
                   >
                     {item.type === 'image' && (
-                      <div className="relative overflow-hidden rounded-xl shadow-2xl transform transition-all duration-300 hover:scale-105 hover:shadow-3xl">
+                      <div className="relative overflow-hidden rounded-lg shadow-xl transform transition-all duration-300 hover:scale-105">
                         <img
                           src={item.image_url || ''}
                           alt={item.title}
                           className="w-full h-auto object-cover"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                          <div className="absolute bottom-0 left-0 right-0 p-4">
-                            <h3 className="text-white font-semibold text-lg">{item.title}</h3>
+                          <div className="absolute bottom-0 left-0 right-0 p-3">
+                            <h3 className="text-white font-semibold text-sm">{item.title}</h3>
                           </div>
                         </div>
-                        <div className="absolute bottom-2 right-2">
-                          <UserBadge userId={item.user_id} size={20} />
+                        <div className="absolute bottom-1.5 right-1.5">
+                          <UserBadge userId={item.user_id} size={16} />
                         </div>
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             handleDeleteItem(item.id, item.image_url);
                           }}
-                          className="absolute top-2 right-2 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+                          className="absolute top-1.5 right-1.5 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
                         >
-                          <X className="w-4 h-4 text-white" />
+                          <X className="w-3 h-3 text-white" />
                         </button>
                       </div>
                     )}
 
                     {item.type === 'text' && (
                       <div className="relative">
-                        <div className={`${getCardColor(index)} p-3 rounded-lg shadow-lg transform transition-all duration-300 hover:scale-105 hover:shadow-xl`}>
-                          <h3 className="text-white font-bold text-sm mb-1">{item.title}</h3>
+                        <div className={`${getCardColor(index)} p-2.5 rounded shadow-lg transform transition-all duration-300 hover:scale-105`}>
+                          <h3 className="text-white font-bold text-xs mb-0.5">{item.title}</h3>
                           {item.content && (
-                            <p className="text-white/90 text-xs line-clamp-3">{item.content}</p>
+                            <p className="text-white/90 text-[10px] line-clamp-3">{item.content}</p>
                           )}
                         </div>
-                        <div className="absolute bottom-2 right-2">
-                          <UserBadge userId={item.user_id} size={20} />
+                        <div className="absolute bottom-1.5 right-1.5">
+                          <UserBadge userId={item.user_id} size={16} />
                         </div>
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             handleDeleteItem(item.id, null);
                           }}
-                          className="absolute top-2 right-2 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+                          className="absolute top-1.5 right-1.5 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
                         >
-                          <X className="w-4 h-4 text-white" />
+                          <X className="w-3 h-3 text-white" />
                         </button>
                       </div>
                     )}
 
                     {item.type === 'goal' && (
                       <div className="relative">
-                        <div className={`${getCardColor(index)} p-3 rounded-lg shadow-lg transform transition-all duration-300 hover:scale-105 hover:shadow-xl`}>
-                          <div className="flex items-start space-x-2">
+                        <div className={`${getCardColor(index)} p-2.5 rounded shadow-lg transform transition-all duration-300 hover:scale-105`}>
+                          <div className="flex items-start space-x-1.5">
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleToggleGoal(item.id, item.goal_completed);
                               }}
-                              className={`w-4 h-4 rounded-full border-2 flex-shrink-0 mt-0.5 flex items-center justify-center transition ${
+                              className={`w-3.5 h-3.5 rounded-full border-2 flex-shrink-0 mt-0.5 flex items-center justify-center transition ${
                                 item.goal_completed
                                   ? 'bg-white border-white'
                                   : 'border-white bg-transparent hover:bg-white/20'
                               }`}
                             >
-                              {item.goal_completed && <Check className="w-3 h-3 text-blue-600" />}
+                              {item.goal_completed && <Check className="w-2.5 h-2.5 text-blue-600" />}
                             </button>
                             <div className="flex-1">
-                              <h3 className={`text-white font-bold text-sm ${item.goal_completed ? 'line-through opacity-70' : ''}`}>
+                              <h3 className={`text-white font-bold text-xs ${item.goal_completed ? 'line-through opacity-70' : ''}`}>
                                 {item.title}
                               </h3>
                               {item.content && (
-                                <p className={`text-white/90 text-xs mt-1 line-clamp-3 ${item.goal_completed ? 'line-through opacity-70' : ''}`}>
+                                <p className={`text-white/90 text-[10px] mt-0.5 line-clamp-3 ${item.goal_completed ? 'line-through opacity-70' : ''}`}>
                                   {item.content}
                                 </p>
                               )}
                             </div>
                           </div>
                         </div>
-                        <div className="absolute bottom-2 right-2">
-                          <UserBadge userId={item.user_id} size={20} />
+                        <div className="absolute bottom-1.5 right-1.5">
+                          <UserBadge userId={item.user_id} size={16} />
                         </div>
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             handleDeleteItem(item.id, null);
                           }}
-                          className="absolute top-2 right-2 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+                          className="absolute top-1.5 right-1.5 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
                         >
-                          <X className="w-4 h-4 text-white" />
+                          <X className="w-3 h-3 text-white" />
                         </button>
                       </div>
                     )}

@@ -601,41 +601,41 @@ export default function Messages() {
     const messageReactionEmojis = getMessageReactionEmojis(message);
 
     return (
-      <div className="bg-gray-800 border border-gray-600 rounded-md shadow-lg max-w-[240px] w-full">
-        <div className="bg-gradient-to-r from-blue-600 to-cyan-600 px-2 py-1 rounded-t-md flex items-center justify-between cursor-move">
-          <div className="flex items-center space-x-1">
-            <div className="w-2 h-2 rounded-full bg-red-500"></div>
-            <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
-            <div className="w-2 h-2 rounded-full bg-green-500"></div>
-            <span className="text-white text-xs font-medium ml-1">
+      <div className="bg-gray-800 border border-gray-600 rounded-md shadow-lg max-w-[220px] w-full">
+        <div className="bg-gradient-to-r from-blue-600 to-cyan-600 px-1.5 py-0.5 rounded-t-md flex items-center justify-between cursor-move">
+          <div className="flex items-center space-x-0.5">
+            <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>
+            <div className="w-1.5 h-1.5 rounded-full bg-yellow-500"></div>
+            <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>
+            <span className="text-white text-[10px] font-medium ml-1">
               {getMessageHeader(message)}
             </span>
           </div>
-          <div className="flex items-center space-x-1">
+          <div className="flex items-center space-x-0.5">
             {showDelete ? (
               <button
                 onClick={() => handleDeleteMessage(message.id, message.storage_path)}
-                className="w-6 h-6 flex items-center justify-center hover:bg-white/20 rounded transition"
+                className="w-5 h-5 flex items-center justify-center hover:bg-white/20 rounded transition"
               >
-                <Trash2 className="w-4 h-4 text-white" />
+                <Trash2 className="w-3 h-3 text-white" />
               </button>
             ) : (
               message.status !== 'pinned' && (
                 <button
                   onClick={() => dismissMessage(message.id)}
-                  className="w-6 h-6 flex items-center justify-center hover:bg-white/20 rounded transition"
+                  className="w-5 h-5 flex items-center justify-center hover:bg-white/20 rounded transition"
                   title="Dismiss from dashboard"
                 >
-                  <X className="w-4 h-4 text-white" />
+                  <X className="w-3 h-3 text-white" />
                 </button>
               )
             )}
           </div>
         </div>
 
-      <div className="p-2 bg-gray-900/95 backdrop-blur-sm">
+      <div className="p-1.5 bg-gray-900/95 backdrop-blur-sm">
         {message.type === 'text' && (
-          <p className="text-gray-200 text-sm mb-2">{message.content}</p>
+          <p className="text-gray-200 text-xs mb-1.5">{message.content}</p>
         )}
         {message.type === 'voice' && (
           <div className="mb-2">
@@ -700,40 +700,40 @@ export default function Messages() {
           )}
         </div>
 
-        <div className="flex items-center justify-between border-t border-gray-700 pt-1.5">
+        <div className="flex items-center justify-between border-t border-gray-700 pt-1">
           <div className="flex items-center space-x-0.5 flex-wrap">
             {visibleReactions.map((reaction) => (
               <button
                 key={reaction.label}
                 onClick={() => handleAddReaction(message.id, reaction.icon)}
-                className={`w-6 h-6 rounded-full flex items-center justify-center transition ${
+                className={`w-5 h-5 rounded-full flex items-center justify-center transition ${
                   messageReactionEmojis.includes(reaction.icon)
                     ? 'bg-blue-500/30 ring-1 ring-blue-500'
                     : 'bg-gray-800 hover:bg-gray-700'
                 }`}
               >
-                <span className="text-xs">{reaction.icon}</span>
+                <span className="text-[10px]">{reaction.icon}</span>
               </button>
             ))}
             {reactionOptions.length > 4 && (
               <button
                 onClick={() => setExpandedReactions(isExpanded ? null : message.id)}
-                className="w-6 h-6 rounded-full flex items-center justify-center bg-gray-800 hover:bg-gray-700 transition"
+                className="w-5 h-5 rounded-full flex items-center justify-center bg-gray-800 hover:bg-gray-700 transition"
                 title={isExpanded ? "Show less" : "More reactions"}
               >
-                <span className="text-[10px] text-gray-400">...</span>
+                <span className="text-[9px] text-gray-400">...</span>
               </button>
             )}
           </div>
           <button
             onClick={() => togglePin(message.id, message.status)}
-            className={`p-1 rounded-full transition ${
+            className={`p-0.5 rounded-full transition ${
               message.status === 'pinned'
                 ? 'bg-yellow-500/30 text-yellow-400'
                 : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
             }`}
           >
-            <Pin className="w-3 h-3" />
+            <Pin className="w-2.5 h-2.5" />
           </button>
         </div>
       </div>
@@ -755,47 +755,47 @@ export default function Messages() {
   return (
     <div className="min-h-screen p-4 md:p-8 pt-20 md:pt-24 relative overflow-hidden">
       <div className="max-w-7xl mx-auto relative" style={{ minHeight: '600px' }}>
-        <div className="flex items-center justify-start mb-8">
-          <div className="flex items-center space-x-3">
+        <div className="flex items-center justify-start mb-6">
+          <div className="flex items-center space-x-2">
             <button
               onClick={() => setShowInbox(true)}
-              className="flex items-center space-x-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-medium transition"
+              className="flex items-center space-x-1.5 px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm font-medium transition"
             >
-              <Inbox className="w-5 h-5" />
+              <Inbox className="w-4 h-4" />
               <span>Inbox</span>
               {messages.filter((m) => m.status === 'dismissed').length > 0 && (
-                <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                <span className="bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">
                   {messages.filter((m) => m.status === 'dismissed').length}
                 </span>
               )}
             </button>
             <button
               onClick={() => setShowNewMessage(true)}
-              className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg font-medium hover:from-blue-600 hover:to-cyan-600 transition"
+              className="flex items-center space-x-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg text-sm font-medium hover:from-blue-600 hover:to-cyan-600 transition"
             >
-              <Plus className="w-5 h-5" />
+              <Plus className="w-4 h-4" />
               <span>New Message</span>
             </button>
           </div>
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400">
+          <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
             {error}
           </div>
         )}
 
         {/* Desktop: Flexible Grid Layout with Tight Packing */}
-        <div className="hidden md:flex flex-wrap gap-3">
+        <div className="hidden md:flex flex-wrap gap-2">
           {dashboardMessages.map((message) => (
-            <div key={message.id} className="flex-shrink-0" style={{ width: '240px' }}>
+            <div key={message.id} className="flex-shrink-0" style={{ width: '220px' }}>
               {renderMessageCard(message)}
             </div>
           ))}
         </div>
 
         {/* Mobile: Vertical scrollable list */}
-        <div className="md:hidden space-y-4">
+        <div className="md:hidden space-y-3">
           {dashboardMessages.map((message) => (
             <div key={message.id}>
               {renderMessageCard(message)}

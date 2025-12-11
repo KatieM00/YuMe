@@ -241,30 +241,30 @@ export default function Watching() {
     <div className="min-h-screen p-4 md:p-8 pt-20 md:pt-24">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          
+        <div className="flex items-center justify-between mb-6">
+
           <button
             onClick={() => setShowAddModal(true)}
-            className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg font-medium hover:from-blue-600 hover:to-cyan-600 transition"
+            className="flex items-center space-x-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg text-sm font-medium hover:from-blue-600 hover:to-cyan-600 transition"
           >
-            <Plus className="w-5 h-5" />
+            <Plus className="w-4 h-4" />
             <span>Add</span>
           </button>
         </div>
 
         {error && (
-          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400">
+          <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
             {error}
           </div>
         )}
 
         {/* Sections */}
-        <div className="space-y-10">
+        <div className="space-y-6">
           {/* Currently Watching */}
           {watchingItems.length > 0 && (
             <section>
-              <h2 className="text-2xl font-bold text-white mb-4">Currently Watching</h2>
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
+              <h2 className="text-lg font-bold text-white mb-3">Currently Watching</h2>
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
                 {watchingItems.map((item) => (
                   <WatchingCard
                     key={item.id}
@@ -280,8 +280,8 @@ export default function Watching() {
           {/* Want to Watch */}
           {wantToWatchItems.length > 0 && (
             <section>
-              <h2 className="text-2xl font-bold text-white mb-4">Want to Watch</h2>
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
+              <h2 className="text-lg font-bold text-white mb-3">Want to Watch</h2>
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
                 {wantToWatchItems.map((item) => (
                   <WatchingCard
                     key={item.id}
@@ -297,8 +297,8 @@ export default function Watching() {
           {/* Have Watched */}
           {watchedItems.length > 0 && (
             <section>
-              <h2 className="text-2xl font-bold text-white mb-4">Have Watched</h2>
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-4">
+              <h2 className="text-lg font-bold text-white mb-3">Have Watched</h2>
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
                 {watchedItems.map((item) => (
                   <WatchingCard
                     key={item.id}
@@ -312,10 +312,10 @@ export default function Watching() {
           )}
 
           {items.length === 0 && (
-            <div className="text-center py-16">
-              <Film className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-              <p className="text-gray-400 text-lg">No items in your watching list yet</p>
-              <p className="text-gray-500 text-sm">Click "Add" to start tracking movies and series</p>
+            <div className="text-center py-12">
+              <Film className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+              <p className="text-gray-400 text-base">No items in your watching list yet</p>
+              <p className="text-gray-500 text-xs">Click "Add" to start tracking movies and series</p>
             </div>
           )}
         </div>
@@ -323,10 +323,10 @@ export default function Watching() {
         {/* Add Modal */}
         {showAddModal && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full border border-gray-700">
-              <div className="p-6 border-b border-gray-700">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-2xl font-bold text-white">Add Movie or Series</h2>
+            <div className="bg-gray-800 rounded-lg shadow-2xl max-w-2xl w-full border border-gray-700">
+              <div className="p-4 border-b border-gray-700">
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-lg font-bold text-white">Add Movie or Series</h2>
                   <button
                     onClick={() => {
                       setShowAddModal(false);
@@ -334,31 +334,31 @@ export default function Watching() {
                       setSearchResults([]);
                       setShowSearchResults(false);
                     }}
-                    className="w-10 h-10 bg-gray-700 hover:bg-gray-600 rounded-full flex items-center justify-center transition"
+                    className="w-8 h-8 bg-gray-700 hover:bg-gray-600 rounded-full flex items-center justify-center transition"
                   >
-                    <X className="w-5 h-5 text-white" />
+                    <X className="w-4 h-4 text-white" />
                   </button>
                 </div>
 
                 {/* Search Input */}
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search for movies or TV series..."
-                    className="w-full pl-10 pr-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full pl-9 pr-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     autoFocus
                   />
                   {isSearching && (
-                    <Loader className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-blue-400 animate-spin" />
+                    <Loader className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-blue-400 animate-spin" />
                   )}
                 </div>
               </div>
 
               {/* Search Results */}
-              <div className="max-h-[60vh] overflow-y-auto p-4">
+              <div className="max-h-[60vh] overflow-y-auto p-3">
                 {showSearchResults && searchResults.length > 0 ? (
                   <div className="space-y-2">
                     {searchResults.map((result) => (
@@ -370,9 +370,9 @@ export default function Watching() {
                     ))}
                   </div>
                 ) : showSearchResults && searchResults.length === 0 ? (
-                  <p className="text-center text-gray-400 py-8">No results found</p>
+                  <p className="text-center text-gray-400 py-6 text-sm">No results found</p>
                 ) : (
-                  <p className="text-center text-gray-500 py-8">
+                  <p className="text-center text-gray-500 py-6 text-sm">
                     Start typing to search for movies and TV series
                   </p>
                 )}
@@ -396,14 +396,14 @@ export default function Watching() {
         )}
 
         {/* TMDB Attribution */}
-        <div className="mt-12 pt-6 border-t border-gray-800">
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-center">
+        <div className="mt-8 pt-4 border-t border-gray-800">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 text-center">
             <img
               src="https://www.themoviedb.org/assets/2/v4/logos/v2/blue_short-8e7b30f73a4020692ccca9c88bafe5dcb6f8a62a4c6bc55cd9ba82bb2cd95f6c.svg"
               alt="TMDB Logo"
-              className="h-5"
+              className="h-4"
             />
-            <p className="text-gray-500 text-xs max-w-2xl">
+            <p className="text-gray-500 text-[10px] max-w-2xl">
               This product uses the TMDB API but is not endorsed or certified by TMDB.
             </p>
           </div>
@@ -432,7 +432,7 @@ function WatchingCard({
       className="group cursor-pointer relative"
       onClick={() => onSelect(item)}
     >
-      <div className="aspect-[2/3] rounded-lg overflow-hidden relative shadow-lg group-hover:shadow-2xl transition-all duration-300">
+      <div className="aspect-[2/3] rounded overflow-hidden relative shadow-lg group-hover:shadow-2xl transition-all duration-300">
         {item.poster_path ? (
           <img
             src={getPosterUrl(item.poster_path, 'w342')}
@@ -442,15 +442,15 @@ function WatchingCard({
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center">
             {item.media_type === 'movie' ? (
-              <Film className="w-12 h-12 text-gray-500" />
+              <Film className="w-8 h-8 text-gray-500" />
             ) : (
-              <Tv className="w-12 h-12 text-gray-500" />
+              <Tv className="w-8 h-8 text-gray-500" />
             )}
           </div>
         )}
 
         {/* Type Badge - Top Right */}
-        <div className={`absolute top-2 right-2 backdrop-blur-sm px-2 py-0.5 rounded text-[10px] font-bold ${
+        <div className={`absolute top-1.5 right-1.5 backdrop-blur-sm px-1.5 py-0.5 rounded text-[9px] font-bold ${
           item.media_type === 'movie'
             ? 'bg-red-500 text-white'
             : 'bg-blue-500 text-white'
@@ -459,18 +459,18 @@ function WatchingCard({
         </div>
 
         {/* Rating Badge - Bottom Left */}
-        <div className="absolute bottom-2 left-2 bg-black/70 backdrop-blur-sm px-2 py-1 rounded flex items-center space-x-1">
+        <div className="absolute bottom-1.5 left-1.5 bg-black/70 backdrop-blur-sm px-1.5 py-0.5 rounded flex items-center space-x-0.5">
           {Array.from({ length: fullStars }).map((_, i) => (
             <Star
               key={i}
-              className={`w-3 h-3 ${
+              className={`w-2.5 h-2.5 ${
                 displayRating.source === 'user'
                   ? 'text-orange-400 fill-orange-400'
                   : 'text-yellow-400 fill-yellow-400'
               }`}
             />
           ))}
-          <span className={`text-xs font-medium ${
+          <span className={`text-[10px] font-medium ${
             displayRating.source === 'user' ? 'text-orange-400' : 'text-yellow-400'
           }`}>
             {displayRating.rating.toFixed(1)}
@@ -478,21 +478,21 @@ function WatchingCard({
         </div>
 
         {/* User Badge - Bottom Right */}
-        <div className="absolute bottom-2 right-2">
-          <UserBadge userId={item.user_id} size={20} />
+        <div className="absolute bottom-1.5 right-1.5">
+          <UserBadge userId={item.user_id} size={16} />
         </div>
 
         {/* Hover Overlay - Similar to Album page */}
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition flex items-center justify-center">
-          <div className="opacity-0 group-hover:opacity-100 transition text-white text-center p-4">
-            <p className="text-sm font-bold mb-2">{item.title}</p>
-            <p className="text-xs text-gray-300 mb-1">
+          <div className="opacity-0 group-hover:opacity-100 transition text-white text-center p-3">
+            <p className="text-xs font-bold mb-1.5">{item.title}</p>
+            <p className="text-[10px] text-gray-300 mb-0.5">
               {item.media_type === 'movie' ? 'Movie' : 'Series'}
             </p>
             {item.runtime && (
-              <div className="flex items-center justify-center space-x-1 mb-1">
-                <Clock className="w-3 h-3" />
-                <p className="text-xs">
+              <div className="flex items-center justify-center space-x-0.5 mb-0.5">
+                <Clock className="w-2.5 h-2.5" />
+                <p className="text-[10px]">
                   {item.media_type === 'tv'
                     ? `${item.runtime}m/ep`
                     : (() => {
@@ -505,12 +505,12 @@ function WatchingCard({
               </div>
             )}
             {item.genres.length > 0 && (
-              <p className="text-xs text-gray-300 mb-1">{item.genres.slice(0, 2).join(', ')}</p>
+              <p className="text-[10px] text-gray-300 mb-0.5">{item.genres.slice(0, 2).join(', ')}</p>
             )}
             {item.release_date && (
-              <div className="flex items-center justify-center space-x-1">
-                <Calendar className="w-3 h-3" />
-                <p className="text-xs text-gray-300">
+              <div className="flex items-center justify-center space-x-0.5">
+                <Calendar className="w-2.5 h-2.5" />
+                <p className="text-[10px] text-gray-300">
                   {new Date(item.release_date).getFullYear()}
                 </p>
               </div>
@@ -535,8 +535,8 @@ function SearchResultItem({
   const releaseDate = result.release_date || result.first_air_date;
 
   return (
-    <div className="flex items-center space-x-3 p-3 bg-gray-900/50 hover:bg-gray-900 rounded-lg transition">
-      <div className="w-16 h-24 flex-shrink-0 rounded overflow-hidden bg-gray-800">
+    <div className="flex items-center space-x-2 p-2 bg-gray-900/50 hover:bg-gray-900 rounded-lg transition">
+      <div className="w-12 h-18 flex-shrink-0 rounded overflow-hidden bg-gray-800">
         {result.poster_path ? (
           <img
             src={getPosterUrl(result.poster_path, 'w185')}
@@ -546,18 +546,18 @@ function SearchResultItem({
         ) : (
           <div className="w-full h-full flex items-center justify-center">
             {result.media_type === 'movie' ? (
-              <Film className="w-6 h-6 text-gray-600" />
+              <Film className="w-4 h-4 text-gray-600" />
             ) : (
-              <Tv className="w-6 h-6 text-gray-600" />
+              <Tv className="w-4 h-4 text-gray-600" />
             )}
           </div>
         )}
       </div>
 
       <div className="flex-1 min-w-0">
-        <h3 className="text-white font-medium truncate">{title}</h3>
-        <div className="flex items-center space-x-2 text-sm text-gray-400 mt-1">
-          <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded text-xs">
+        <h3 className="text-white text-sm font-medium truncate">{title}</h3>
+        <div className="flex items-center space-x-1.5 text-xs text-gray-400 mt-0.5">
+          <span className="px-1.5 py-0.5 bg-blue-500/20 text-blue-400 rounded text-[10px]">
             {result.media_type === 'movie' ? 'Movie' : 'Series'}
           </span>
           {releaseDate && (
@@ -569,27 +569,27 @@ function SearchResultItem({
       {!showActions ? (
         <button
           onClick={() => setShowActions(true)}
-          className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition"
+          className="px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-xs font-medium transition"
         >
           Add
         </button>
       ) : (
-        <div className="flex space-x-2">
+        <div className="flex space-x-1.5">
           <button
             onClick={() => onAdd(result, 'watching')}
-            className="px-3 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-xs font-medium transition"
+            className="px-2 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-[10px] font-medium transition"
           >
             Watching
           </button>
           <button
             onClick={() => onAdd(result, 'want_to_watch')}
-            className="px-3 py-1 bg-yellow-500 hover:bg-yellow-600 text-white rounded text-xs font-medium transition"
+            className="px-2 py-1 bg-yellow-500 hover:bg-yellow-600 text-white rounded text-[10px] font-medium transition"
           >
             Want
           </button>
           <button
             onClick={() => onAdd(result, 'watched')}
-            className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-xs font-medium transition"
+            className="px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-[10px] font-medium transition"
           >
             Watched
           </button>
@@ -623,7 +623,7 @@ function DetailModal({
 
   return (
     <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-gray-900 rounded-2xl max-w-4xl w-full border border-gray-700 overflow-hidden my-8">
+      <div className="bg-gray-900 rounded-lg max-w-4xl w-full border border-gray-700 overflow-hidden my-8">
         <div className="grid md:grid-cols-5">
           {/* Poster */}
           <div className="md:col-span-2 aspect-[2/3] md:aspect-auto bg-gray-800">
@@ -636,48 +636,48 @@ function DetailModal({
             ) : (
               <div className="w-full h-full flex items-center justify-center">
                 {item.media_type === 'movie' ? (
-                  <Film className="w-24 h-24 text-gray-600" />
+                  <Film className="w-16 h-16 text-gray-600" />
                 ) : (
-                  <Tv className="w-24 h-24 text-gray-600" />
+                  <Tv className="w-16 h-16 text-gray-600" />
                 )}
               </div>
             )}
           </div>
 
           {/* Details */}
-          <div className="md:col-span-3 p-6">
-            <div className="flex items-start justify-between mb-4">
+          <div className="md:col-span-3 p-4">
+            <div className="flex items-start justify-between mb-3">
               <div>
-                <h2 className="text-3xl font-bold text-white mb-2">{item.title}</h2>
-                <span className="text-gray-400 text-sm">
+                <h2 className="text-xl font-bold text-white mb-1">{item.title}</h2>
+                <span className="text-gray-400 text-xs">
                   {item.media_type === 'movie' ? 'Movie' : 'Series'}
                 </span>
               </div>
               <button
                 onClick={onClose}
-                className="w-10 h-10 bg-gray-800 hover:bg-gray-700 rounded-full flex items-center justify-center transition flex-shrink-0"
+                className="w-8 h-8 bg-gray-800 hover:bg-gray-700 rounded-full flex items-center justify-center transition flex-shrink-0"
               >
-                <X className="w-5 h-5 text-white" />
+                <X className="w-4 h-4 text-white" />
               </button>
             </div>
 
             {/* Ratings */}
-            <div className="mb-4 space-y-3">
+            <div className="mb-3 space-y-2">
               {/* TMDB Rating */}
               <div>
-                <p className="text-gray-400 text-sm mb-2">TMDB Rating</p>
+                <p className="text-gray-400 text-xs mb-1">TMDB Rating</p>
                 <div className="flex items-center space-x-1">
                   {Array.from({ length: 5 }).map((_, i) => (
                     <Star
                       key={i}
-                      className={`w-5 h-5 ${
+                      className={`w-4 h-4 ${
                         i < Math.floor((item.tmdb_rating / 10) * 5)
                           ? 'text-yellow-400 fill-yellow-400'
                           : 'text-gray-600'
                       }`}
                     />
                   ))}
-                  <span className="text-gray-400 text-sm ml-2">
+                  <span className="text-gray-400 text-xs ml-1.5">
                     {item.tmdb_rating.toFixed(1)}/10
                   </span>
                 </div>
@@ -685,7 +685,7 @@ function DetailModal({
 
               {/* Our Rating */}
               <div>
-                <p className="text-gray-400 text-sm mb-2">Our Rating</p>
+                <p className="text-gray-400 text-xs mb-1">Our Rating</p>
                 <div className="flex items-center space-x-1">
                   {Array.from({ length: 5 }).map((_, i) => (
                     <button
@@ -694,7 +694,7 @@ function DetailModal({
                       className="transition hover:scale-110"
                     >
                       <Star
-                        className={`w-6 h-6 ${
+                        className={`w-5 h-5 ${
                           item.user_rating && i < item.user_rating
                             ? 'text-orange-400 fill-orange-400'
                             : 'text-gray-600 hover:text-gray-500'
@@ -703,12 +703,12 @@ function DetailModal({
                     </button>
                   ))}
                   {item.user_rating && (
-                    <span className="text-orange-400 text-sm ml-2 font-medium">
+                    <span className="text-orange-400 text-xs ml-1.5 font-medium">
                       {item.user_rating}/5
                     </span>
                   )}
                   {!item.user_rating && (
-                    <span className="text-gray-500 text-sm ml-2 italic">
+                    <span className="text-gray-500 text-xs ml-1.5 italic">
                       Click to rate
                     </span>
                   )}
@@ -717,10 +717,10 @@ function DetailModal({
             </div>
 
             {/* Info Grid */}
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              <div className="flex items-center space-x-2 text-gray-300">
-                <Clock className="w-4 h-4 text-gray-500" />
-                <span className="text-sm">
+            <div className="grid grid-cols-2 gap-2 mb-3">
+              <div className="flex items-center space-x-1.5 text-gray-300">
+                <Clock className="w-3 h-3 text-gray-500" />
+                <span className="text-xs">
                   {item.runtime
                     ? item.media_type === 'tv'
                       ? `${item.runtime}m/ep avg`
@@ -728,19 +728,19 @@ function DetailModal({
                     : 'N/A'}
                 </span>
               </div>
-              <div className="flex items-center space-x-2 text-gray-300">
-                <Calendar className="w-4 h-4 text-gray-500" />
-                <span className="text-sm">{formatDate(item.release_date)}</span>
+              <div className="flex items-center space-x-1.5 text-gray-300">
+                <Calendar className="w-3 h-3 text-gray-500" />
+                <span className="text-xs">{formatDate(item.release_date)}</span>
               </div>
             </div>
 
             {/* Genres */}
             {item.genres.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-4">
+              <div className="flex flex-wrap gap-1.5 mb-3">
                 {item.genres.map((genre) => (
                   <span
                     key={genre}
-                    className="px-3 py-1 bg-blue-500/20 text-blue-400 rounded-full text-xs"
+                    className="px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded-full text-[10px]"
                   >
                     {genre}
                   </span>
@@ -750,8 +750,8 @@ function DetailModal({
 
             {/* Series Info */}
             {item.media_type === 'tv' && (item.seasons || item.episodes) && (
-              <div className="mb-4 p-3 bg-gray-800/50 rounded-lg border border-gray-700">
-                <div className="text-sm text-gray-300">
+              <div className="mb-3 p-2 bg-gray-800/50 rounded-lg border border-gray-700">
+                <div className="text-xs text-gray-300">
                   {item.seasons && <span>{item.seasons} Season{item.seasons !== 1 ? 's' : ''}</span>}
                   {item.seasons && item.episodes && <span> • </span>}
                   {item.episodes && <span>{item.episodes} Episode{item.episodes !== 1 ? 's' : ''}</span>}
@@ -761,16 +761,16 @@ function DetailModal({
 
             {/* Description */}
             {item.overview && (
-              <div className="mb-4">
-                <p className="text-gray-400 text-sm leading-relaxed">{item.overview}</p>
+              <div className="mb-3">
+                <p className="text-gray-400 text-xs leading-relaxed">{item.overview}</p>
               </div>
             )}
 
             {/* Status Buttons */}
-            <div className="flex space-x-2 mb-4">
+            <div className="flex space-x-1.5 mb-3">
               <button
                 onClick={() => onUpdateStatus(item.id, 'watching')}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${
+                className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition ${
                   item.status === 'watching'
                     ? 'bg-green-500 text-white'
                     : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
@@ -780,7 +780,7 @@ function DetailModal({
               </button>
               <button
                 onClick={() => onUpdateStatus(item.id, 'want_to_watch')}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${
+                className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition ${
                   item.status === 'want_to_watch'
                     ? 'bg-yellow-500 text-white'
                     : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
@@ -790,7 +790,7 @@ function DetailModal({
               </button>
               <button
                 onClick={() => onUpdateStatus(item.id, 'watched')}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium transition ${
+                className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition ${
                   item.status === 'watched'
                     ? 'bg-blue-500 text-white'
                     : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
@@ -803,7 +803,7 @@ function DetailModal({
             {/* Delete Button */}
             <button
               onClick={() => onDelete(item.id)}
-              className="w-full py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg text-sm font-medium transition"
+              className="w-full py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg text-xs font-medium transition"
             >
               Remove from List
             </button>

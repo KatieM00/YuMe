@@ -96,19 +96,19 @@ export default function FutureHopes() {
   return (
     <div className="min-h-screen p-4 md:p-8 relative overflow-hidden">
       <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-8 relative z-10">
-          
+        <div className="flex items-center justify-between mb-6 relative z-10">
+
           <button
             onClick={() => setShowAddModal(true)}
-            className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg font-medium hover:from-blue-600 hover:to-cyan-600 transition"
+            className="flex items-center space-x-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg text-sm font-medium hover:from-blue-600 hover:to-cyan-600 transition"
           >
-            <Plus className="w-5 h-5" />
+            <Plus className="w-4 h-4" />
             <span>Add Item</span>
           </button>
         </div>
 
-        <div className="relative bg-gray-900/30 rounded-2xl border border-gray-700 p-8" style={{ minHeight: '800px' }}>
-          <div className="absolute inset-0 bg-gradient-to-br from-gray-900/50 via-transparent to-gray-900/50 rounded-2xl"></div>
+        <div className="relative bg-gray-900/30 rounded-lg border border-gray-700 p-6" style={{ minHeight: '800px' }}>
+          <div className="absolute inset-0 bg-gradient-to-br from-gray-900/50 via-transparent to-gray-900/50 rounded-lg"></div>
 
           {items.map((item) => (
             <div
@@ -121,45 +121,45 @@ export default function FutureHopes() {
             >
               {item.type === 'image' && (
                 <div className="relative">
-                  <div className={`w-48 h-48 ${item.content} rounded-lg shadow-2xl transform rotate-2 group-hover:rotate-0 transition flex items-center justify-center`}>
-                    <Image className="w-12 h-12 text-white/30" />
+                  <div className={`w-40 h-40 ${item.content} rounded shadow-xl transform rotate-2 group-hover:rotate-0 transition flex items-center justify-center`}>
+                    <Image className="w-10 h-10 text-white/30" />
                   </div>
                   <button
                     onClick={() => deleteItem(item.id)}
-                    className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+                    className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
                   >
-                    <X className="w-4 h-4 text-white" />
+                    <X className="w-3 h-3 text-white" />
                   </button>
                 </div>
               )}
 
               {item.type === 'text' && (
                 <div className="relative">
-                  <div className={`${item.color} p-4 rounded-lg shadow-2xl max-w-xs transform -rotate-1 group-hover:rotate-0 transition`}>
-                    <p className="text-white font-medium">{item.content}</p>
+                  <div className={`${item.color} p-3 rounded shadow-xl max-w-xs transform -rotate-1 group-hover:rotate-0 transition`}>
+                    <p className="text-white text-sm font-medium">{item.content}</p>
                   </div>
                   <button
                     onClick={() => deleteItem(item.id)}
-                    className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+                    className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
                   >
-                    <X className="w-4 h-4 text-white" />
+                    <X className="w-3 h-3 text-white" />
                   </button>
                 </div>
               )}
 
               {item.type === 'goal' && (
                 <div className="relative">
-                  <div className={`${item.color} p-4 rounded-lg shadow-2xl max-w-xs transform rotate-1 group-hover:rotate-0 transition`}>
-                    <div className="flex items-start space-x-2">
-                      <div className="w-5 h-5 rounded-full border-2 border-white mt-0.5 flex-shrink-0"></div>
-                      <p className="text-white font-medium">{item.content}</p>
+                  <div className={`${item.color} p-3 rounded shadow-xl max-w-xs transform rotate-1 group-hover:rotate-0 transition`}>
+                    <div className="flex items-start space-x-1.5">
+                      <div className="w-4 h-4 rounded-full border-2 border-white mt-0.5 flex-shrink-0"></div>
+                      <p className="text-white text-sm font-medium">{item.content}</p>
                     </div>
                   </div>
                   <button
                     onClick={() => deleteItem(item.id)}
-                    className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+                    className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
                   >
-                    <X className="w-4 h-4 text-white" />
+                    <X className="w-3 h-3 text-white" />
                   </button>
                 </div>
               )}
@@ -169,64 +169,64 @@ export default function FutureHopes() {
 
         {showAddModal && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-gray-900 rounded-2xl max-w-md w-full p-6 border border-gray-700">
-              <h2 className="text-2xl font-bold text-white mb-4">Add to Scrapbook</h2>
+            <div className="bg-gray-900 rounded-lg max-w-md w-full p-4 border border-gray-700">
+              <h2 className="text-lg font-bold text-white mb-3">Add to Scrapbook</h2>
 
-              <div className="flex space-x-2 mb-4">
+              <div className="flex space-x-1.5 mb-3">
                 <button
                   onClick={() => setNewItemType('image')}
-                  className={`flex-1 flex flex-col items-center justify-center py-4 rounded-lg transition ${
+                  className={`flex-1 flex flex-col items-center justify-center py-3 rounded-lg transition ${
                     newItemType === 'image'
                       ? 'bg-blue-500 text-white'
                       : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
                   }`}
                 >
-                  <Image className="w-6 h-6 mb-1" />
-                  <span className="text-sm">Image</span>
+                  <Image className="w-5 h-5 mb-0.5" />
+                  <span className="text-xs">Image</span>
                 </button>
                 <button
                   onClick={() => setNewItemType('text')}
-                  className={`flex-1 flex flex-col items-center justify-center py-4 rounded-lg transition ${
+                  className={`flex-1 flex flex-col items-center justify-center py-3 rounded-lg transition ${
                     newItemType === 'text'
                       ? 'bg-blue-500 text-white'
                       : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
                   }`}
                 >
-                  <Type className="w-6 h-6 mb-1" />
-                  <span className="text-sm">Text</span>
+                  <Type className="w-5 h-5 mb-0.5" />
+                  <span className="text-xs">Text</span>
                 </button>
                 <button
                   onClick={() => setNewItemType('goal')}
-                  className={`flex-1 flex flex-col items-center justify-center py-4 rounded-lg transition ${
+                  className={`flex-1 flex flex-col items-center justify-center py-3 rounded-lg transition ${
                     newItemType === 'goal'
                       ? 'bg-blue-500 text-white'
                       : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
                   }`}
                 >
-                  <List className="w-6 h-6 mb-1" />
-                  <span className="text-sm">Goal</span>
+                  <List className="w-5 h-5 mb-0.5" />
+                  <span className="text-xs">Goal</span>
                 </button>
               </div>
 
               {newItemType === 'image' ? (
-                <div className="border-2 border-dashed border-gray-700 rounded-xl p-8 text-center hover:border-blue-500 transition cursor-pointer mb-4">
-                  <Image className="w-12 h-12 text-gray-600 mx-auto mb-2" />
-                  <p className="text-gray-400">Click to upload image</p>
-                  <p className="text-gray-600 text-sm mt-1">or drag and drop</p>
+                <div className="border-2 border-dashed border-gray-700 rounded-lg p-6 text-center hover:border-blue-500 transition cursor-pointer mb-3">
+                  <Image className="w-10 h-10 text-gray-600 mx-auto mb-1.5" />
+                  <p className="text-gray-400 text-sm">Click to upload image</p>
+                  <p className="text-gray-600 text-xs mt-0.5">or drag and drop</p>
                 </div>
               ) : (
                 <textarea
                   value={newItemContent}
                   onChange={(e) => setNewItemContent(e.target.value)}
                   placeholder={newItemType === 'goal' ? 'Enter your goal...' : 'Enter your text...'}
-                  className="w-full h-32 px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none mb-4"
+                  className="w-full h-28 px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none mb-3"
                 />
               )}
 
-              <div className="flex space-x-2">
+              <div className="flex space-x-1.5">
                 <button
                   onClick={addNewItem}
-                  className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg font-medium hover:from-blue-600 hover:to-cyan-600 transition"
+                  className="flex-1 px-3 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg text-sm font-medium hover:from-blue-600 hover:to-cyan-600 transition"
                 >
                   Add
                 </button>
@@ -235,7 +235,7 @@ export default function FutureHopes() {
                     setShowAddModal(false);
                     setNewItemContent('');
                   }}
-                  className="px-4 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition"
+                  className="px-3 py-2 bg-gray-800 hover:bg-gray-700 text-white rounded-lg text-sm transition"
                 >
                   Cancel
                 </button>

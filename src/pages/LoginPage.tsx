@@ -56,16 +56,16 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-gray-900 flex items-center justify-center p-4">
       <div className="max-w-md w-full">
-        <div className="text-center mb-8">
+        <div className="text-center mb-6">
           <img
             src="/images/YuMeLogoTag.png"
             alt="YuMe Logo"
-            className="mx-auto w-36 h-auto mb-4"
+            className="mx-auto w-32 h-auto mb-3"
           />
         </div>
 
-        <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-gray-700">
-          <div className="flex mb-6 bg-gray-900/50 rounded-lg p-1">
+        <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg shadow-2xl p-6 border border-gray-700">
+          <div className="flex mb-4 bg-gray-900/50 rounded-lg p-1">
             <button
               type="button"
               onClick={() => {
@@ -73,7 +73,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 setError('');
                 setSuccessMessage('');
               }}
-              className={`flex-1 py-2 px-4 rounded-md font-medium transition ${
+              className={`flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition ${
                 !isSignUp
                   ? 'bg-blue-600 text-white'
                   : 'text-gray-400 hover:text-white'
@@ -88,7 +88,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 setError('');
                 setSuccessMessage('');
               }}
-              className={`flex-1 py-2 px-4 rounded-md font-medium transition ${
+              className={`flex-1 py-1.5 px-3 rounded-md text-sm font-medium transition ${
                 isSignUp
                   ? 'bg-blue-600 text-white'
                   : 'text-gray-400 hover:text-white'
@@ -98,9 +98,9 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
+              <label htmlFor="email" className="block text-xs font-medium text-gray-300 mb-1.5">
                 Email
               </label>
               <input
@@ -108,7 +108,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-900/50 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                className="w-full px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                 placeholder="your@email.com"
                 required
                 disabled={isLoading}
@@ -116,7 +116,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
+              <label htmlFor="password" className="block text-xs font-medium text-gray-300 mb-1.5">
                 Password
               </label>
               <input
@@ -124,7 +124,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-900/50 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                className="w-full px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                 placeholder="Min. 6 characters"
                 required
                 disabled={isLoading}
@@ -133,7 +133,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
 
             {isSignUp && (
               <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-300 mb-2">
+                <label htmlFor="confirmPassword" className="block text-xs font-medium text-gray-300 mb-1.5">
                   Confirm Password
                 </label>
                 <input
@@ -141,7 +141,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-900/50 border border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                  className="w-full px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                   placeholder="Confirm password"
                   required
                   disabled={isLoading}
@@ -150,13 +150,13 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             )}
 
             {error && (
-              <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-3 text-red-400 text-sm">
+              <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-2 text-red-400 text-xs">
                 {error}
               </div>
             )}
 
             {successMessage && (
-              <div className="bg-green-500/10 border border-green-500/50 rounded-lg p-3 text-green-400 text-sm">
+              <div className="bg-green-500/10 border border-green-500/50 rounded-lg p-2 text-green-400 text-xs">
                 {successMessage}
               </div>
             )}
@@ -164,11 +164,11 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white py-3 px-4 rounded-lg font-medium hover:from-blue-600 hover:to-cyan-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center"
+              className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white py-2 px-3 rounded-lg text-sm font-medium hover:from-blue-600 hover:to-cyan-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900 transition transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center"
             >
               {isLoading ? (
                 <>
-                  <Loader className="w-5 h-5 mr-2 animate-spin" />
+                  <Loader className="w-4 h-4 mr-1.5 animate-spin" />
                   {isSignUp ? 'Creating Account...' : 'Signing In...'}
                 </>
               ) : (
@@ -177,7 +177,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             </button>
           </form>
 
-          <div className="mt-6 text-center text-sm text-gray-500">
+          <div className="mt-4 text-center text-xs text-gray-500">
             {isSignUp ? (
               <p>Create an account to access your shared memories</p>
             ) : (
