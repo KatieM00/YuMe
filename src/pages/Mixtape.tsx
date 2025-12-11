@@ -773,12 +773,12 @@ export default function Mixtape() {
   return (
     <div className="min-h-screen p-4 md:p-8 pt-20 md:pt-24">
       <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-start gap-3 mb-8">
+        <div className="flex items-center justify-start gap-2 mb-6">
           <button
             onClick={openCreateModal}
-            className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-full font-medium hover:from-blue-600 hover:to-cyan-600 transition hover:scale-105"
+            className="flex items-center space-x-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg text-sm font-medium hover:from-blue-600 hover:to-cyan-600 transition hover:scale-105"
           >
-            <Plus className="w-5 h-5" />
+            <Plus className="w-4 h-4" />
             <span>Create Playlist</span>
           </button>
           {spotifyConnected.connected && (
@@ -791,9 +791,9 @@ export default function Mixtape() {
                 setShowImportModal(true);
                 loadBrowseData('playlists');
               }}
-              className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-full font-medium hover:from-green-600 hover:to-emerald-600 transition hover:scale-105"
+              className="flex items-center space-x-1.5 px-3 py-1.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg text-sm font-medium hover:from-green-600 hover:to-emerald-600 transition hover:scale-105"
             >
-              <List className="w-5 h-5" />
+              <List className="w-4 h-4" />
               <span>Import from Spotify</span>
             </button>
           )}
@@ -806,39 +806,39 @@ export default function Mixtape() {
         )}
 
         {playlists.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-12 border border-gray-700 max-w-md mx-auto">
-              <Music className="w-20 h-20 text-gray-600 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-white mb-2">No playlists yet</h2>
-              <p className="text-gray-400 mb-6">Create your first playlist to get started</p>
+          <div className="text-center py-16">
+            <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-8 border border-gray-700 max-w-md mx-auto">
+              <Music className="w-16 h-16 text-gray-600 mx-auto mb-3" />
+              <h2 className="text-xl font-bold text-white mb-2">No playlists yet</h2>
+              <p className="text-gray-400 text-sm mb-5">Create your first playlist to get started</p>
               <button
                 onClick={openCreateModal}
-                className="px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-full font-medium hover:from-blue-600 hover:to-cyan-600 transition inline-flex items-center space-x-2"
+                className="px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg text-sm font-medium hover:from-blue-600 hover:to-cyan-600 transition inline-flex items-center space-x-2"
               >
-                <Plus className="w-5 h-5" />
+                <Plus className="w-4 h-4" />
                 <span>Create Playlist</span>
               </button>
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {playlists.map((playlist) => (
               <div
                 key={playlist.id}
                 onClick={() => setSelectedPlaylist(playlist)}
-                className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-4 border border-gray-700 hover:bg-gray-800/70 hover:scale-105 transition-all cursor-pointer group relative"
+                className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-3 border border-gray-700 hover:bg-gray-800/70 hover:scale-105 transition-all cursor-pointer group relative"
               >
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     openEditModal(playlist);
                   }}
-                  className="absolute top-2 right-2 w-8 h-8 bg-blue-500/80 hover:bg-blue-600 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition z-10"
+                  className="absolute top-2 right-2 w-7 h-7 bg-blue-500/80 hover:bg-blue-600 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition z-10"
                   title="Edit playlist"
                 >
-                  <Edit2 className="w-4 h-4 text-white" />
+                  <Edit2 className="w-3.5 h-3.5 text-white" />
                 </button>
-                <div className={`w-full aspect-square rounded-xl mb-4 flex items-center justify-center relative overflow-hidden ${playlist.cover.startsWith('http') ? '' : playlist.cover}`}>
+                <div className={`w-full aspect-square rounded-lg mb-3 flex items-center justify-center relative overflow-hidden ${playlist.cover.startsWith('http') ? '' : playlist.cover}`}>
                   {playlist.cover.startsWith('http') ? (
                     <img
                       src={playlist.cover}
@@ -846,18 +846,18 @@ export default function Mixtape() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <Music className="w-16 h-16 text-white/50" />
+                    <Music className="w-12 h-12 text-white/50" />
                   )}
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                    <Play className="w-12 h-12 text-white" />
+                    <Play className="w-10 h-10 text-white" />
                   </div>
                   <div className="absolute bottom-2 right-2">
-                    <UserBadge userId={playlist.user_id} size={20} />
+                    <UserBadge userId={playlist.user_id} size={16} />
                   </div>
                 </div>
-                <h3 className="text-lg font-bold text-white mb-1">{playlist.title}</h3>
+                <h3 className="text-base font-bold text-white mb-1">{playlist.title}</h3>
                 <p className="text-sm text-gray-400 line-clamp-2">{playlist.description}</p>
-                <p className="text-xs text-gray-500 mt-2">{playlist.songs?.length || 0} songs</p>
+                <p className="text-xs text-gray-500 mt-1.5">{playlist.songs?.length || 0} songs</p>
               </div>
             ))}
           </div>
@@ -866,9 +866,9 @@ export default function Mixtape() {
         {/* Create/Edit Playlist Modal */}
         {showCreateModal && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-gray-900 rounded-2xl max-w-md w-full border border-gray-700 max-h-[90vh] flex flex-col">
-              <div className="p-6 overflow-y-auto flex-1">
-                <h2 className="text-2xl font-bold text-white mb-6">
+            <div className="bg-gray-900 rounded-xl max-w-md w-full border border-gray-700 max-h-[90vh] flex flex-col">
+              <div className="p-5 overflow-y-auto flex-1">
+                <h2 className="text-xl font-bold text-white mb-5">
                   {editingPlaylist ? 'Edit Playlist' : 'Create Playlist'}
                 </h2>
 
@@ -1023,7 +1023,7 @@ export default function Mixtape() {
               </div>
 
               {/* Fixed Footer with Buttons */}
-              <div className="p-6 border-t border-gray-700 flex space-x-3 bg-gray-900 rounded-b-2xl">
+              <div className="p-4 border-t border-gray-700 flex space-x-2 bg-gray-900 rounded-b-xl">
                 <button
                   onClick={() => {
                     setShowCreateModal(false);
@@ -1035,14 +1035,14 @@ export default function Mixtape() {
                     setSpotifyInput('');
                     setAddSongError(null);
                   }}
-                  className="flex-1 px-6 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition"
+                  className="flex-1 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white text-sm rounded-lg transition"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleCreateOrUpdatePlaylist}
                   disabled={!playlistTitle.trim()}
-                  className="flex-1 px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white text-sm rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {editingPlaylist ? 'Update Playlist' : 'Create Playlist'}
                 </button>
@@ -1054,9 +1054,9 @@ export default function Mixtape() {
         {/* Playlist Detail Modal */}
         {selectedPlaylist && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-gray-900 rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden border border-gray-700">
+            <div className="bg-gray-900 rounded-xl max-w-3xl w-full max-h-[90vh] overflow-hidden border border-gray-700">
               <div className="relative">
-                <div className={`${selectedPlaylist.cover.startsWith('http') ? 'bg-gradient-to-br from-gray-800 to-gray-900' : selectedPlaylist.cover} p-8 flex items-center space-x-6 relative`}>
+                <div className={`${selectedPlaylist.cover.startsWith('http') ? 'bg-gradient-to-br from-gray-800 to-gray-900' : selectedPlaylist.cover} p-6 flex items-center space-x-4 relative`}>
                   {selectedPlaylist.cover.startsWith('http') && (
                     <div className="absolute inset-0 opacity-30">
                       <img
@@ -1066,7 +1066,7 @@ export default function Mixtape() {
                       />
                     </div>
                   )}
-                  <div className="w-32 h-32 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center flex-shrink-0 relative z-10 overflow-hidden">
+                  <div className="w-24 h-24 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center flex-shrink-0 relative z-10 overflow-hidden">
                     {selectedPlaylist.cover.startsWith('http') ? (
                       <img
                         src={selectedPlaylist.cover}
@@ -1074,14 +1074,14 @@ export default function Mixtape() {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <Music className="w-16 h-16 text-white" />
+                      <Music className="w-12 h-12 text-white" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0 relative z-10">
-                    <p className="text-white/80 text-sm font-medium mb-2">PLAYLIST</p>
-                    <h2 className="text-3xl font-bold text-white mb-2">{selectedPlaylist.title}</h2>
-                    <p className="text-white/90">{selectedPlaylist.description}</p>
-                    <p className="text-white/70 text-sm mt-2">{selectedPlaylist.songs?.length || 0} songs</p>
+                    <p className="text-white/80 text-xs font-medium mb-1.5 uppercase tracking-wider">Playlist</p>
+                    <h2 className="text-2xl font-bold text-white mb-1.5">{selectedPlaylist.title}</h2>
+                    <p className="text-white/90 text-sm">{selectedPlaylist.description}</p>
+                    <p className="text-white/70 text-xs mt-1.5">{selectedPlaylist.songs?.length || 0} songs</p>
                   </div>
                 </div>
                 <button
@@ -1091,31 +1091,31 @@ export default function Mixtape() {
                     setIsPlayingAll(false);
                     setShowEmbedPlayer(false);
                   }}
-                  className="absolute top-4 right-4 w-10 h-10 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center transition"
+                  className="absolute top-3 right-3 w-8 h-8 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center transition"
                   title="Close"
                 >
-                  <X className="w-5 h-5 text-white" />
+                  <X className="w-4 h-4 text-white" />
                 </button>
-                <div className="absolute bottom-4 right-4 flex items-center space-x-2">
+                <div className="absolute bottom-3 right-3 flex items-center space-x-2">
                   {selectedPlaylist.songs && selectedPlaylist.songs.length > 0 && (
                     <button
                       onClick={handlePlayAll}
-                      className="w-12 h-12 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center transition hover:scale-110 shadow-lg"
+                      className="w-10 h-10 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center transition hover:scale-110 shadow-lg"
                       title={isPlayingAll ? "Stop playing" : "Play all"}
                     >
                       {isPlayingAll ? (
-                        <StopCircle className="w-6 h-6 text-white" />
+                        <StopCircle className="w-5 h-5 text-white" />
                       ) : (
-                        <PlayCircle className="w-6 h-6 text-white" />
+                        <PlayCircle className="w-5 h-5 text-white" />
                       )}
                     </button>
                   )}
                   <button
                     onClick={scrollToAddSongForm}
-                    className="w-12 h-12 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center transition hover:scale-110 shadow-lg"
+                    className="w-10 h-10 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center transition hover:scale-110 shadow-lg"
                     title="Add song"
                   >
-                    <Plus className="w-6 h-6 text-white" />
+                    <Plus className="w-5 h-5 text-white" />
                   </button>
                 </div>
               </div>
@@ -1164,14 +1164,14 @@ export default function Mixtape() {
                 )}
 
                 {selectedPlaylist.songs?.length === 0 && !showAddSong ? (
-                  <div className="text-center py-12">
-                    <Music className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                    <p className="text-gray-400 mb-4">No songs yet. Add your first song!</p>
+                  <div className="text-center py-8">
+                    <Music className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+                    <p className="text-gray-400 text-sm mb-3">No songs yet. Add your first song!</p>
                     <button
                       onClick={scrollToAddSongForm}
-                      className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition inline-flex items-center space-x-2"
+                      className="px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-lg transition inline-flex items-center space-x-1.5"
                     >
-                      <Plus className="w-4 h-4" />
+                      <Plus className="w-3.5 h-3.5" />
                       <span>Add Song</span>
                     </button>
                   </div>
@@ -1405,21 +1405,21 @@ export default function Mixtape() {
         {/* Import from Spotify Modal */}
         {showImportModal && spotifyConnected.connected && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-gray-900 rounded-2xl max-w-4xl w-full max-h-[90vh] flex flex-col border border-gray-700">
-              <div className="p-6 border-b border-gray-700 flex-shrink-0">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-2xl font-bold text-white">Import from Spotify</h2>
+            <div className="bg-gray-900 rounded-xl max-w-4xl w-full max-h-[90vh] flex flex-col border border-gray-700">
+              <div className="p-5 border-b border-gray-700 flex-shrink-0">
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-xl font-bold text-white">Import from Spotify</h2>
                   <button
                     onClick={() => {
                       setShowImportModal(false);
                       setTargetPlaylistForImport(null);
                     }}
-                    className="w-10 h-10 bg-gray-800 hover:bg-gray-700 rounded-full flex items-center justify-center transition"
+                    className="w-8 h-8 bg-gray-800 hover:bg-gray-700 rounded-full flex items-center justify-center transition"
                   >
-                    <X className="w-5 h-5 text-white" />
+                    <X className="w-4 h-4 text-white" />
                   </button>
                 </div>
-                <p className="text-gray-400 text-sm mb-4">
+                <p className="text-gray-400 text-sm">
                   {targetPlaylistForImport
                     ? targetPlaylistForImport === 'new'
                       ? 'Select a Spotify playlist to import as a new YuMe playlist:'
@@ -1437,25 +1437,25 @@ export default function Mixtape() {
                         setTargetPlaylistForImport('new');
                         loadBrowseData('playlists');
                       }}
-                      className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-lg p-4 border-2 border-green-500/50 transition text-left flex items-center space-x-4"
+                      className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-lg p-3 border border-green-500/50 transition text-left flex items-center space-x-3"
                     >
-                      <div className="w-16 h-16 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <Plus className="w-8 h-8 text-white" />
+                      <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <Plus className="w-5 h-5 text-white" />
                       </div>
                       <div className="flex-1">
-                        <p className="text-white text-lg font-bold">Create New Playlist</p>
+                        <p className="text-white text-base font-semibold">Create New Playlist</p>
                       </div>
                     </button>
 
                     {/* Existing Playlists */}
                     {playlists.length > 0 && (
                       <>
-                        <div className="flex items-center space-x-3">
+                        <div className="flex items-center space-x-2">
                           <div className="flex-1 h-px bg-gray-700"></div>
                           <p className="text-gray-500 text-xs uppercase">Or add to existing</p>
                           <div className="flex-1 h-px bg-gray-700"></div>
                         </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                           {playlists.map((playlist) => (
                             <button
                               key={playlist.id}
@@ -1463,20 +1463,20 @@ export default function Mixtape() {
                                 setTargetPlaylistForImport(playlist);
                                 loadBrowseData('playlists');
                               }}
-                              className="bg-gray-800/50 hover:bg-gray-800 rounded-lg p-3 border border-gray-700 transition text-left"
+                              className="bg-gray-800/50 hover:bg-gray-800 rounded-lg p-2.5 border border-gray-700 transition text-left"
                             >
-                              <div className={`w-full aspect-square rounded-lg mb-2 flex items-center justify-center ${playlist.cover.startsWith('http') ? '' : playlist.cover}`}>
+                              <div className={`w-full aspect-square rounded-md mb-2 flex items-center justify-center ${playlist.cover.startsWith('http') ? '' : playlist.cover}`}>
                                 {playlist.cover.startsWith('http') ? (
                                   <img
                                     src={playlist.cover}
                                     alt={playlist.title}
-                                    className="w-full h-full object-cover rounded-lg"
+                                    className="w-full h-full object-cover rounded-md"
                                   />
                                 ) : (
-                                  <Music className="w-8 h-8 text-white/50" />
+                                  <Music className="w-6 h-6 text-white/50" />
                                 )}
                               </div>
-                              <p className="text-white text-sm font-medium truncate">{playlist.title}</p>
+                              <p className="text-white text-xs font-medium truncate">{playlist.title}</p>
                               <p className="text-gray-500 text-xs">{playlist.songs?.length || 0} songs</p>
                             </button>
                           ))}
@@ -1537,34 +1537,34 @@ export default function Mixtape() {
               </div>
 
               {targetPlaylistForImport && (
-                <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+                <div className="p-4 overflow-y-auto max-h-[calc(90vh-200px)]">
                   {loadingBrowse ? (
-                    <div className="flex items-center justify-center py-12">
-                      <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="w-6 h-6 text-purple-500 animate-spin" />
                     </div>
                   ) : (
-                    <div className="space-y-2">
+                    <div className="space-y-1.5">
                       {spotifyPlaylists.map((playlist) => (
                         <div
                           key={playlist.id}
-                          className="flex items-center space-x-3 p-3 bg-gray-800/50 rounded-lg hover:bg-gray-800 transition"
+                          className="flex items-center space-x-2.5 p-2.5 bg-gray-800/50 rounded-lg hover:bg-gray-800 transition"
                         >
                           {playlist.images[0] && (
                             <img
                               src={playlist.images[0].url}
                               alt={playlist.name}
-                              className="w-14 h-14 rounded object-cover"
+                              className="w-12 h-12 rounded object-cover flex-shrink-0"
                             />
                           )}
                           <div className="flex-1 min-w-0">
-                            <p className="text-white font-medium truncate">{playlist.name}</p>
-                            <p className="text-gray-400 text-sm truncate">{playlist.description}</p>
+                            <p className="text-white text-sm font-medium truncate">{playlist.name}</p>
+                            <p className="text-gray-400 text-xs truncate">{playlist.description}</p>
                             <p className="text-gray-500 text-xs">{playlist.tracks.total} tracks</p>
                           </div>
                           <button
                             onClick={() => handleImportSpotifyPlaylist(playlist, targetPlaylistForImport)}
                             disabled={importingPlaylist === playlist.id}
-                            className="px-3 py-1.5 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-sm rounded-lg transition flex items-center space-x-1"
+                            className="px-2.5 py-1.5 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-xs rounded-lg transition flex items-center space-x-1 flex-shrink-0"
                           >
                             {importingPlaylist === playlist.id ? (
                               <>
@@ -1591,35 +1591,35 @@ export default function Mixtape() {
         {/* Browse Your Spotify Modal */}
         {showBrowse && spotifyConnected.connected && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-gray-900 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden border border-gray-700">
-              <div className="p-6 border-b border-gray-700">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-2xl font-bold text-white">Browse Your Spotify</h2>
+            <div className="bg-gray-900 rounded-xl max-w-4xl w-full max-h-[90vh] overflow-hidden border border-gray-700">
+              <div className="p-5 border-b border-gray-700">
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-xl font-bold text-white">Browse Your Spotify</h2>
                   <button
                     onClick={() => {
                       setShowBrowse(false);
                       if (selectedPlaylist) setShowAddSong(false);
                     }}
-                    className="w-10 h-10 bg-gray-800 hover:bg-gray-700 rounded-full flex items-center justify-center transition"
+                    className="w-8 h-8 bg-gray-800 hover:bg-gray-700 rounded-full flex items-center justify-center transition"
                   >
-                    <X className="w-5 h-5 text-white" />
+                    <X className="w-4 h-4 text-white" />
                   </button>
                 </div>
 
                 {/* Tabs */}
-                <div className="flex space-x-2">
+                <div className="flex space-x-1.5">
                   <button
                     onClick={() => {
                       setBrowseTab('top');
                       loadBrowseData('top');
                     }}
-                    className={`px-4 py-2 rounded-lg transition flex items-center space-x-2 ${
+                    className={`px-3 py-1.5 rounded-lg text-sm transition flex items-center space-x-1.5 ${
                       browseTab === 'top'
                         ? 'bg-purple-600 text-white'
                         : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
                     }`}
                   >
-                    <TrendingUp className="w-4 h-4" />
+                    <TrendingUp className="w-3.5 h-3.5" />
                     <span>Top Tracks</span>
                   </button>
                   <button
@@ -1627,13 +1627,13 @@ export default function Mixtape() {
                       setBrowseTab('recent');
                       loadBrowseData('recent');
                     }}
-                    className={`px-4 py-2 rounded-lg transition flex items-center space-x-2 ${
+                    className={`px-3 py-1.5 rounded-lg text-sm transition flex items-center space-x-1.5 ${
                       browseTab === 'recent'
                         ? 'bg-purple-600 text-white'
                         : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
                     }`}
                   >
-                    <Clock className="w-4 h-4" />
+                    <Clock className="w-3.5 h-3.5" />
                     <span>Recently Played</span>
                   </button>
                   <button
@@ -1641,29 +1641,29 @@ export default function Mixtape() {
                       setBrowseTab('playlists');
                       loadBrowseData('playlists');
                     }}
-                    className={`px-4 py-2 rounded-lg transition flex items-center space-x-2 ${
+                    className={`px-3 py-1.5 rounded-lg text-sm transition flex items-center space-x-1.5 ${
                       browseTab === 'playlists'
                         ? 'bg-purple-600 text-white'
                         : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
                     }`}
                   >
-                    <List className="w-4 h-4" />
+                    <List className="w-3.5 h-3.5" />
                     <span>Your Playlists</span>
                   </button>
                 </div>
               </div>
 
-              <div className="p-6 overflow-y-auto max-h-[calc(90vh-150px)]">
+              <div className="p-4 overflow-y-auto max-h-[calc(90vh-150px)]">
                 {loadingBrowse ? (
-                  <div className="flex items-center justify-center py-12">
-                    <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="w-6 h-6 text-purple-500 animate-spin" />
                   </div>
                 ) : (
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     {browseTab === 'top' && topTracks.map((track) => (
                       <div
                         key={track.id}
-                        className="flex items-center space-x-3 p-3 bg-gray-800/50 rounded-lg hover:bg-gray-800 transition cursor-pointer"
+                        className="flex items-center space-x-2.5 p-2.5 bg-gray-800/50 rounded-lg hover:bg-gray-800 transition cursor-pointer"
                         onClick={() => {
                           if (selectedPlaylist) {
                             handleAddSpotifyTrack(track);
@@ -1675,18 +1675,18 @@ export default function Mixtape() {
                           <img
                             src={track.album.images[2].url}
                             alt={track.name}
-                            className="w-14 h-14 rounded object-cover"
+                            className="w-12 h-12 rounded object-cover flex-shrink-0"
                           />
                         )}
                         <div className="flex-1 min-w-0">
-                          <p className="text-white font-medium truncate">{track.name}</p>
-                          <p className="text-gray-400 text-sm truncate">
+                          <p className="text-white text-sm font-medium truncate">{track.name}</p>
+                          <p className="text-gray-400 text-xs truncate">
                             {track.artists.map(a => a.name).join(', ')}
                           </p>
-                          <p className="text-gray-500 text-xs">{track.album.name}</p>
+                          <p className="text-gray-500 text-xs truncate">{track.album.name}</p>
                         </div>
                         {selectedPlaylist && (
-                          <Plus className="w-5 h-5 text-purple-400 flex-shrink-0" />
+                          <Plus className="w-4 h-4 text-purple-400 flex-shrink-0" />
                         )}
                       </div>
                     ))}
@@ -1694,7 +1694,7 @@ export default function Mixtape() {
                     {browseTab === 'recent' && recentTracks.map((track) => (
                       <div
                         key={track.id}
-                        className="flex items-center space-x-3 p-3 bg-gray-800/50 rounded-lg hover:bg-gray-800 transition cursor-pointer"
+                        className="flex items-center space-x-2.5 p-2.5 bg-gray-800/50 rounded-lg hover:bg-gray-800 transition cursor-pointer"
                         onClick={() => {
                           if (selectedPlaylist) {
                             handleAddSpotifyTrack(track);
@@ -1706,18 +1706,18 @@ export default function Mixtape() {
                           <img
                             src={track.album.images[2].url}
                             alt={track.name}
-                            className="w-14 h-14 rounded object-cover"
+                            className="w-12 h-12 rounded object-cover flex-shrink-0"
                           />
                         )}
                         <div className="flex-1 min-w-0">
-                          <p className="text-white font-medium truncate">{track.name}</p>
-                          <p className="text-gray-400 text-sm truncate">
+                          <p className="text-white text-sm font-medium truncate">{track.name}</p>
+                          <p className="text-gray-400 text-xs truncate">
                             {track.artists.map(a => a.name).join(', ')}
                           </p>
-                          <p className="text-gray-500 text-xs">{track.album.name}</p>
+                          <p className="text-gray-500 text-xs truncate">{track.album.name}</p>
                         </div>
                         {selectedPlaylist && (
-                          <Plus className="w-5 h-5 text-purple-400 flex-shrink-0" />
+                          <Plus className="w-4 h-4 text-purple-400 flex-shrink-0" />
                         )}
                       </div>
                     ))}
@@ -1725,29 +1725,29 @@ export default function Mixtape() {
                     {browseTab === 'playlists' && spotifyPlaylists.map((playlist) => (
                       <div
                         key={playlist.id}
-                        className="flex items-center space-x-3 p-3 bg-gray-800/50 rounded-lg hover:bg-gray-800 transition"
+                        className="flex items-center space-x-2.5 p-2.5 bg-gray-800/50 rounded-lg hover:bg-gray-800 transition"
                       >
                         {playlist.images[0] && (
                           <img
                             src={playlist.images[0].url}
                             alt={playlist.name}
-                            className="w-14 h-14 rounded object-cover"
+                            className="w-12 h-12 rounded object-cover flex-shrink-0"
                           />
                         )}
                         <div className="flex-1 min-w-0">
-                          <p className="text-white font-medium truncate">{playlist.name}</p>
-                          <p className="text-gray-400 text-sm truncate">{playlist.description}</p>
+                          <p className="text-white text-sm font-medium truncate">{playlist.name}</p>
+                          <p className="text-gray-400 text-xs truncate">{playlist.description}</p>
                           <p className="text-gray-500 text-xs">{playlist.tracks.total} tracks</p>
                         </div>
                         <a
                           href={playlist.external_urls.spotify}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg transition flex items-center space-x-1"
+                          className="px-2.5 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs rounded-lg transition flex items-center space-x-1 flex-shrink-0"
                           onClick={(e) => e.stopPropagation()}
                         >
                           <ExternalLink className="w-3 h-3" />
-                          <span>Open in Spotify</span>
+                          <span>Open</span>
                         </a>
                       </div>
                     ))}
