@@ -245,7 +245,7 @@ export default function Settings() {
 
     try {
       const response = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxToken}&limit=5&types=place,locality`
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxToken}&limit=5&types=place,locality,region,country`
       );
       const data = await response.json();
 
@@ -540,16 +540,23 @@ export default function Settings() {
                           searchLocation(e.target.value);
                         }}
                         onFocus={() => locationSuggestions.length > 0 && setShowLocationSuggestions(true)}
+                        onBlur={() => {
+                          // Delay to allow click on suggestion
+                          setTimeout(() => setShowLocationSuggestions(false), 200);
+                        }}
                         placeholder="Search city (e.g., London, UK)"
                         className="w-full md:max-w-[250px] px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500"
                       />
 
                       {showLocationSuggestions && locationSuggestions.length > 0 && (
-                        <div className="absolute z-50 w-full md:max-w-[250px] mt-1 bg-gray-900 border border-gray-600 rounded-md shadow-xl max-h-60 overflow-y-auto">
+                        <div className="absolute left-0 right-0 z-[9999] mt-1 bg-gray-900 border border-gray-600 rounded-md shadow-2xl max-h-60 overflow-y-auto">
                           {locationSuggestions.map((suggestion, index) => (
                             <button
                               key={index}
-                              onClick={() => handleSelectLocation(suggestion)}
+                              onClick={() => {
+                                handleSelectLocation(suggestion);
+                                setShowLocationSuggestions(false);
+                              }}
                               className="w-full text-left px-3 py-2 hover:bg-gray-700 text-white text-sm border-b border-gray-700 last:border-b-0"
                             >
                               {suggestion.place_name}
