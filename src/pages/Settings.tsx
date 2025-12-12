@@ -371,10 +371,10 @@ export default function Settings() {
 
         <div className="space-y-4">
           {/* Profile Section */}
-          <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-700">
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-700 overflow-visible">
             <h2 className="text-base font-bold text-white mb-3">Your Profile</h2>
 
-            <div className="space-y-3">
+            <div className="space-y-3 overflow-visible">
               <div>
                 <label className="block text-xs font-medium text-gray-300 mb-1">
                   Email
@@ -451,10 +451,10 @@ export default function Settings() {
                 )}
               </div>
 
-              <div>
-                <div className="flex flex-col md:flex-row md:space-x-4 space-y-3 md:space-y-0">
+              <div className="overflow-visible">
+                <div className="flex flex-col md:flex-row md:space-x-4 space-y-3 md:space-y-0 overflow-visible">
                   {/* Timezone */}
-                  <div className="flex-1">
+                  <div className="flex-1 overflow-visible">
                     <label className="block text-xs font-medium text-gray-300 mb-1 flex items-center">
                       <Globe className="w-3.5 h-3.5 mr-1.5" />
                       Timezone
@@ -526,12 +526,12 @@ export default function Settings() {
                   </div>
 
                   {/* Location */}
-                  <div className="flex-1">
+                  <div className="flex-1 overflow-visible">
                     <label className="block text-xs font-medium text-gray-300 mb-1 flex items-center">
                       <MapPin className="w-3.5 h-3.5 mr-1.5" />
                       Location
                     </label>
-                    <div className="relative">
+                    <div className="relative overflow-visible">
                       <input
                         type="text"
                         value={locationSearch}
