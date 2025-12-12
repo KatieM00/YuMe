@@ -39,6 +39,9 @@ export default function Settings() {
   const [city, setCity] = useState('');
   const [countryCode, setCountryCode] = useState('');
   const [isUpdatingLocation, setIsUpdatingLocation] = useState(false);
+  const [locationSearch, setLocationSearch] = useState('');
+  const [locationSuggestions, setLocationSuggestions] = useState<Array<{ place_name: string; center: [number, number]; country_code: string; country_name: string; city: string }>>([]);
+  const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
@@ -72,6 +75,11 @@ export default function Settings() {
       setSelectedEmoji(userProfile?.profile_emoji || null);
       setCity(userProfile?.city || '');
       setCountryCode(userProfile?.country_code || '');
+
+      // Set location search display if location exists
+      if (userProfile?.city && userProfile?.country_name) {
+        setLocationSearch(`${userProfile.city}, ${userProfile.country_name}`);
+      }
 
       if (userProfile?.partner_id) {
         const partnerInfo = await getPartnerInfo();
@@ -224,46 +232,70 @@ export default function Settings() {
     }
   };
 
-  const handleUpdateLocation = async () => {
-    if (!city.trim() || !countryCode.trim()) {
-      setError('Please enter both city and country');
+  const searchLocation = async (query: string) => {
+    if (!query.trim()) {
+      setLocationSuggestions([]);
+      setShowLocationSuggestions(false);
       return;
     }
 
+    const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN;
+    if (!mapboxToken) return;
+
+    try {
+      const response = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxToken}&limit=5&types=place,locality`
+      );
+      const data = await response.json();
+
+      if (data.features) {
+        const suggestions = data.features.map((feature: any) => {
+          const country = feature.context?.find((c: any) => c.id.startsWith('country'));
+          const countryCode = country?.short_code?.toUpperCase() || '';
+          const countryName = country?.text || '';
+          const city = feature.text || '';
+
+          return {
+            place_name: feature.place_name,
+            center: feature.center,
+            country_code: countryCode,
+            country_name: countryName,
+            city: city,
+          };
+        });
+        setLocationSuggestions(suggestions);
+        setShowLocationSuggestions(true);
+      }
+    } catch (err) {
+      console.error('Error searching location:', err);
+    }
+  };
+
+  const handleSelectLocation = async (suggestion: { place_name: string; center: [number, number]; country_code: string; country_name: string; city: string }) => {
+    setLocationSearch(suggestion.place_name);
+    setShowLocationSuggestions(false);
     setIsUpdatingLocation(true);
     setError('');
     setSuccess('');
 
     try {
-      // Get coordinates from Mapbox Geocoding API
-      const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN;
-      const query = `${city}, ${countryCode}`;
-      const response = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxToken}&limit=1&types=place`
-      );
-      const data = await response.json();
+      const [lng, lat] = suggestion.center;
 
-      if (data.features && data.features.length > 0) {
-        const feature = data.features[0];
-        const [lng, lat] = feature.center;
-        const countryName = feature.context?.find((c: any) => c.id.startsWith('country'))?.text || countryCode;
+      const result = await updateLocation({
+        city: suggestion.city,
+        country_code: suggestion.country_code,
+        country_name: suggestion.country_name,
+        latitude: lat,
+        longitude: lng,
+      });
 
-        const result = await updateLocation({
-          city: city.trim(),
-          country_code: countryCode.toUpperCase(),
-          country_name: countryName,
-          latitude: lat,
-          longitude: lng,
-        });
-
-        if (result) {
-          setSuccess('Location updated successfully');
-          await loadProfile();
-        } else {
-          setError('Failed to update location');
-        }
+      if (result) {
+        setSuccess('Location updated successfully');
+        setCity(suggestion.city);
+        setCountryCode(suggestion.country_code);
+        await loadProfile();
       } else {
-        setError('Could not find location. Please check city and country code.');
+        setError('Failed to update location');
       }
     } catch (err) {
       console.error('Error updating location:', err);
@@ -495,34 +527,44 @@ export default function Settings() {
                   <MapPin className="w-3.5 h-3.5 mr-1.5" />
                   Your Location
                 </label>
-                <div className="space-y-2">
-                  <div className="flex space-x-2">
-                    <input
-                      type="text"
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                      placeholder="City (e.g., London)"
-                      className="flex-1 px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500"
-                    />
-                    <input
-                      type="text"
-                      value={countryCode}
-                      onChange={(e) => setCountryCode(e.target.value.toUpperCase())}
-                      placeholder="Country code (e.g., GB)"
-                      maxLength={2}
-                      className="w-32 px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500 uppercase"
-                    />
-                    <button
-                      onClick={handleUpdateLocation}
-                      disabled={isUpdatingLocation || !city || !countryCode || countryCode.length !== 2}
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {isUpdatingLocation ? 'Saving...' : 'Save'}
-                    </button>
-                  </div>
-                  <p className="text-xs text-gray-400">
-                    Your location will appear with a flag next to your timezone on the dashboard
-                  </p>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={locationSearch}
+                    onChange={(e) => {
+                      setLocationSearch(e.target.value);
+                      searchLocation(e.target.value);
+                    }}
+                    onFocus={() => locationSuggestions.length > 0 && setShowLocationSuggestions(true)}
+                    placeholder="Search for your city (e.g., London, UK)"
+                    className="w-full px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500"
+                  />
+
+                  {showLocationSuggestions && locationSuggestions.length > 0 && (
+                    <div className="absolute z-50 w-full mt-1 bg-gray-900 border border-gray-600 rounded-md shadow-xl max-h-60 overflow-y-auto">
+                      {locationSuggestions.map((suggestion, index) => (
+                        <button
+                          key={index}
+                          onClick={() => handleSelectLocation(suggestion)}
+                          className="w-full text-left px-3 py-2 hover:bg-gray-700 text-white text-sm border-b border-gray-700 last:border-b-0"
+                        >
+                          {suggestion.place_name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {city && countryCode && (
+                    <p className="mt-1.5 text-xs text-gray-400">
+                      Current: {city}, {countryCode}
+                    </p>
+                  )}
+
+                  {isUpdatingLocation && (
+                    <p className="mt-1.5 text-xs text-blue-400">
+                      Updating location...
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
