@@ -558,6 +558,19 @@ export default function Messages() {
     setPermissionError(null);
   };
 
+  // Ensure video stream stays attached during recording
+  useEffect(() => {
+    if (isRecording && newMessageType === 'video' && videoPreviewRef.current && streamRef.current) {
+      // Re-attach stream if it got disconnected during re-render
+      if (videoPreviewRef.current.srcObject !== streamRef.current) {
+        videoPreviewRef.current.srcObject = streamRef.current;
+        videoPreviewRef.current.play().catch(err => {
+          console.log('Video play error (can be safely ignored):', err);
+        });
+      }
+    }
+  }, [isRecording, newMessageType]);
+
   // Cleanup on unmount or when closing modal
   useEffect(() => {
     return () => {
@@ -662,6 +675,7 @@ export default function Messages() {
             {message.media_url ? (
               <video
                 controls
+                preload="metadata"
                 src={message.media_url}
                 className="w-full rounded bg-black"
                 style={{ maxHeight: '150px' }}
