@@ -10,6 +10,7 @@ interface UserBadgeProps {
 export default function UserBadge({ userId, size = 24, className = '' }: UserBadgeProps) {
   const { currentUser, partner } = useUser();
   const [initial, setInitial] = useState('');
+  const [emoji, setEmoji] = useState<string | null>(null);
   const [fullName, setFullName] = useState('');
   const [isCurrentUser, setIsCurrentUser] = useState(false);
 
@@ -20,15 +21,18 @@ export default function UserBadge({ userId, size = 24, className = '' }: UserBad
       const name = currentUser.display_name || 'You';
       setFullName(name);
       setInitial(name.charAt(0).toUpperCase());
+      setEmoji(currentUser.profile_emoji || null);
     } else if (partner?.id === userId) {
       setIsCurrentUser(false);
       const name = partner.display_name || partner.email;
       setFullName(name);
       setInitial(name.charAt(0).toUpperCase());
+      setEmoji(partner.profile_emoji || null);
     } else {
       // Unknown user (shouldn't happen, but handle gracefully)
       setFullName('Unknown');
       setInitial('?');
+      setEmoji(null);
     }
   }, [userId, currentUser, partner]);
 
@@ -46,10 +50,10 @@ export default function UserBadge({ userId, size = 24, className = '' }: UserBad
     >
       {/* Badge circle */}
       <div
-        className={`w-full h-full rounded-full ${gradientClass} flex items-center justify-center text-white font-bold shadow-lg ring-2 ring-white/20`}
-        style={{ fontSize: size * 0.5 }}
+        className={`w-full h-full rounded-full ${emoji ? 'bg-gray-800/50' : gradientClass} flex items-center justify-center text-white font-bold shadow-lg ring-2 ring-white/20`}
+        style={{ fontSize: emoji ? size * 0.6 : size * 0.5 }}
       >
-        {initial}
+        {emoji || initial}
       </div>
 
       {/* Tooltip on hover */}

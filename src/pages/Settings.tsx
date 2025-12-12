@@ -7,6 +7,7 @@ import {
   unlinkPartnerAccount,
   updateDisplayName,
   updateTimezone,
+  updateProfileEmoji,
   type UserProfile,
   type PartnerInfo,
 } from '../lib/partnerService';
@@ -31,6 +32,9 @@ export default function Settings() {
   const [isUpdatingName, setIsUpdatingName] = useState(false);
   const [isUpdatingTimezone, setIsUpdatingTimezone] = useState(false);
   const [isDisconnectingSpotify, setIsDisconnectingSpotify] = useState(false);
+  const [selectedEmoji, setSelectedEmoji] = useState<string | null>(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [isUpdatingEmoji, setIsUpdatingEmoji] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
@@ -61,6 +65,7 @@ export default function Settings() {
       setProfile(userProfile);
       setDisplayName(userProfile?.display_name || '');
       setTimezone(userProfile?.timezone || 'Europe/London');
+      setSelectedEmoji(userProfile?.profile_emoji || null);
 
       if (userProfile?.partner_id) {
         const partnerInfo = await getPartnerInfo();
@@ -166,6 +171,29 @@ export default function Settings() {
       setError('Failed to update display name');
     } finally {
       setIsUpdatingName(false);
+    }
+  };
+
+  const handleUpdateEmoji = async (emoji: string | null) => {
+    setIsUpdatingEmoji(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const result = await updateProfileEmoji(emoji);
+
+      if (result) {
+        setSelectedEmoji(emoji);
+        setSuccess(emoji ? 'Profile emoji updated successfully' : 'Profile emoji removed');
+        await loadProfile();
+        setShowEmojiPicker(false);
+      } else {
+        setError('Failed to update profile emoji');
+      }
+    } catch (err) {
+      setError('Failed to update profile emoji');
+    } finally {
+      setIsUpdatingEmoji(false);
     }
   };
 
@@ -288,6 +316,49 @@ export default function Settings() {
                     {isUpdatingName ? 'Saving...' : 'Save'}
                   </button>
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-300 mb-1">
+                  Profile Icon
+                </label>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                    className="px-4 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white hover:bg-gray-800 transition text-2xl min-w-[60px]"
+                  >
+                    {selectedEmoji || '😊'}
+                  </button>
+                  {selectedEmoji && (
+                    <button
+                      onClick={() => handleUpdateEmoji(null)}
+                      disabled={isUpdatingEmoji}
+                      className="px-3 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded-md text-xs font-medium transition disabled:opacity-50"
+                    >
+                      Remove
+                    </button>
+                  )}
+                  <span className="text-xs text-gray-400">
+                    {selectedEmoji ? 'Click to change' : 'Click to select an emoji'}
+                  </span>
+                </div>
+
+                {showEmojiPicker && (
+                  <div className="mt-2 p-3 bg-gray-900/50 border border-gray-600 rounded-md">
+                    <div className="grid grid-cols-8 gap-2">
+                      {['😊', '😎', '🥰', '😇', '🤗', '🙂', '😋', '😌', '🤩', '😍', '💕', '💖', '💝', '💗', '🌸', '🌺', '🌻', '🌹', '🌷', '🌼', '🦋', '🐝', '🐞', '🦄', '🌈', '⭐', '✨', '💫', '🌟', '🎵', '🎶', '🎸', '🎹', '🎨', '🖌️', '✏️', '📝', '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❣️', '💞'].map((emoji) => (
+                        <button
+                          key={emoji}
+                          onClick={() => handleUpdateEmoji(emoji)}
+                          disabled={isUpdatingEmoji}
+                          className="text-2xl p-2 hover:bg-gray-700 rounded transition disabled:opacity-50"
+                        >
+                          {emoji}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div>

@@ -11,6 +11,7 @@ export interface UserProfile {
   partner_id: string | null;
   invite_code: string;
   timezone: string;
+  profile_emoji: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -20,6 +21,7 @@ export interface PartnerInfo {
   email: string;
   display_name: string | null;
   timezone: string;
+  profile_emoji: string | null;
 }
 
 // =========================================================================
@@ -165,6 +167,24 @@ export async function updateTimezone(timezone: string): Promise<boolean> {
 
   if (error) {
     console.error('Error updating timezone:', error);
+    return false;
+  }
+
+  return true;
+}
+
+// =========================================================================
+// UPDATE PROFILE EMOJI
+// =========================================================================
+
+export async function updateProfileEmoji(emoji: string | null): Promise<boolean> {
+  const { error } = await supabase
+    .from('user_profiles')
+    .update({ profile_emoji: emoji })
+    .eq('id', (await supabase.auth.getUser()).data.user?.id);
+
+  if (error) {
+    console.error('Error updating profile emoji:', error);
     return false;
   }
 
