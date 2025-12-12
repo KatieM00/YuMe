@@ -12,6 +12,7 @@ import {
   Settings,
   LogOut
 } from 'lucide-react';
+import * as Flags from 'country-flag-icons/react/3x2';
 import { getCurrentUserProfile, getPartnerInfo, type UserProfile, type PartnerInfo } from '../lib/partnerService';
 import { getAllVisionItems, type VisionItem } from '../lib/visionService';
 import { getAllMessages, type Message } from '../lib/messageService';
@@ -90,14 +91,15 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
     });
   };
 
-  const getCountryFlag = (countryCode: string | null | undefined) => {
+  const CountryFlag = ({ countryCode }: { countryCode: string | null | undefined }) => {
     if (!countryCode || countryCode.length !== 2) return null;
-    // Convert country code to flag emoji using regional indicator symbols
-    const codePoints = countryCode
-      .toUpperCase()
-      .split('')
-      .map(char => 127397 + char.charCodeAt(0));
-    return String.fromCodePoint(...codePoints);
+
+    const code = countryCode.toUpperCase();
+    const FlagComponent = (Flags as any)[code];
+
+    if (!FlagComponent) return null;
+
+    return <FlagComponent className="w-5 h-3.5 inline-block" />;
   };
 
   const calculateDistance = (lat1: number | null | undefined, lon1: number | null | undefined, lat2: number | null | undefined, lon2: number | null | undefined): number | null => {
@@ -170,8 +172,6 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
       return 'Partner';
     };
 
-    const userFlag = getCountryFlag(userProfile?.country_code);
-    const partnerFlag = getCountryFlag(partnerProfile?.country_code);
     const distance = calculateDistance(
       userProfile?.latitude,
       userProfile?.longitude,
@@ -184,14 +184,14 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
         <div className="flex items-center text-sm md:text-base">
           <Clock className="w-4 h-4 text-blue-400 mr-2 flex-shrink-0" />
           <p className="text-white font-bold tabular-nums flex items-center gap-1.5">
-            {userFlag && <span className="text-lg">{userFlag}</span>}
+            <CountryFlag countryCode={userProfile?.country_code} />
             {getUserLabel()}: {getTimeInTimezone(userTimezone)}
           </p>
           {partnerTimezone && (
             <>
               <span className="text-gray-500 font-bold mx-2">|</span>
               <p className="text-white font-bold tabular-nums flex items-center gap-1.5">
-                {partnerFlag && <span className="text-lg">{partnerFlag}</span>}
+                <CountryFlag countryCode={partnerProfile?.country_code} />
                 {getPartnerLabel()}: {getTimeInTimezone(partnerTimezone)}
               </p>
             </>
