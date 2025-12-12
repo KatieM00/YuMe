@@ -48,6 +48,9 @@ export default function Messages() {
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
 
+  // Upload states
+  const [isUploading, setIsUploading] = useState(false);
+
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -332,6 +335,8 @@ export default function Messages() {
         }
       }
 
+      setIsUploading(true);
+
       // Create file from blob
       const fileExt = newMessageType === 'video' ? 'webm' : 'webm';
       const fileName = `${newMessageType}-${Date.now()}.${fileExt}`;
@@ -363,6 +368,8 @@ export default function Messages() {
     } catch (error) {
       console.error('Error sending recorded message:', error);
       alert('Failed to send recording. Please try again.');
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -520,6 +527,8 @@ export default function Messages() {
     if (!capturedImage) return;
 
     try {
+      setIsUploading(true);
+
       // Convert data URL to blob
       const response = await fetch(capturedImage);
       const blob = await response.blob();
@@ -548,6 +557,8 @@ export default function Messages() {
     } catch (error) {
       console.error('Error sending photo:', error);
       alert('Failed to send photo. Please try again.');
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -982,18 +993,36 @@ export default function Messages() {
                           />
                         </div>
 
+                        {isUploading && (
+                          <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
+                            <div className="flex items-center space-x-2">
+                              <Loader className="w-4 h-4 text-blue-400 animate-spin" />
+                              <span className="text-blue-400 text-sm font-medium">Uploading audio...</span>
+                            </div>
+                          </div>
+                        )}
+
                         <div className="flex space-x-3">
                           <button
                             onClick={cancelRecording}
-                            className="flex-1 px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-medium transition"
+                            disabled={isUploading}
+                            className="flex-1 px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             Re-record
                           </button>
                           <button
                             onClick={sendRecordedMessage}
-                            className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg font-medium hover:from-blue-600 hover:to-cyan-600 transition"
+                            disabled={isUploading}
+                            className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg font-medium hover:from-blue-600 hover:to-cyan-600 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                           >
-                            Send
+                            {isUploading ? (
+                              <>
+                                <Loader className="w-4 h-4 mr-2 animate-spin" />
+                                Sending...
+                              </>
+                            ) : (
+                              'Send'
+                            )}
                           </button>
                         </div>
                       </div>
@@ -1120,18 +1149,36 @@ export default function Messages() {
                           />
                         </div>
 
+                        {isUploading && (
+                          <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
+                            <div className="flex items-center space-x-2">
+                              <Loader className="w-4 h-4 text-blue-400 animate-spin" />
+                              <span className="text-blue-400 text-sm font-medium">Uploading video...</span>
+                            </div>
+                          </div>
+                        )}
+
                         <div className="flex space-x-3">
                           <button
                             onClick={cancelRecording}
-                            className="flex-1 px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-medium transition"
+                            disabled={isUploading}
+                            className="flex-1 px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             Re-record
                           </button>
                           <button
                             onClick={sendRecordedMessage}
-                            className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg font-medium hover:from-blue-600 hover:to-cyan-600 transition"
+                            disabled={isUploading}
+                            className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg font-medium hover:from-blue-600 hover:to-cyan-600 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                           >
-                            Send
+                            {isUploading ? (
+                              <>
+                                <Loader className="w-4 h-4 mr-2 animate-spin" />
+                                Sending...
+                              </>
+                            ) : (
+                              'Send'
+                            )}
                           </button>
                         </div>
                       </div>
@@ -1204,18 +1251,36 @@ export default function Messages() {
                           />
                         </div>
 
+                        {isUploading && (
+                          <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
+                            <div className="flex items-center space-x-2">
+                              <Loader className="w-4 h-4 text-blue-400 animate-spin" />
+                              <span className="text-blue-400 text-sm font-medium">Uploading photo...</span>
+                            </div>
+                          </div>
+                        )}
+
                         <div className="flex space-x-3">
                           <button
                             onClick={retakePhoto}
-                            className="flex-1 px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-medium transition"
+                            disabled={isUploading}
+                            className="flex-1 px-4 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             Retake
                           </button>
                           <button
                             onClick={sendCapturedPhoto}
-                            className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg font-medium hover:from-blue-600 hover:to-cyan-600 transition"
+                            disabled={isUploading}
+                            className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg font-medium hover:from-blue-600 hover:to-cyan-600 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                           >
-                            Send
+                            {isUploading ? (
+                              <>
+                                <Loader className="w-4 h-4 mr-2 animate-spin" />
+                                Sending...
+                              </>
+                            ) : (
+                              'Send'
+                            )}
                           </button>
                         </div>
                       </div>
