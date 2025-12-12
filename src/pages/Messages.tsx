@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Plus, Pin, Image, Mic, Video, X, Inbox, Trash2, Play, Pause, Square, Camera, Loader, User } from 'lucide-react';
+import { Plus, Pin, Image, Mic, Video, X, Inbox, Trash2, Play, Pause, Square, Camera, Loader, User, Upload } from 'lucide-react';
 import {
   Message,
   getAllMessages,
