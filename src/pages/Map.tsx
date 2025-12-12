@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { MapPin, Plus, Trash2, Loader, Check, Search } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import UserBadge from '../components/UserBadge';
+import { getCurrentUserProfile, getPartnerInfo, type UserProfile, type PartnerInfo } from '../lib/partnerService';
 
 // Declare mapboxgl as a global variable (loaded from CDN)
 declare const mapboxgl: any;
@@ -36,6 +37,8 @@ export default function Map() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [partnerProfile, setPartnerProfile] = useState<PartnerInfo | null>(null);
 
   // Add location form state
   const [showAddForm, setShowAddForm] = useState(false);
@@ -273,7 +276,53 @@ export default function Map() {
     markersRef.current.forEach((marker) => marker.remove());
     markersRef.current = [];
 
-    // Add new markers
+    // Add user location markers with emojis
+    if (userProfile?.latitude && userProfile?.longitude && userProfile?.profile_emoji) {
+      const userMarkerEl = document.createElement('div');
+      userMarkerEl.className = 'user-location-marker';
+      userMarkerEl.style.fontSize = '40px';
+      userMarkerEl.style.cursor = 'pointer';
+      userMarkerEl.textContent = userProfile.profile_emoji;
+
+      const userPopup = new mapboxgl.Popup({ offset: 25 }).setHTML(`
+        <div style="color: #000; padding: 8px;">
+          <h3 style="font-weight: bold; margin-bottom: 4px;">${userProfile.display_name || 'You'}</h3>
+          <p style="font-size: 12px; color: #666;">${userProfile.city || ''}, ${userProfile.country_name || ''}</p>
+        </div>
+      `);
+
+      const userMarker = new mapboxgl.Marker(userMarkerEl)
+        .setLngLat([userProfile.longitude, userProfile.latitude])
+        .setPopup(userPopup)
+        .addTo(mapRef.current);
+
+      markersRef.current.push(userMarker);
+    }
+
+    // Add partner location marker with emoji
+    if (partnerProfile?.latitude && partnerProfile?.longitude && partnerProfile?.profile_emoji) {
+      const partnerMarkerEl = document.createElement('div');
+      partnerMarkerEl.className = 'user-location-marker';
+      partnerMarkerEl.style.fontSize = '40px';
+      partnerMarkerEl.style.cursor = 'pointer';
+      partnerMarkerEl.textContent = partnerProfile.profile_emoji;
+
+      const partnerPopup = new mapboxgl.Popup({ offset: 25 }).setHTML(`
+        <div style="color: #000; padding: 8px;">
+          <h3 style="font-weight: bold; margin-bottom: 4px;">${partnerProfile.display_name || 'Partner'}</h3>
+          <p style="font-size: 12px; color: #666;">${partnerProfile.city || ''}, ${partnerProfile.country_name || ''}</p>
+        </div>
+      `);
+
+      const partnerMarker = new mapboxgl.Marker(partnerMarkerEl)
+        .setLngLat([partnerProfile.longitude, partnerProfile.latitude])
+        .setPopup(partnerPopup)
+        .addTo(mapRef.current);
+
+      markersRef.current.push(partnerMarker);
+    }
+
+    // Add location markers (visited/wishlist)
     locations.forEach((location) => {
       if (typeof mapboxgl === 'undefined') return;
 
@@ -306,11 +355,25 @@ export default function Map() {
 
       markersRef.current.push(marker);
     });
-  }, [locations, mapLoaded, hasMapboxToken]);
+  }, [locations, mapLoaded, hasMapboxToken, userProfile, partnerProfile]);
 
-  // Fetch locations on mount
+  // Fetch user profiles
+  const fetchUserProfiles = async () => {
+    try {
+      const user = await getCurrentUserProfile();
+      setUserProfile(user);
+
+      const partner = await getPartnerInfo();
+      setPartnerProfile(partner);
+    } catch (err) {
+      console.error('Error fetching user profiles:', err);
+    }
+  };
+
+  // Fetch locations and profiles on mount
   useEffect(() => {
     fetchLocations();
+    fetchUserProfiles();
   }, []);
 
   const visitedLocations = locations.filter((loc) => loc.type === 'visited');

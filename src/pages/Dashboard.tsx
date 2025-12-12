@@ -90,6 +90,32 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
     });
   };
 
+  const getCountryFlag = (countryCode: string | null | undefined) => {
+    if (!countryCode || countryCode.length !== 2) return null;
+    // Convert country code to flag emoji using regional indicator symbols
+    const codePoints = countryCode
+      .toUpperCase()
+      .split('')
+      .map(char => 127397 + char.charCodeAt(0));
+    return String.fromCodePoint(...codePoints);
+  };
+
+  const calculateDistance = (lat1: number | null | undefined, lon1: number | null | undefined, lat2: number | null | undefined, lon2: number | null | undefined): number | null => {
+    if (lat1 == null || lon1 == null || lat2 == null || lon2 == null) return null;
+
+    // Haversine formula to calculate distance between two points
+    const R = 6371; // Radius of the Earth in kilometers
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c;
+    return Math.round(distance);
+  };
+
   const getDaysUntil = (date: Date) => {
     const now = new Date();
     now.setHours(0, 0, 0, 0);
@@ -144,19 +170,37 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
       return 'Partner';
     };
 
+    const userFlag = getCountryFlag(userProfile?.country_code);
+    const partnerFlag = getCountryFlag(partnerProfile?.country_code);
+    const distance = calculateDistance(
+      userProfile?.latitude,
+      userProfile?.longitude,
+      partnerProfile?.latitude,
+      partnerProfile?.longitude
+    );
+
     return (
-      <div className="flex items-center justify-center w-full text-center text-sm md:text-base">
-        <Clock className="w-4 h-4 text-blue-400 mr-2 flex-shrink-0" />
-        <p className="text-white font-bold tabular-nums">
-          {getUserLabel()}: {getTimeInTimezone(userTimezone)}
-        </p>
-        {partnerTimezone && (
-          <>
-            <span className="text-gray-500 font-bold mx-2">|</span>
-            <p className="text-white font-bold tabular-nums">
-              {getPartnerLabel()}: {getTimeInTimezone(partnerTimezone)}
-            </p>
-          </>
+      <div className="flex flex-col items-center justify-center w-full text-center">
+        <div className="flex items-center text-sm md:text-base">
+          <Clock className="w-4 h-4 text-blue-400 mr-2 flex-shrink-0" />
+          <p className="text-white font-bold tabular-nums flex items-center gap-1.5">
+            {userFlag && <span className="text-lg">{userFlag}</span>}
+            {getUserLabel()}: {getTimeInTimezone(userTimezone)}
+          </p>
+          {partnerTimezone && (
+            <>
+              <span className="text-gray-500 font-bold mx-2">|</span>
+              <p className="text-white font-bold tabular-nums flex items-center gap-1.5">
+                {partnerFlag && <span className="text-lg">{partnerFlag}</span>}
+                {getPartnerLabel()}: {getTimeInTimezone(partnerTimezone)}
+              </p>
+            </>
+          )}
+        </div>
+        {distance && (
+          <p className="text-gray-400 text-xs mt-1">
+            {distance.toLocaleString()} km apart
+          </p>
         )}
       </div>
     );
@@ -274,7 +318,9 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
       <div className="flex flex-col items-center justify-center min-h-screen">
         <div className="w-full max-w-7xl space-y-12">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <InfoBoxContainer><TimeBox /></InfoBoxContainer>
+            <div onClick={() => setPage('map')} className="cursor-pointer hover:scale-[1.02] transition-transform">
+              <InfoBoxContainer><TimeBox /></InfoBoxContainer>
+            </div>
             <InfoBoxContainer><CountdownBox /></InfoBoxContainer>
             <InfoBoxContainer><MessageBox /></InfoBoxContainer>
           </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Heart, Copy, Check, UserPlus, Loader, User, Globe, Music } from 'lucide-react';
+import { Heart, Copy, Check, UserPlus, Loader, User, Globe, Music, MapPin } from 'lucide-react';
 import {
   getCurrentUserProfile,
   getPartnerInfo,
@@ -8,6 +8,7 @@ import {
   updateDisplayName,
   updateTimezone,
   updateProfileEmoji,
+  updateLocation,
   type UserProfile,
   type PartnerInfo,
 } from '../lib/partnerService';
@@ -35,6 +36,9 @@ export default function Settings() {
   const [selectedEmoji, setSelectedEmoji] = useState<string | null>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [isUpdatingEmoji, setIsUpdatingEmoji] = useState(false);
+  const [city, setCity] = useState('');
+  const [countryCode, setCountryCode] = useState('');
+  const [isUpdatingLocation, setIsUpdatingLocation] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
@@ -66,6 +70,8 @@ export default function Settings() {
       setDisplayName(userProfile?.display_name || '');
       setTimezone(userProfile?.timezone || 'Europe/London');
       setSelectedEmoji(userProfile?.profile_emoji || null);
+      setCity(userProfile?.city || '');
+      setCountryCode(userProfile?.country_code || '');
 
       if (userProfile?.partner_id) {
         const partnerInfo = await getPartnerInfo();
@@ -215,6 +221,55 @@ export default function Settings() {
       setError('Failed to update timezone');
     } finally {
       setIsUpdatingTimezone(false);
+    }
+  };
+
+  const handleUpdateLocation = async () => {
+    if (!city.trim() || !countryCode.trim()) {
+      setError('Please enter both city and country');
+      return;
+    }
+
+    setIsUpdatingLocation(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      // Get coordinates from Mapbox Geocoding API
+      const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN;
+      const query = `${city}, ${countryCode}`;
+      const response = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxToken}&limit=1&types=place`
+      );
+      const data = await response.json();
+
+      if (data.features && data.features.length > 0) {
+        const feature = data.features[0];
+        const [lng, lat] = feature.center;
+        const countryName = feature.context?.find((c: any) => c.id.startsWith('country'))?.text || countryCode;
+
+        const result = await updateLocation({
+          city: city.trim(),
+          country_code: countryCode.toUpperCase(),
+          country_name: countryName,
+          latitude: lat,
+          longitude: lng,
+        });
+
+        if (result) {
+          setSuccess('Location updated successfully');
+          await loadProfile();
+        } else {
+          setError('Failed to update location');
+        }
+      } else {
+        setError('Could not find location. Please check city and country code.');
+      }
+    } catch (err) {
+      console.error('Error updating location:', err);
+      setError('Failed to update location');
+    } finally {
+      setIsUpdatingLocation(false);
     }
   };
 
@@ -433,6 +488,42 @@ export default function Settings() {
                 <p className="mt-1.5 text-xs text-gray-400">
                   This will be shown on the dashboard alongside your partner's timezone
                 </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-300 mb-1 flex items-center">
+                  <MapPin className="w-3.5 h-3.5 mr-1.5" />
+                  Your Location
+                </label>
+                <div className="space-y-2">
+                  <div className="flex space-x-2">
+                    <input
+                      type="text"
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      placeholder="City (e.g., London)"
+                      className="flex-1 px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500"
+                    />
+                    <input
+                      type="text"
+                      value={countryCode}
+                      onChange={(e) => setCountryCode(e.target.value.toUpperCase())}
+                      placeholder="Country code (e.g., GB)"
+                      maxLength={2}
+                      className="w-32 px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500 uppercase"
+                    />
+                    <button
+                      onClick={handleUpdateLocation}
+                      disabled={isUpdatingLocation || !city || !countryCode || countryCode.length !== 2}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isUpdatingLocation ? 'Saving...' : 'Save'}
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-400">
+                    Your location will appear with a flag next to your timezone on the dashboard
+                  </p>
+                </div>
               </div>
             </div>
           </div>
