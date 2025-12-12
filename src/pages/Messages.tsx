@@ -676,9 +676,12 @@ export default function Messages() {
               <video
                 controls
                 preload="metadata"
-                src={message.media_url}
+                src={`${message.media_url}#t=0.1`}
                 className="w-full rounded bg-black"
                 style={{ maxHeight: '150px' }}
+                onError={(e) => {
+                  console.log('Video load error:', e);
+                }}
               />
             ) : (
               <div className="bg-gray-800/50 rounded p-2 text-center">
