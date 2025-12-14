@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Upload, Link as LinkIcon, Loader } from 'lucide-react';
+import { X, Upload, Loader, ChevronLeft, ChevronRight, Grid, Layers } from 'lucide-react';
 import { uploadFile, uploadFromUrl, createMediaItem, getFileType, MediaMetadata } from '../lib/mediaService';
 
 interface UploadModalProps {
@@ -20,24 +20,24 @@ interface UploadedFile {
   metadata: MediaMetadata;
 }
 
-type UploadStep = 'select' | 'upload' | 'metadata' | 'complete';
+type UploadStep = 'select' | 'upload-type' | 'upload' | 'metadata' | 'complete';
+type UploadType = 'individual' | 'carousel';
 
 export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalProps) {
   const [step, setStep] = useState<UploadStep>('select');
-  const [uploadMethod, setUploadMethod] = useState<'device' | 'url'>('device');
+  const [uploadType, setUploadType] = useState<UploadType>('individual');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [googlePhotosUrls, setGooglePhotosUrls] = useState<string>('');
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [currentMetadataIndex, setCurrentMetadataIndex] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [carouselMetadata, setCarouselMetadata] = useState<MediaMetadata>({});
+
+  const MAX_CAROUSEL_ITEMS = 10;
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log('[UploadModal] File input changed', e.target.files);
     if (e.target.files) {
       const allFiles = Array.from(e.target.files);
-      console.log('[UploadModal] All selected files:', allFiles.map(f => ({ name: f.name, type: f.type, size: f.size })));
-
       const MAX_VIDEO_SIZE = 100 * 1024 * 1024; // 100MB
       const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
 
@@ -63,7 +63,6 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
         validFiles.push(file);
       });
 
-      console.log('[UploadModal] Valid files:', validFiles.map(f => ({ name: f.name, type: f.type })));
       setSelectedFiles(validFiles);
 
       if (errors.length > 0) {
@@ -74,11 +73,25 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
     }
   };
 
-  const handleUpload = async () => {
-    console.log('[UploadModal] Starting upload process');
-    console.log('[UploadModal] Upload method:', uploadMethod);
-    console.log('[UploadModal] Selected files count:', selectedFiles.length);
+  const handleUploadTypeSelection = () => {
+    if (selectedFiles.length === 0) {
+      setError('Please select files first');
+      return;
+    }
 
+    if (selectedFiles.length === 1) {
+      // Skip upload type selection for single file
+      setUploadType('individual');
+      handleUpload('individual');
+    } else if (selectedFiles.length > MAX_CAROUSEL_ITEMS) {
+      setError(`Carousel limited to ${MAX_CAROUSEL_ITEMS} items. You selected ${selectedFiles.length} files.`);
+    } else {
+      setStep('upload-type');
+    }
+  };
+
+  const handleUpload = async (type?: UploadType) => {
+    const finalUploadType = type || uploadType;
     setIsUploading(true);
     setError(null);
     setStep('upload');
@@ -86,64 +99,26 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
     try {
       const uploaded: UploadedFile[] = [];
 
-      if (uploadMethod === 'device') {
-        console.log('[UploadModal] Uploading from device...');
-        // Upload files from device
-        for (let i = 0; i < selectedFiles.length; i++) {
-          const file = selectedFiles[i];
-          console.log(`[UploadModal] Uploading file ${i + 1}/${selectedFiles.length}:`, file.name);
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const file = selectedFiles[i];
+        const { path, url } = await uploadFile(file);
 
-          const { path, url } = await uploadFile(file);
-          console.log(`[UploadModal] File uploaded successfully:`, { path, url });
-
-          uploaded.push({
-            file,
-            storagePath: path,
-            publicUrl: url,
-            fileName: file.name,
-            fileType: getFileType(file.type),
-            mimeType: file.type,
-            fileSize: file.size,
-            metadata: {},
-          });
-        }
-      } else {
-        console.log('[UploadModal] Uploading from Google Photos URLs...');
-        // Upload from Google Photos URLs
-        const urls = googlePhotosUrls
-          .split('\n')
-          .map((url) => url.trim())
-          .filter((url) => url.length > 0);
-
-        console.log('[UploadModal] URLs to process:', urls.length);
-
-        for (let i = 0; i < urls.length; i++) {
-          const url = urls[i];
-          const fileName = `google-photos-${Date.now()}-${i}.jpg`;
-          console.log(`[UploadModal] Uploading URL ${i + 1}/${urls.length}:`, url);
-
-          const { path, url: publicUrl } = await uploadFromUrl(url, fileName);
-          console.log(`[UploadModal] URL uploaded successfully:`, { path, publicUrl });
-
-          uploaded.push({
-            url,
-            storagePath: path,
-            publicUrl,
-            fileName,
-            fileType: 'image', // Assume images from Google Photos
-            mimeType: 'image/jpeg',
-            fileSize: null,
-            metadata: {},
-          });
-        }
+        uploaded.push({
+          file,
+          storagePath: path,
+          publicUrl: url,
+          fileName: file.name,
+          fileType: getFileType(file.type),
+          mimeType: file.type,
+          fileSize: file.size,
+          metadata: {},
+        });
       }
 
-      console.log('[UploadModal] All files uploaded successfully:', uploaded.length);
       setUploadedFiles(uploaded);
       setStep('metadata');
       setCurrentMetadataIndex(0);
     } catch (err) {
-      console.error('[UploadModal] Upload failed:', err);
       setError(err instanceof Error ? err.message : 'Upload failed');
       setStep('select');
     } finally {
@@ -155,46 +130,94 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
 
-    const metadata: MediaMetadata = {
-      description: formData.get('description') as string || undefined,
-      location: formData.get('location') as string || undefined,
-      taken_date: formData.get('taken_date') as string || undefined,
-      added_by: formData.get('added_by') as string || undefined,
-    };
-
-    // Update current file's metadata
-    const updatedFiles = [...uploadedFiles];
-    updatedFiles[currentMetadataIndex].metadata = metadata;
-    setUploadedFiles(updatedFiles);
-
-    // Move to next file or complete
-    if (currentMetadataIndex < uploadedFiles.length - 1) {
-      setCurrentMetadataIndex(currentMetadataIndex + 1);
+    if (uploadType === 'carousel') {
+      // Save carousel metadata
+      const metadata: MediaMetadata = {
+        description: formData.get('description') as string || undefined,
+        location: formData.get('location') as string || undefined,
+        taken_date: formData.get('taken_date') as string || undefined,
+      };
+      setCarouselMetadata(metadata);
+      await saveCarousel(metadata);
     } else {
-      // All metadata collected, save to database
-      await saveAllMedia();
+      // Individual upload - save current file's metadata
+      const metadata: MediaMetadata = {
+        description: formData.get('description') as string || undefined,
+        location: formData.get('location') as string || undefined,
+        taken_date: formData.get('taken_date') as string || undefined,
+      };
+
+      const updatedFiles = [...uploadedFiles];
+      updatedFiles[currentMetadataIndex].metadata = metadata;
+      setUploadedFiles(updatedFiles);
+
+      // Move to next file or complete
+      if (currentMetadataIndex < uploadedFiles.length - 1) {
+        setCurrentMetadataIndex(currentMetadataIndex + 1);
+      } else {
+        await saveIndividualMedia();
+      }
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentMetadataIndex > 0) {
+      setCurrentMetadataIndex(currentMetadataIndex - 1);
     }
   };
 
   const handleSkipMetadata = () => {
-    if (currentMetadataIndex < uploadedFiles.length - 1) {
+    if (uploadType === 'carousel') {
+      saveCarousel({});
+    } else if (currentMetadataIndex < uploadedFiles.length - 1) {
       setCurrentMetadataIndex(currentMetadataIndex + 1);
     } else {
-      saveAllMedia();
+      saveIndividualMedia();
     }
   };
 
-  const saveAllMedia = async () => {
-    console.log('[UploadModal] Saving all media to database...');
+  const saveCarousel = async (metadata: MediaMetadata) => {
+    setIsUploading(true);
+    setError(null);
+
+    try {
+      // Generate a unique carousel ID
+      const carouselId = `carousel-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+
+      for (let i = 0; i < uploadedFiles.length; i++) {
+        const file = uploadedFiles[i];
+        await createMediaItem(
+          file.storagePath,
+          file.publicUrl,
+          file.fileName,
+          file.fileType,
+          file.mimeType,
+          file.fileSize,
+          metadata,
+          carouselId,
+          i
+        );
+      }
+
+      setStep('complete');
+      setTimeout(() => {
+        handleClose();
+        onUploadComplete();
+      }, 1500);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save carousel');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const saveIndividualMedia = async () => {
     setIsUploading(true);
     setError(null);
 
     try {
       for (let i = 0; i < uploadedFiles.length; i++) {
         const file = uploadedFiles[i];
-        console.log(`[UploadModal] Saving media ${i + 1}/${uploadedFiles.length}:`, file.fileName);
-        console.log('[UploadModal] Metadata:', file.metadata);
-
         await createMediaItem(
           file.storagePath,
           file.publicUrl,
@@ -204,19 +227,14 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
           file.fileSize,
           file.metadata
         );
-
-        console.log(`[UploadModal] Media ${i + 1} saved successfully`);
       }
 
-      console.log('[UploadModal] All media saved successfully!');
       setStep('complete');
       setTimeout(() => {
-        console.log('[UploadModal] Closing modal and refreshing media list');
         handleClose();
         onUploadComplete();
       }, 1500);
     } catch (err) {
-      console.error('[UploadModal] Failed to save media:', err);
       setError(err instanceof Error ? err.message : 'Failed to save media');
     } finally {
       setIsUploading(false);
@@ -225,11 +243,11 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
 
   const handleClose = () => {
     setStep('select');
-    setUploadMethod('device');
+    setUploadType('individual');
     setSelectedFiles([]);
-    setGooglePhotosUrls('');
     setUploadedFiles([]);
     setCurrentMetadataIndex(0);
+    setCarouselMetadata({});
     setError(null);
     onClose();
   };
@@ -239,221 +257,275 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
   const currentFile = uploadedFiles[currentMetadataIndex];
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-gray-900 rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-700">
-        <div className="p-6 border-b border-gray-700 flex items-center justify-between sticky top-0 bg-gray-900">
-          <h2 className="text-2xl font-semibold text-white">
-            {step === 'select' && 'Add Media'}
-            {step === 'upload' && 'Uploading...'}
-            {step === 'metadata' && `Add Details (${currentMetadataIndex + 1}/${uploadedFiles.length})`}
-            {step === 'complete' && 'Upload Complete!'}
-          </h2>
-          <button
-            onClick={handleClose}
-            className="text-gray-400 hover:text-gray-200 transition-colors"
-            disabled={isUploading}
-          >
-            <X className="w-6 h-6" />
-          </button>
-        </div>
-
-        <div className="p-6">
-          {error && (
-            <div className="mb-4 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 whitespace-pre-line">
-              {error}
+    <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <div className="bg-gray-900 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden border border-gray-700 flex flex-col">
+        {/* Step: Select Files */}
+        {step === 'select' && (
+          <>
+            <div className="p-4 border-b border-gray-700 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-white">Add Media</h2>
+              <button
+                onClick={handleClose}
+                className="w-8 h-8 bg-gray-800 hover:bg-gray-700 rounded-full flex items-center justify-center transition"
+              >
+                <X className="w-4 h-4 text-white" />
+              </button>
             </div>
-          )}
 
-          {/* Step 1: Select Upload Method */}
-          {step === 'select' && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-3">
-                {/* Device Upload */}
-                <label className="block p-6 border-2 border-dashed border-gray-700 rounded-lg hover:border-blue-500 transition-colors cursor-pointer bg-gray-800/30">
-                  <input
-                    type="file"
-                    multiple
-                    accept="image/*,video/*"
-                    onChange={handleFileSelect}
-                    className="hidden"
-                  />
-                  <Upload className="w-8 h-8 mx-auto mb-3 text-gray-500" />
-                  <p className="text-center text-sm text-gray-300 font-medium">
-                    From Device
-                  </p>
-                  <p className="text-center text-xs text-gray-500 mt-1">
-                    Upload files
-                  </p>
-                </label>
+            <div className="p-6 space-y-4">
+              {error && (
+                <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm whitespace-pre-line">
+                  {error}
+                </div>
+              )}
 
-                {/* Google Photos Placeholder */}
-                <button
-                  type="button"
-                  onClick={() => setError('Google Photos integration coming soon! This will allow you to connect your Google account and import photos directly.')}
-                  className="p-6 border-2 border-dashed border-gray-700 rounded-lg hover:border-purple-500 transition-colors bg-gray-800/30"
-                >
-                  <svg className="w-8 h-8 mx-auto mb-3 text-gray-500" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M21.35 11.1h-9.17v2.73h6.51c-.33 3.81-3.5 5.44-6.5 5.44C8.36 19.27 5 16.25 5 12c0-4.1 3.2-7.27 7.2-7.27 3.09 0 4.9 1.97 4.9 1.97L19 4.72S16.56 2 12.1 2C6.42 2 2.03 6.8 2.03 12c0 5.05 4.13 10 10.22 10 5.35 0 9.25-3.67 9.25-9.09 0-1.15-.15-1.81-.15-1.81z"/>
-                  </svg>
-                  <p className="text-center text-sm text-gray-300 font-medium">
-                    Google Photos
-                  </p>
-                  <p className="text-center text-xs text-gray-500 mt-1">
-                    Coming soon
-                  </p>
-                </button>
-              </div>
+              <label className="block p-8 border-2 border-dashed border-gray-700 rounded-lg hover:border-blue-500 transition-colors cursor-pointer bg-gray-800/30">
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*,video/*"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+                <Upload className="w-10 h-10 mx-auto mb-3 text-gray-500" />
+                <p className="text-center text-sm text-gray-300 font-medium">
+                  Click to select files
+                </p>
+                <p className="text-center text-xs text-gray-500 mt-1">
+                  Images and videos supported
+                </p>
+              </label>
 
               {selectedFiles.length > 0 && (
-                <div className="mt-4">
+                <div>
                   <p className="text-sm font-medium text-gray-300 mb-2">
                     Selected {selectedFiles.length} file(s):
                   </p>
-                  <ul className="space-y-1">
+                  <div className="max-h-32 overflow-y-auto space-y-1">
                     {selectedFiles.map((file, index) => (
-                      <li key={index} className="text-sm text-gray-400 truncate">
+                      <div key={index} className="text-sm text-gray-400 truncate bg-gray-800/50 px-3 py-1.5 rounded">
                         {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
-                      </li>
+                      </div>
                     ))}
-                  </ul>
+                  </div>
                 </div>
               )}
 
               <button
-                onClick={handleUpload}
+                onClick={handleUploadTypeSelection}
                 disabled={isUploading || selectedFiles.length === 0}
-                className="w-full px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed font-medium"
+                className="w-full px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed font-medium text-sm"
               >
-                {isUploading ? 'Uploading...' : 'Upload'}
+                Continue
               </button>
             </div>
-          )}
+          </>
+        )}
 
-          {/* Step 2: Uploading */}
-          {step === 'upload' && (
-            <div className="text-center py-12">
-              <Loader className="w-12 h-12 mx-auto mb-4 text-blue-500 animate-spin" />
-              <p className="text-gray-400">Uploading your files...</p>
+        {/* Step: Upload Type Selection */}
+        {step === 'upload-type' && (
+          <>
+            <div className="p-4 border-b border-gray-700 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-white">How do you want to upload?</h2>
+              <button
+                onClick={() => setStep('select')}
+                className="w-8 h-8 bg-gray-800 hover:bg-gray-700 rounded-full flex items-center justify-center transition"
+              >
+                <X className="w-4 h-4 text-white" />
+              </button>
             </div>
-          )}
 
-          {/* Step 3: Add Metadata */}
-          {step === 'metadata' && currentFile && (
-            <div>
-              {/* Preview */}
-              <div className="mb-6 bg-gray-950 rounded-lg flex items-center justify-center" style={{ height: '16rem' }}>
-                {currentFile.fileType === 'image' ? (
-                  <img
-                    src={currentFile.publicUrl}
-                    alt={currentFile.fileName}
-                    className="max-w-full max-h-full object-contain rounded-lg"
-                  />
-                ) : (
-                  <video
-                    src={currentFile.publicUrl}
-                    controls
-                    className="max-w-full max-h-full object-contain rounded-lg"
-                  />
-                )}
+            <div className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => {
+                    setUploadType('individual');
+                    handleUpload('individual');
+                  }}
+                  className="p-6 border-2 border-gray-700 rounded-lg hover:border-blue-500 hover:bg-gray-800/50 transition-all bg-gray-800/30 text-left"
+                >
+                  <Grid className="w-8 h-8 mb-3 text-blue-400" />
+                  <p className="text-sm text-gray-300 font-medium mb-1">Individual</p>
+                  <p className="text-xs text-gray-500">
+                    Upload each file separately with unique details
+                  </p>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setUploadType('carousel');
+                    handleUpload('carousel');
+                  }}
+                  className="p-6 border-2 border-gray-700 rounded-lg hover:border-purple-500 hover:bg-gray-800/50 transition-all bg-gray-800/30 text-left"
+                >
+                  <Layers className="w-8 h-8 mb-3 text-purple-400" />
+                  <p className="text-sm text-gray-300 font-medium mb-1">Carousel</p>
+                  <p className="text-xs text-gray-500">
+                    Group {selectedFiles.length} files together (max {MAX_CAROUSEL_ITEMS})
+                  </p>
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Step: Uploading */}
+        {step === 'upload' && (
+          <div className="p-12 text-center">
+            <Loader className="w-12 h-12 mx-auto mb-4 text-blue-500 animate-spin" />
+            <p className="text-gray-400">Uploading your files...</p>
+          </div>
+        )}
+
+        {/* Step: Add Metadata */}
+        {step === 'metadata' && currentFile && (
+          <div className="grid md:grid-cols-2 flex-1 min-h-0">
+            {/* Left: Preview */}
+            <div className="flex items-center justify-center relative bg-black min-h-0 p-4">
+              {currentFile.fileType === 'image' ? (
+                <img
+                  src={currentFile.publicUrl}
+                  alt={currentFile.fileName}
+                  className="max-w-full max-h-full object-contain"
+                />
+              ) : (
+                <video
+                  src={currentFile.publicUrl}
+                  controls
+                  className="max-w-full max-h-full object-contain"
+                />
+              )}
+            </div>
+
+            {/* Right: Metadata Form */}
+            <div className="p-4 flex flex-col overflow-y-auto overflow-x-hidden">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-base font-semibold text-white">
+                  {uploadType === 'carousel'
+                    ? `Carousel Details (${uploadedFiles.length} items)`
+                    : `Add Details (${currentMetadataIndex + 1}/${uploadedFiles.length})`}
+                </h2>
+                <button
+                  onClick={handleClose}
+                  className="w-8 h-8 bg-gray-800 hover:bg-gray-700 rounded-full flex items-center justify-center transition"
+                >
+                  <X className="w-4 h-4 text-white" />
+                </button>
               </div>
 
-              <form onSubmit={handleMetadataSubmit} className="space-y-4">
+              {uploadType === 'carousel' && (
+                <div className="mb-3 p-2 bg-purple-500/10 border border-purple-500/30 rounded-lg">
+                  <p className="text-xs text-purple-300">
+                    These details will apply to all {uploadedFiles.length} items in the carousel
+                  </p>
+                </div>
+              )}
+
+              <form onSubmit={handleMetadataSubmit} className="space-y-3 flex-1 flex flex-col">
                 <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-300">
+                  <label className="block mb-1.5 text-xs font-medium text-gray-300">
                     Description (optional)
                   </label>
                   <textarea
                     name="description"
-                    defaultValue={currentFile.metadata.description}
+                    defaultValue={uploadType === 'carousel' ? carouselMetadata.description : currentFile.metadata.description}
                     placeholder="Add a description..."
-                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     rows={3}
                   />
                 </div>
 
                 <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-300">
+                  <label className="block mb-1.5 text-xs font-medium text-gray-300">
                     Location (optional)
                   </label>
                   <input
                     type="text"
                     name="location"
-                    defaultValue={currentFile.metadata.location}
+                    defaultValue={uploadType === 'carousel' ? carouselMetadata.location : currentFile.metadata.location}
                     placeholder="Where was this taken?"
-                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-300">
+                  <label className="block mb-1.5 text-xs font-medium text-gray-300">
                     Date (optional)
                   </label>
                   <input
                     type="date"
                     name="taken_date"
-                    defaultValue={currentFile.metadata.taken_date}
-                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    defaultValue={uploadType === 'carousel' ? carouselMetadata.taken_date : currentFile.metadata.taken_date}
+                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
 
-                <div>
-                  <label className="block mb-2 text-sm font-medium text-gray-300">
-                    Added by (optional)
-                  </label>
-                  <input
-                    type="text"
-                    name="added_by"
-                    defaultValue={currentFile.metadata.added_by}
-                    placeholder="Who added this?"
-                    className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-
-                <div className="flex gap-3 pt-4">
+                <div className="flex gap-2 pt-3 mt-auto">
+                  {uploadType === 'individual' && currentMetadataIndex > 0 && (
+                    <button
+                      type="button"
+                      onClick={handlePrevious}
+                      className="px-3 py-2 border border-gray-700 text-gray-300 rounded-lg hover:bg-gray-800 transition text-xs flex items-center"
+                    >
+                      <ChevronLeft className="w-4 h-4 mr-1" />
+                      Previous
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={handleSkipMetadata}
-                    className="flex-1 px-6 py-3 border border-gray-700 text-gray-300 rounded-lg hover:bg-gray-800 transition-colors font-medium"
+                    className="flex-1 px-4 py-2 border border-gray-700 text-gray-300 rounded-lg hover:bg-gray-800 transition font-medium text-sm"
                   >
                     Skip
                   </button>
                   <button
                     type="submit"
                     disabled={isUploading}
-                    className="flex-1 px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:bg-gray-600 font-medium"
+                    className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition disabled:bg-gray-600 font-medium text-sm flex items-center justify-center"
                   >
-                    {currentMetadataIndex < uploadedFiles.length - 1 ? 'Next' : 'Finish'}
+                    {uploadType === 'carousel' ? (
+                      'Finish'
+                    ) : currentMetadataIndex < uploadedFiles.length - 1 ? (
+                      <>
+                        Next
+                        <ChevronRight className="w-4 h-4 ml-1" />
+                      </>
+                    ) : (
+                      'Finish'
+                    )}
                   </button>
                 </div>
               </form>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Step 4: Complete */}
-          {step === 'complete' && (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg
-                  className="w-8 h-8 text-green-500"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-              </div>
-              <p className="text-xl font-semibold text-white">All set!</p>
-              <p className="text-gray-400 mt-2">
-                {uploadedFiles.length} file(s) uploaded successfully
-              </p>
+        {/* Step: Complete */}
+        {step === 'complete' && (
+          <div className="p-12 text-center">
+            <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg
+                className="w-8 h-8 text-green-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
             </div>
-          )}
-        </div>
+            <p className="text-xl font-semibold text-white">All set!</p>
+            <p className="text-gray-400 mt-2">
+              {uploadType === 'carousel'
+                ? `Carousel with ${uploadedFiles.length} items uploaded successfully`
+                : `${uploadedFiles.length} file(s) uploaded successfully`}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

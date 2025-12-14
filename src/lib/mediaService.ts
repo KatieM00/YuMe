@@ -13,6 +13,8 @@ export interface MediaItem {
   location: string | null;
   taken_date: string | null;
   added_by: string | null;
+  carousel_id: string | null;
+  carousel_order: number | null;
   created_at: string;
   updated_at: string;
   comments?: MediaComment[];
@@ -106,7 +108,9 @@ export async function createMediaItem(
   fileType: 'image' | 'video',
   mimeType: string,
   fileSize: number | null,
-  metadata: MediaMetadata
+  metadata: MediaMetadata,
+  carouselId?: string | null,
+  carouselOrder?: number | null
 ): Promise<MediaItem> {
   console.log('[mediaService] createMediaItem called:', {
     storagePath,
@@ -115,7 +119,9 @@ export async function createMediaItem(
     fileType,
     mimeType,
     fileSize,
-    metadata
+    metadata,
+    carouselId,
+    carouselOrder
   });
 
   // Get current user ID
@@ -138,6 +144,8 @@ export async function createMediaItem(
       location: metadata.location || null,
       taken_date: metadata.taken_date || null,
       added_by: metadata.added_by || null,
+      carousel_id: carouselId || null,
+      carousel_order: carouselOrder !== undefined ? carouselOrder : null,
     })
     .select()
     .single();
