@@ -282,18 +282,21 @@ export default function Settings() {
     try {
       const [lng, lat] = suggestion.center;
 
+      // Use city if available, otherwise use the first part of place_name
+      const cityName = suggestion.city || suggestion.place_name.split(',')[0].trim();
+
       const result = await updateLocation({
-        city: suggestion.city,
-        country_code: suggestion.country_code,
-        country_name: suggestion.country_name,
+        city: cityName,
+        country_code: suggestion.country_code || null,
+        country_name: suggestion.country_name || null,
         latitude: lat,
         longitude: lng,
       });
 
       if (result) {
         setSuccess('Location updated successfully');
-        setCity(suggestion.city);
-        setCountryCode(suggestion.country_code);
+        setCity(cityName);
+        setCountryCode(suggestion.country_code || '');
         await loadProfile();
       } else {
         setError('Failed to update location');
