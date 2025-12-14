@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, MapPin, Calendar, MessageSquare, X, Trash2, Loader, Pencil } from 'lucide-react';
+import { Plus, MapPin, Calendar, MessageSquare, X, Trash2, Loader, Pencil, Layers, ChevronLeft, ChevronRight } from 'lucide-react';
 import { UploadModal } from '../components/UploadModal';
 import UserBadge from '../components/UserBadge';
 import {
@@ -11,9 +11,19 @@ import {
   updateMediaItem,
 } from '../lib/mediaService';
 
+// Helper type for grouped media
+interface MediaGroup {
+  id: string; // carousel_id or individual media id
+  isCarousel: boolean;
+  items: MediaItem[];
+  displayItem: MediaItem; // The item to show in the grid
+}
+
 export default function Images() {
   const [images, setImages] = useState<MediaItem[]>([]);
   const [selectedImage, setSelectedImage] = useState<MediaItem | null>(null);
+  const [carouselItems, setCarouselItems] = useState<MediaItem[]>([]); // All items in selected carousel
+  const [currentCarouselIndex, setCurrentCarouselIndex] = useState(0);
   const [newComment, setNewComment] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -37,6 +47,68 @@ export default function Images() {
   useEffect(() => {
     loadMedia();
   }, []);
+
+  // Group media items by carousel
+  const groupedMedia = (): MediaGroup[] => {
+    const groups: MediaGroup[] = [];
+    const processedCarousels = new Set<string>();
+
+    images.forEach((item) => {
+      if (item.carousel_id && !processedCarousels.has(item.carousel_id)) {
+        // This is a carousel item we haven't processed yet
+        const carouselItems = images
+          .filter((img) => img.carousel_id === item.carousel_id)
+          .sort((a, b) => (a.carousel_order || 0) - (b.carousel_order || 0));
+
+        groups.push({
+          id: item.carousel_id,
+          isCarousel: true,
+          items: carouselItems,
+          displayItem: carouselItems[0], // Show first item in grid
+        });
+
+        processedCarousels.add(item.carousel_id);
+      } else if (!item.carousel_id) {
+        // Individual item (not part of a carousel)
+        groups.push({
+          id: item.id,
+          isCarousel: false,
+          items: [item],
+          displayItem: item,
+        });
+      }
+    });
+
+    return groups;
+  };
+
+  const handleCardClick = (group: MediaGroup) => {
+    if (group.isCarousel) {
+      setCarouselItems(group.items);
+      setCurrentCarouselIndex(0);
+      setSelectedImage(group.items[0]);
+    } else {
+      setCarouselItems([]);
+      setCurrentCarouselIndex(0);
+      setSelectedImage(group.displayItem);
+    }
+  };
+
+  const handleCarouselNext = () => {
+    if (carouselItems.length > 0 && currentCarouselIndex < carouselItems.length - 1) {
+      const newIndex = currentCarouselIndex + 1;
+      setCurrentCarouselIndex(newIndex);
+      setSelectedImage(carouselItems[newIndex]);
+    }
+  };
+
+  const handleCarouselPrev = () => {
+    if (carouselItems.length > 0 && currentCarouselIndex > 0) {
+      const newIndex = currentCarouselIndex - 1;
+      setCurrentCarouselIndex(newIndex);
+      setSelectedImage(carouselItems[newIndex]);
+    }
+  };
 
   const handleAddComment = async () => {
     if (selectedImage && newComment.trim()) {
@@ -181,53 +253,62 @@ export default function Images() {
           </div>
         ) : (
           <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
-            {images.map((image) => (
-              <div
-                key={image.id}
-                onClick={() => setSelectedImage(image)}
-                className="relative group cursor-pointer aspect-square rounded-lg overflow-hidden bg-gray-900"
-              >
-                {image.file_type === 'image' ? (
-                  <img
-                    src={image.public_url}
-                    alt={image.description || image.file_name}
-                    className="w-full h-full object-contain"
-                  />
-                ) : (
-                  <video
-                    src={image.public_url}
-                    className="w-full h-full object-contain"
-                  />
-                )}
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition flex items-center justify-center">
-                  <div className="opacity-0 group-hover:opacity-100 transition text-white text-center p-3">
-                    {image.description && (
-                      <p className="text-xs font-medium mb-1.5">{image.description}</p>
-                    )}
-                    {image.location && (
-                      <div className="flex items-center justify-center space-x-0.5 mb-0.5">
-                        <MapPin className="w-3 h-3" />
-                        <p className="text-[10px]">{image.location}</p>
-                      </div>
-                    )}
-                    {image.taken_date && (
-                      <div className="flex items-center justify-center space-x-0.5">
-                        <Calendar className="w-3 h-3" />
-                        <p className="text-[10px] text-gray-300">{image.taken_date}</p>
-                      </div>
-                    )}
+            {groupedMedia().map((group) => {
+              const image = group.displayItem;
+              return (
+                <div
+                  key={group.id}
+                  onClick={() => handleCardClick(group)}
+                  className="relative group cursor-pointer aspect-square rounded-lg overflow-hidden bg-gray-900"
+                >
+                  {image.file_type === 'image' ? (
+                    <img
+                      src={image.public_url}
+                      alt={image.description || image.file_name}
+                      className="w-full h-full object-contain"
+                    />
+                  ) : (
+                    <video
+                      src={image.public_url}
+                      className="w-full h-full object-contain"
+                    />
+                  )}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition flex items-center justify-center">
+                    <div className="opacity-0 group-hover:opacity-100 transition text-white text-center p-3">
+                      {image.description && (
+                        <p className="text-xs font-medium mb-1.5">{image.description}</p>
+                      )}
+                      {image.location && (
+                        <div className="flex items-center justify-center space-x-0.5 mb-0.5">
+                          <MapPin className="w-3 h-3" />
+                          <p className="text-[10px]">{image.location}</p>
+                        </div>
+                      )}
+                      {image.taken_date && (
+                        <div className="flex items-center justify-center space-x-0.5">
+                          <Calendar className="w-3 h-3" />
+                          <p className="text-[10px] text-gray-300">{image.taken_date}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  {image.file_type === 'video' && (
+                    <div className="absolute top-1.5 right-1.5 bg-black/70 backdrop-blur-sm px-1.5 py-0.5 rounded text-[10px] text-white">
+                      VIDEO
+                    </div>
+                  )}
+                  {group.isCarousel && (
+                    <div className="absolute top-1.5 left-1.5 bg-black/70 backdrop-blur-sm px-1.5 py-0.5 rounded text-[10px] text-white flex items-center space-x-0.5">
+                      <Layers className="w-2.5 h-2.5" />
+                      <span>{group.items.length}</span>
+                    </div>
+                  )}
+                  <div className="absolute bottom-1.5 right-1.5">
+                    <UserBadge userId={image.user_id} size={16} />
                   </div>
                 </div>
-                {image.file_type === 'video' && (
-                  <div className="absolute top-1.5 right-1.5 bg-black/70 backdrop-blur-sm px-1.5 py-0.5 rounded text-[10px] text-white">
-                    VIDEO
-                  </div>
-                )}
-                <div className="absolute bottom-1.5 right-1.5">
-                  <UserBadge userId={image.user_id} size={16} />
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
@@ -248,6 +329,31 @@ export default function Images() {
                       controls
                       className="max-w-full max-h-full object-contain"
                     />
+                  )}
+
+                  {/* Carousel Navigation */}
+                  {carouselItems.length > 0 && (
+                    <>
+                      {currentCarouselIndex > 0 && (
+                        <button
+                          onClick={handleCarouselPrev}
+                          className="absolute left-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/70 hover:bg-black/90 backdrop-blur-sm rounded-full flex items-center justify-center transition"
+                        >
+                          <ChevronLeft className="w-6 h-6 text-white" />
+                        </button>
+                      )}
+                      {currentCarouselIndex < carouselItems.length - 1 && (
+                        <button
+                          onClick={handleCarouselNext}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/70 hover:bg-black/90 backdrop-blur-sm rounded-full flex items-center justify-center transition"
+                        >
+                          <ChevronRight className="w-6 h-6 text-white" />
+                        </button>
+                      )}
+                      <div className="absolute top-3 left-1/2 -translate-x-1/2 bg-black/70 backdrop-blur-sm px-3 py-1 rounded-full text-xs text-white">
+                        {currentCarouselIndex + 1} / {carouselItems.length}
+                      </div>
+                    </>
                   )}
                 </div>
 
@@ -306,6 +412,8 @@ export default function Images() {
                         onClick={() => {
                           setSelectedImage(null);
                           setIsEditMode(false);
+                          setCarouselItems([]);
+                          setCurrentCarouselIndex(0);
                         }}
                         className="w-8 h-8 bg-gray-800 hover:bg-gray-700 rounded-full flex items-center justify-center transition"
                       >
