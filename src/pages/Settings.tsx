@@ -552,7 +552,15 @@ export default function Settings() {
                       />
 
                       {showLocationSuggestions && locationSuggestions.length > 0 && (
-                        <div className="absolute left-0 right-0 z-[9999] mt-1 bg-gray-900 border border-gray-600 rounded-md shadow-2xl max-h-60 overflow-y-auto">
+                        <div
+                          className="fixed z-[9999] mt-1 bg-gray-900 border border-gray-600 rounded-md shadow-2xl max-h-60 overflow-y-auto"
+                          style={{
+                            width: '250px',
+                            top: '440px', // Adjust this if needed
+                            left: '50%',
+                            transform: 'translateX(-50%)'
+                          }}
+                        >
                           {locationSuggestions.map((suggestion, index) => (
                             <button
                               key={index}
