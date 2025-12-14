@@ -51,7 +51,10 @@ export default function Settings() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const locationInputRef = useRef<HTMLInputElement>(null);
+  const emojiButtonRef = useRef<HTMLButtonElement>(null);
+  const emojiPickerRef = useRef<HTMLDivElement>(null);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
+  const [emojiPickerPosition, setEmojiPickerPosition] = useState({ top: 0, left: 0 });
   const [showPassword, setShowPassword] = useState(false);
   const [showInviteCode, setShowInviteCode] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -111,6 +114,62 @@ export default function Settings() {
 
     setHasUnsavedChanges(hasChanges);
   }, [fullName, displayName, timezone, password, profile]);
+
+  useEffect(() => {
+    // Click outside detection for emoji picker
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        showEmojiPicker &&
+        emojiPickerRef.current &&
+        emojiButtonRef.current &&
+        !emojiPickerRef.current.contains(event.target as Node) &&
+        !emojiButtonRef.current.contains(event.target as Node)
+      ) {
+        setShowEmojiPicker(false);
+      }
+    };
+
+    if (showEmojiPicker) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showEmojiPicker]);
+
+  useEffect(() => {
+    // Update emoji picker position when shown
+    if (showEmojiPicker && emojiButtonRef.current) {
+      const rect = emojiButtonRef.current.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const pickerWidth = 350;
+      const pickerHeight = 450;
+
+      let top = rect.bottom + window.scrollY + 8;
+      let left = rect.left + window.scrollX;
+
+      // On mobile (< 768px), show at bottom of screen
+      if (viewportWidth < 768) {
+        top = viewportHeight - pickerHeight - 16 + window.scrollY;
+        left = (viewportWidth - pickerWidth) / 2 + window.scrollX;
+      } else {
+        // On desktop, position to the right of the button
+        left = rect.right + window.scrollX + 8;
+        top = rect.top + window.scrollY;
+
+        // If it would overflow right edge, position to the left instead
+        if (left + pickerWidth > viewportWidth + window.scrollX) {
+          left = rect.left + window.scrollX - pickerWidth - 8;
+        }
+
+        // If it would overflow bottom, adjust top
+        if (top + pickerHeight > viewportHeight + window.scrollY) {
+          top = viewportHeight + window.scrollY - pickerHeight - 16;
+        }
+      }
+
+      setEmojiPickerPosition({ top, left });
+    }
+  }, [showEmojiPicker]);
 
   const loadProfile = async () => {
     setIsLoading(true);
@@ -580,8 +639,9 @@ export default function Settings() {
           <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700 overflow-visible">
             <div className="flex gap-6">
               {/* Left: Profile Icon */}
-              <div className="flex-shrink-0">
+              <div className="flex-shrink-0 relative">
                 <button
+                  ref={emojiButtonRef}
                   onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                   className="w-24 h-24 bg-gray-900/50 border-2 border-gray-600 rounded-xl text-white hover:bg-gray-800 transition text-5xl flex items-center justify-center"
                 >
@@ -798,22 +858,6 @@ export default function Settings() {
               </button>
             </div>
 
-            {/* Emoji Picker */}
-            {showEmojiPicker && (
-              <div className="mt-4 border-t border-gray-700 pt-4">
-                <EmojiPicker
-                  onEmojiClick={(emojiData: EmojiClickData) => {
-                    handleUpdateEmoji(emojiData.emoji);
-                    setShowEmojiPicker(false);
-                  }}
-                  width="100%"
-                  height={400}
-                  theme={Theme.DARK}
-                  searchPlaceHolder="Search emoji..."
-                  previewConfig={{ showPreview: false }}
-                />
-              </div>
-            )}
           </div>
 
           {/* Linked Accounts Section */}
@@ -1069,6 +1113,35 @@ export default function Settings() {
               </div>
             </div>
           </div>
+        )}
+
+        {/* Emoji Picker Popover */}
+        {showEmojiPicker && (
+          <>
+            {/* Backdrop for mobile */}
+            <div className="fixed inset-0 bg-black/50 z-[9998] md:hidden" onClick={() => setShowEmojiPicker(false)} />
+
+            <div
+              ref={emojiPickerRef}
+              className="fixed z-[9999] shadow-2xl rounded-xl overflow-hidden border border-gray-600"
+              style={{
+                top: `${emojiPickerPosition.top}px`,
+                left: `${emojiPickerPosition.left}px`,
+              }}
+            >
+              <EmojiPicker
+                onEmojiClick={(emojiData: EmojiClickData) => {
+                  handleUpdateEmoji(emojiData.emoji);
+                  setShowEmojiPicker(false);
+                }}
+                width={350}
+                height={450}
+                theme={Theme.DARK}
+                searchPlaceHolder="Search emoji..."
+                previewConfig={{ showPreview: false }}
+              />
+            </div>
+          </>
         )}
       </div>
     </div>

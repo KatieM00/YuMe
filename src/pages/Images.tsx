@@ -185,18 +185,18 @@ export default function Images() {
               <div
                 key={image.id}
                 onClick={() => setSelectedImage(image)}
-                className="relative group cursor-pointer aspect-square rounded-lg overflow-hidden bg-gray-800"
+                className="relative group cursor-pointer aspect-square rounded-lg overflow-hidden bg-gray-900"
               >
                 {image.file_type === 'image' ? (
                   <img
                     src={image.public_url}
                     alt={image.description || image.file_name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain"
                   />
                 ) : (
                   <video
                     src={image.public_url}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain"
                   />
                 )}
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition flex items-center justify-center">
@@ -233,20 +233,20 @@ export default function Images() {
 
         {selectedImage && (
           <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-gray-900 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden border border-gray-700">
-              <div className="grid md:grid-cols-2 h-full">
-                <div className="flex items-center justify-center relative bg-black">
+            <div className="bg-gray-900 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden border border-gray-700 flex flex-col">
+              <div className="grid md:grid-cols-2 flex-1 min-h-0">
+                <div className="flex items-center justify-center relative bg-black min-h-0">
                   {selectedImage.file_type === 'image' ? (
                     <img
                       src={selectedImage.public_url}
                       alt={selectedImage.description || selectedImage.file_name}
-                      className="w-full h-full object-contain"
+                      className="max-w-full max-h-full object-contain"
                     />
                   ) : (
                     <video
                       src={selectedImage.public_url}
                       controls
-                      className="w-full h-full object-contain"
+                      className="max-w-full max-h-full object-contain"
                     />
                   )}
                 </div>
