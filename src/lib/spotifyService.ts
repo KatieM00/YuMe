@@ -292,14 +292,44 @@ export async function getPlaylist(playlistId: string): Promise<SpotifyPlaylist> 
 }
 
 /**
- * Get playlist tracks
+ * Get playlist tracks with pagination support to avoid rate limiting
  */
 export async function getPlaylistTracks(playlistId: string, limit: number = 100): Promise<SpotifyTrack[]> {
-  const data = await callSpotifyAPI(`playlists/${playlistId}/tracks`, 'GET', undefined, {
-    limit: limit.toString(),
-  });
+  const tracks: SpotifyTrack[] = [];
+  let offset = 0;
+  const batchSize = 50; // Smaller batch size to avoid rate limits
 
-  return data.items?.map((item: any) => item.track) || [];
+  while (tracks.length < limit) {
+    const remaining = limit - tracks.length;
+    const currentLimit = Math.min(remaining, batchSize);
+
+    // Add delay between requests to avoid rate limiting
+    if (offset > 0) {
+      await new Promise(resolve => setTimeout(resolve, 100)); // 100ms delay between requests
+    }
+
+    const data = await callSpotifyAPI(`playlists/${playlistId}/tracks`, 'GET', undefined, {
+      limit: currentLimit.toString(),
+      offset: offset.toString(),
+    });
+
+    const batch = data.items?.map((item: any) => item.track).filter(Boolean) || [];
+
+    if (batch.length === 0) {
+      // No more tracks available
+      break;
+    }
+
+    tracks.push(...batch);
+    offset += batch.length;
+
+    // If we got fewer tracks than requested, we've reached the end
+    if (batch.length < currentLimit) {
+      break;
+    }
+  }
+
+  return tracks;
 }
 
 /**

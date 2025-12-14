@@ -119,9 +119,19 @@ export default function Mixtape() {
   const handlePlayAll = () => {
     if (!selectedPlaylist?.songs || selectedPlaylist.songs.length === 0) return;
 
-    // Toggle the embedded player view
-    setShowEmbedPlayer(!showEmbedPlayer);
-    setIsPlayingAll(!isPlayingAll);
+    if (isPlayingAll) {
+      // Stop playing
+      setShowEmbedPlayer(false);
+      setIsPlayingAll(false);
+    } else {
+      // Start playing - open first track in Spotify
+      const firstSong = selectedPlaylist.songs[0];
+      window.open(`https://open.spotify.com/track/${firstSong.spotify_id}`, '_blank');
+
+      // Show the embedded player view
+      setShowEmbedPlayer(true);
+      setIsPlayingAll(true);
+    }
   };
 
   const fetchPlaylists = async () => {
