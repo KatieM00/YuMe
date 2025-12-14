@@ -181,8 +181,8 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
     setError(null);
 
     try {
-      // Generate a unique carousel ID
-      const carouselId = `carousel-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+      // Generate a unique carousel ID using crypto.randomUUID()
+      const carouselId = crypto.randomUUID();
 
       for (let i = 0; i < uploadedFiles.length; i++) {
         const file = uploadedFiles[i];
@@ -421,7 +421,7 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
                 </div>
               )}
 
-              <form onSubmit={handleMetadataSubmit} className="space-y-3 flex-1 flex flex-col">
+              <form key={currentMetadataIndex} onSubmit={handleMetadataSubmit} className="space-y-3 flex-1 flex flex-col">
                 <div>
                   <label className="block mb-1.5 text-xs font-medium text-gray-300">
                     Description (optional)

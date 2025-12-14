@@ -180,7 +180,7 @@ export default function Images() {
             <p className="text-gray-500 text-xs">Click "Add Media" to upload your first photo or video</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
             {images.map((image) => (
               <div
                 key={image.id}
