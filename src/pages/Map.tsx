@@ -280,7 +280,7 @@ export default function Map() {
     if (userProfile?.latitude && userProfile?.longitude && userProfile?.profile_emoji) {
       const userMarkerEl = document.createElement('div');
       userMarkerEl.className = 'user-location-marker';
-      userMarkerEl.style.fontSize = '40px';
+      userMarkerEl.style.fontSize = '15px';
       userMarkerEl.style.cursor = 'pointer';
       userMarkerEl.textContent = userProfile.profile_emoji;
 
