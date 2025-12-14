@@ -341,18 +341,18 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
           {step === 'metadata' && currentFile && (
             <div>
               {/* Preview */}
-              <div className="mb-6">
+              <div className="mb-6 bg-gray-950 rounded-lg flex items-center justify-center" style={{ height: '16rem' }}>
                 {currentFile.fileType === 'image' ? (
                   <img
                     src={currentFile.publicUrl}
                     alt={currentFile.fileName}
-                    className="w-full h-64 object-cover rounded-lg"
+                    className="max-w-full max-h-full object-contain rounded-lg"
                   />
                 ) : (
                   <video
                     src={currentFile.publicUrl}
                     controls
-                    className="w-full h-64 rounded-lg"
+                    className="max-w-full max-h-full object-contain rounded-lg"
                   />
                 )}
               </div>
