@@ -754,13 +754,28 @@ export default function Settings() {
                     <label className="block text-sm font-medium text-gray-300 mb-1.5">
                       Password
                     </label>
-                    <input
-                      type="password"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="Enter new password to change"
-                    />
+                    <div className="flex gap-2">
+                      <div className="flex-1 relative">
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          value="••••••••"
+                          readOnly
+                          className="w-full px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white text-sm cursor-default"
+                        />
+                        <button
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-300"
+                        >
+                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                      <button
+                        onClick={() => setShowPasswordModal(true)}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition whitespace-nowrap"
+                      >
+                        Change
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
