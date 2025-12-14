@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Heart, Copy, Check, UserPlus, Loader, User, Globe, Music, MapPin, Eye, EyeOff } from 'lucide-react';
 import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react';
+import { supabase } from '../lib/supabase';
 import {
   getCurrentUserProfile,
   getPartnerInfo,
@@ -57,6 +58,12 @@ export default function Settings() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  const [password, setPassword] = useState('');
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isSavingChanges, setIsSavingChanges] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -91,6 +98,19 @@ export default function Settings() {
       window.history.replaceState({}, '', window.location.pathname);
     }
   }, []);
+
+  useEffect(() => {
+    // Check if there are unsaved changes
+    if (!profile) return;
+
+    const hasChanges =
+      fullName !== (profile.full_name || '') ||
+      displayName !== (profile.display_name || '') ||
+      timezone !== (profile.timezone || 'Europe/London') ||
+      password !== '';
+
+    setHasUnsavedChanges(hasChanges);
+  }, [fullName, displayName, timezone, password, profile]);
 
   const loadProfile = async () => {
     setIsLoading(true);
@@ -447,6 +467,86 @@ export default function Settings() {
     }
   };
 
+  const handleSaveAllChanges = async () => {
+    setIsSavingChanges(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const promises = [];
+
+      // Update full name if changed
+      if (fullName !== (profile?.full_name || '')) {
+        promises.push(updateFullName(fullName.trim()));
+      }
+
+      // Update display name if changed
+      if (displayName !== (profile?.display_name || '')) {
+        promises.push(updateDisplayName(displayName.trim()));
+      }
+
+      // Update timezone if changed
+      if (timezone !== (profile?.timezone || 'Europe/London')) {
+        promises.push(updateTimezone(timezone));
+      }
+
+      // Update password if entered
+      if (password.trim()) {
+        if (password.length < 6) {
+          setError('Password must be at least 6 characters');
+          setIsSavingChanges(false);
+          return;
+        }
+        promises.push(updatePassword(password));
+      }
+
+      await Promise.all(promises);
+
+      setSuccess('Changes saved successfully');
+      setPassword(''); // Clear password field after saving
+      await loadProfile();
+    } catch (err) {
+      setError('Failed to save some changes');
+    } finally {
+      setIsSavingChanges(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== 'DELETE') {
+      setError('Please type DELETE to confirm');
+      return;
+    }
+
+    setIsDeletingAccount(true);
+    setError('');
+
+    try {
+      // Delete user account via Supabase Auth
+      const { error } = await supabase.auth.admin.deleteUser(
+        (await supabase.auth.getUser()).data.user?.id || ''
+      );
+
+      if (error) {
+        // Try using the regular delete method
+        const { error: deleteError } = await supabase.rpc('delete_user_account');
+
+        if (deleteError) {
+          setError('Failed to delete account. Please contact support.');
+          setIsDeletingAccount(false);
+          return;
+        }
+      }
+
+      // Sign out and redirect
+      await supabase.auth.signOut();
+      window.location.href = '/';
+    } catch (err) {
+      setError('Failed to delete account. Please try again.');
+      setIsDeletingAccount(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen p-4 md:p-8 flex items-center justify-center">
@@ -498,22 +598,13 @@ export default function Settings() {
                     <label className="block text-sm font-medium text-gray-300 mb-1.5">
                       Account Name
                     </label>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
-                        className="flex-1 px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Enter your full name"
-                      />
-                      <button
-                        onClick={handleUpdateFullName}
-                        disabled={isUpdatingFullName || fullName === profile?.full_name}
-                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {isUpdatingFullName ? 'Saving...' : 'Save'}
-                      </button>
-                    </div>
+                    <input
+                      type="text"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      className="w-full px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Enter your full name"
+                    />
                   </div>
 
                   {/* Location */}
@@ -587,22 +678,13 @@ export default function Settings() {
                     <label className="block text-sm font-medium text-gray-300 mb-1.5">
                       Display Name
                     </label>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={displayName}
-                        onChange={(e) => setDisplayName(e.target.value)}
-                        className="flex-1 px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Enter your display name"
-                      />
-                      <button
-                        onClick={handleUpdateDisplayName}
-                        disabled={isUpdatingName || displayName === profile?.display_name}
-                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {isUpdatingName ? 'Saving...' : 'Save'}
-                      </button>
-                    </div>
+                    <input
+                      type="text"
+                      value={displayName}
+                      onChange={(e) => setDisplayName(e.target.value)}
+                      className="w-full px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Enter your display name"
+                    />
                   </div>
 
                   {/* Timezone */}
@@ -610,12 +692,11 @@ export default function Settings() {
                     <label className="block text-sm font-medium text-gray-300 mb-1.5">
                       Time Zone
                     </label>
-                    <div className="flex gap-2">
-                      <select
-                        value={timezone}
-                        onChange={(e) => setTimezone(e.target.value)}
-                        className="flex-1 px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
+                    <select
+                      value={timezone}
+                      onChange={(e) => setTimezone(e.target.value)}
+                      className="w-full px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
                         <optgroup label="Common Timezones">
                           <option value="Europe/London">London (GMT)</option>
                           <option value="Europe/Athens">Athens (GMT+2)</option>
@@ -666,14 +747,6 @@ export default function Settings() {
                           <option value="Pacific/Fiji">Fiji</option>
                         </optgroup>
                       </select>
-                      <button
-                        onClick={handleUpdateTimezone}
-                        disabled={isUpdatingTimezone || timezone === profile?.timezone}
-                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {isUpdatingTimezone ? 'Saving...' : 'Save'}
-                      </button>
-                    </div>
                   </div>
 
                   {/* Password */}
@@ -681,31 +754,33 @@ export default function Settings() {
                     <label className="block text-sm font-medium text-gray-300 mb-1.5">
                       Password
                     </label>
-                    <div className="flex gap-2">
-                      <div className="flex-1 relative">
-                        <input
-                          type={showPassword ? "text" : "password"}
-                          value="••••••••"
-                          readOnly
-                          className="w-full px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white text-sm"
-                        />
-                        <button
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-300"
-                        >
-                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                        </button>
-                      </div>
-                      <button
-                        onClick={() => setShowPasswordModal(true)}
-                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition"
-                      >
-                        Change
-                      </button>
-                    </div>
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Enter new password to change"
+                    />
                   </div>
                 </div>
               </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-700">
+              <button
+                onClick={() => setShowDeleteModal(true)}
+                className="px-4 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 border border-red-500/30 rounded-md text-sm font-medium transition"
+              >
+                Delete Account
+              </button>
+              <button
+                onClick={handleSaveAllChanges}
+                disabled={!hasUnsavedChanges || isSavingChanges}
+                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSavingChanges ? 'Saving...' : 'Save Changes'}
+              </button>
             </div>
 
             {/* Emoji Picker */}
@@ -872,49 +947,38 @@ export default function Settings() {
           </div>
         </div>
 
-        {/* Password Change Modal */}
-        {showPasswordModal && (
+        {/* Delete Account Modal */}
+        {showDeleteModal && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[10000] p-4">
-            <div className="bg-gray-800 rounded-xl p-6 max-w-md w-full border border-gray-700">
-              <h3 className="text-xl font-bold text-white mb-4">Change Password</h3>
+            <div className="bg-gray-800 rounded-xl p-6 max-w-md w-full border border-red-500/50">
+              <h3 className="text-xl font-bold text-red-400 mb-4">Delete Account</h3>
 
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1.5">
-                    New Password
-                  </label>
-                  <input
-                    type="password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Enter new password"
-                  />
+                <div className="p-4 bg-red-900/20 border border-red-500/30 rounded-md">
+                  <p className="text-sm text-red-300 font-medium mb-2">⚠️ Warning: This action is irreversible!</p>
+                  <p className="text-xs text-gray-300">
+                    You will lose access to your account and all of your saved data. This cannot be undone.
+                  </p>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-1.5">
-                    Confirm Password
+                    Type <span className="font-mono text-red-400">DELETE</span> to confirm
                   </label>
                   <input
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="Confirm new password"
+                    type="text"
+                    value={deleteConfirmText}
+                    onChange={(e) => setDeleteConfirmText(e.target.value)}
+                    className="w-full px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-red-500"
+                    placeholder="Type DELETE to confirm"
                   />
                 </div>
-
-                <p className="text-xs text-gray-400">
-                  Password must be at least 6 characters long
-                </p>
 
                 <div className="flex gap-3 mt-6">
                   <button
                     onClick={() => {
-                      setShowPasswordModal(false);
-                      setNewPassword('');
-                      setConfirmPassword('');
+                      setShowDeleteModal(false);
+                      setDeleteConfirmText('');
                       setError('');
                     }}
                     className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-sm font-medium transition"
@@ -922,11 +986,11 @@ export default function Settings() {
                     Cancel
                   </button>
                   <button
-                    onClick={handlePasswordChange}
-                    disabled={isUpdatingPassword}
-                    className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={handleDeleteAccount}
+                    disabled={isDeletingAccount || deleteConfirmText !== 'DELETE'}
+                    className="flex-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isUpdatingPassword ? 'Updating...' : 'Update Password'}
+                    {isDeletingAccount ? 'Deleting...' : 'Delete Account'}
                   </button>
                 </div>
               </div>
