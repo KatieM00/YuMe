@@ -7,6 +7,7 @@ import { supabase } from './supabase';
 export interface UserProfile {
   id: string;
   email: string;
+  full_name: string | null;
   display_name: string | null;
   partner_id: string | null;
   invite_code: string;
@@ -24,6 +25,7 @@ export interface UserProfile {
 export interface PartnerInfo {
   id: string;
   email: string;
+  full_name: string | null;
   display_name: string | null;
   timezone: string;
   profile_emoji: string | null;
@@ -148,6 +150,24 @@ export async function unlinkPartnerAccount(): Promise<{ success: boolean; messag
 }
 
 // =========================================================================
+// UPDATE FULL NAME
+// =========================================================================
+
+export async function updateFullName(fullName: string): Promise<boolean> {
+  const { error } = await supabase
+    .from('user_profiles')
+    .update({ full_name: fullName })
+    .eq('id', (await supabase.auth.getUser()).data.user?.id);
+
+  if (error) {
+    console.error('Error updating full name:', error);
+    return false;
+  }
+
+  return true;
+}
+
+// =========================================================================
 // UPDATE DISPLAY NAME
 // =========================================================================
 
@@ -199,6 +219,28 @@ export async function updateProfileEmoji(emoji: string | null): Promise<boolean>
   }
 
   return true;
+}
+
+// =========================================================================
+// UPDATE PASSWORD
+// =========================================================================
+
+export async function updatePassword(newPassword: string): Promise<{ success: boolean; message: string }> {
+  try {
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword
+    });
+
+    if (error) {
+      console.error('Error updating password:', error);
+      return { success: false, message: error.message || 'Failed to update password' };
+    }
+
+    return { success: true, message: 'Password updated successfully' };
+  } catch (err) {
+    console.error('Error updating password:', err);
+    return { success: false, message: 'Failed to update password' };
+  }
 }
 
 // =========================================================================

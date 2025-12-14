@@ -1,15 +1,17 @@
-import { useState, useEffect } from 'react';
-import { Heart, Copy, Check, UserPlus, Loader, User, Globe, Music, MapPin } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Heart, Copy, Check, UserPlus, Loader, User, Globe, Music, MapPin, Eye, EyeOff } from 'lucide-react';
 import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react';
 import {
   getCurrentUserProfile,
   getPartnerInfo,
   linkPartnerAccount,
   unlinkPartnerAccount,
+  updateFullName,
   updateDisplayName,
   updateTimezone,
   updateProfileEmoji,
   updateLocation,
+  updatePassword,
   type UserProfile,
   type PartnerInfo,
 } from '../lib/partnerService';
@@ -27,10 +29,12 @@ export default function Settings() {
   const [isLoading, setIsLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [inviteCode, setInviteCode] = useState('');
+  const [fullName, setFullName] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [timezone, setTimezone] = useState('Europe/London');
   const [isLinking, setIsLinking] = useState(false);
   const [isUnlinking, setIsUnlinking] = useState(false);
+  const [isUpdatingFullName, setIsUpdatingFullName] = useState(false);
   const [isUpdatingName, setIsUpdatingName] = useState(false);
   const [isUpdatingTimezone, setIsUpdatingTimezone] = useState(false);
   const [isDisconnectingSpotify, setIsDisconnectingSpotify] = useState(false);
@@ -45,11 +49,33 @@ export default function Settings() {
   const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const locationInputRef = useRef<HTMLInputElement>(null);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showInviteCode, setShowInviteCode] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
 
   useEffect(() => {
     loadProfile();
     loadSpotifyConnection();
   }, []);
+
+  useEffect(() => {
+    // Update dropdown position on scroll or resize
+    if (showLocationSuggestions) {
+      updateDropdownPosition();
+      window.addEventListener('scroll', updateDropdownPosition);
+      window.addEventListener('resize', updateDropdownPosition);
+
+      return () => {
+        window.removeEventListener('scroll', updateDropdownPosition);
+        window.removeEventListener('resize', updateDropdownPosition);
+      };
+    }
+  }, [showLocationSuggestions]);
 
   useEffect(() => {
     // Check for Spotify connection status from URL params
@@ -71,6 +97,7 @@ export default function Settings() {
     try {
       const userProfile = await getCurrentUserProfile();
       setProfile(userProfile);
+      setFullName(userProfile?.full_name || '');
       setDisplayName(userProfile?.display_name || '');
       setTimezone(userProfile?.timezone || 'Europe/London');
       setSelectedEmoji(userProfile?.profile_emoji || null);
@@ -107,6 +134,32 @@ export default function Settings() {
       navigator.clipboard.writeText(profile.invite_code);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const handleUpdateFullName = async () => {
+    if (!fullName.trim()) {
+      setError('Full name cannot be empty');
+      return;
+    }
+
+    setIsUpdatingFullName(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const result = await updateFullName(fullName.trim());
+
+      if (result) {
+        setSuccess('Full name updated successfully');
+        await loadProfile();
+      } else {
+        setError('Failed to update full name');
+      }
+    } catch (err) {
+      setError('Failed to update full name');
+    } finally {
+      setIsUpdatingFullName(false);
     }
   };
 
@@ -233,6 +286,17 @@ export default function Settings() {
     }
   };
 
+  const updateDropdownPosition = () => {
+    if (locationInputRef.current) {
+      const rect = locationInputRef.current.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + window.scrollY,
+        left: rect.left + window.scrollX,
+        width: rect.width,
+      });
+    }
+  };
+
   const searchLocation = async (query: string) => {
     if (!query.trim()) {
       setLocationSuggestions([]);
@@ -266,6 +330,7 @@ export default function Settings() {
         });
         setLocationSuggestions(suggestions);
         setShowLocationSuggestions(true);
+        updateDropdownPosition();
       }
     } catch (err) {
       console.error('Error searching location:', err);
@@ -344,6 +409,44 @@ export default function Settings() {
     }
   };
 
+  const handlePasswordChange = async () => {
+    if (!newPassword || !confirmPassword) {
+      setError('Please fill in all password fields');
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    setIsUpdatingPassword(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const result = await updatePassword(newPassword);
+
+      if (result.success) {
+        setSuccess('Password updated successfully');
+        setShowPasswordModal(false);
+        setNewPassword('');
+        setConfirmPassword('');
+      } else {
+        setError(result.message);
+      }
+    } catch (err) {
+      setError('Failed to update password');
+    } finally {
+      setIsUpdatingPassword(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen p-4 md:p-8 flex items-center justify-center">
@@ -354,7 +457,7 @@ export default function Settings() {
 
   return (
     <div className="min-h-screen p-4 md:p-8 pt-20 md:pt-24">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         <div className="flex items-center mb-6">
           <Heart className="w-6 h-6 text-blue-400 mr-2" />
           <h1 className="text-2xl md:text-3xl font-bold text-white">Settings</h1>
@@ -374,99 +477,144 @@ export default function Settings() {
 
         <div className="space-y-4">
           {/* Profile Section */}
-          <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-700 overflow-visible">
-            <h2 className="text-base font-bold text-white mb-3">Your Profile</h2>
-
-            <div className="space-y-3 overflow-visible">
-              <div>
-                <label className="block text-xs font-medium text-gray-300 mb-1">
-                  Email
-                </label>
-                <div className="px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-gray-400 text-sm">
-                  {profile?.email}
-                </div>
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700 overflow-visible">
+            <div className="flex gap-6">
+              {/* Left: Profile Icon */}
+              <div className="flex-shrink-0">
+                <button
+                  onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                  className="w-24 h-24 bg-gray-900/50 border-2 border-gray-600 rounded-xl text-white hover:bg-gray-800 transition text-5xl flex items-center justify-center"
+                >
+                  {selectedEmoji || '😊'}
+                </button>
               </div>
 
-              <div>
-                <div className="flex flex-col md:flex-row md:items-start md:space-x-4 space-y-3 md:space-y-0">
+              {/* Right: Two Column Layout */}
+              <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Left Column */}
+                <div className="space-y-3">
+                  {/* Full Name */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1.5">
+                      Account Name
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        className="flex-1 px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Enter your full name"
+                      />
+                      <button
+                        onClick={handleUpdateFullName}
+                        disabled={isUpdatingFullName || fullName === profile?.full_name}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isUpdatingFullName ? 'Saving...' : 'Save'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Location */}
+                  <div className="overflow-visible">
+                    <label className="block text-sm font-medium text-gray-300 mb-1.5">
+                      Location
+                    </label>
+                    <div className="relative overflow-visible">
+                      <input
+                        ref={locationInputRef}
+                        type="text"
+                        value={locationSearch}
+                        onChange={(e) => {
+                          setLocationSearch(e.target.value);
+                          searchLocation(e.target.value);
+                        }}
+                        onFocus={() => {
+                          if (locationSuggestions.length > 0) {
+                            updateDropdownPosition();
+                            setShowLocationSuggestions(true);
+                          }
+                        }}
+                        onBlur={() => {
+                          setTimeout(() => setShowLocationSuggestions(false), 200);
+                        }}
+                        placeholder="Search city (e.g., London, UK)"
+                        className="w-full px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500"
+                      />
+
+                      {showLocationSuggestions && locationSuggestions.length > 0 && (
+                        <div
+                          className="fixed z-[9999] bg-gray-900 border border-gray-600 rounded-md shadow-2xl max-h-60 overflow-y-auto"
+                          style={{
+                            top: `${dropdownPosition.top + 4}px`,
+                            left: `${dropdownPosition.left}px`,
+                            width: `${dropdownPosition.width}px`,
+                          }}
+                        >
+                          {locationSuggestions.map((suggestion, index) => (
+                            <button
+                              key={index}
+                              onClick={() => {
+                                handleSelectLocation(suggestion);
+                                setShowLocationSuggestions(false);
+                              }}
+                              className="w-full text-left px-3 py-2 hover:bg-gray-700 text-white text-sm border-b border-gray-700 last:border-b-0"
+                            >
+                              {suggestion.place_name}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Email */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1.5">
+                      Email
+                    </label>
+                    <div className="px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-gray-400 text-sm">
+                      {profile?.email}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Column */}
+                <div className="space-y-3">
                   {/* Display Name */}
-                  <div className="flex-1">
-                    <label className="block text-xs font-medium text-gray-300 mb-1">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1.5">
                       Display Name
                     </label>
-                    <div className="flex space-x-2">
+                    <div className="flex gap-2">
                       <input
                         type="text"
                         value={displayName}
                         onChange={(e) => setDisplayName(e.target.value)}
-                        className="w-full md:max-w-[250px] px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="Enter your name"
+                        className="flex-1 px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Enter your display name"
                       />
                       <button
                         onClick={handleUpdateDisplayName}
                         disabled={isUpdatingName || displayName === profile?.display_name}
-                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {isUpdatingName ? 'Saving...' : 'Save'}
                       </button>
                     </div>
                   </div>
 
-                  {/* Profile Icon */}
-                  <div className="flex-shrink-0">
-                    <label className="block text-xs font-medium text-gray-300 mb-1">
-                      Profile Icon
-                    </label>
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                        className="px-4 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white hover:bg-gray-800 transition text-2xl min-w-[60px]"
-                      >
-                        {selectedEmoji || '😊'}
-                      </button>
-                      {selectedEmoji && (
-                        <button
-                          onClick={() => handleUpdateEmoji(null)}
-                          disabled={isUpdatingEmoji}
-                          className="px-3 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded-md text-xs font-medium transition disabled:opacity-50"
-                        >
-                          Remove
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {showEmojiPicker && (
-                  <div className="mt-3">
-                    <EmojiPicker
-                      onEmojiClick={(emojiData: EmojiClickData) => {
-                        handleUpdateEmoji(emojiData.emoji);
-                        setShowEmojiPicker(false);
-                      }}
-                      width="100%"
-                      height={400}
-                      theme={Theme.DARK}
-                      searchPlaceHolder="Search emoji..."
-                      previewConfig={{ showPreview: false }}
-                    />
-                  </div>
-                )}
-              </div>
-
-              <div className="overflow-visible">
-                <div className="flex flex-col md:flex-row md:space-x-4 space-y-3 md:space-y-0 overflow-visible">
                   {/* Timezone */}
-                  <div className="flex-1 overflow-visible">
-                    <label className="block text-xs font-medium text-gray-300 mb-1 flex items-center">
-                      <Globe className="w-3.5 h-3.5 mr-1.5" />
-                      Timezone
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1.5">
+                      Time Zone
                     </label>
-                    <div className="flex space-x-2">
+                    <div className="flex gap-2">
                       <select
                         value={timezone}
                         onChange={(e) => setTimezone(e.target.value)}
-                        className="w-full md:max-w-[220px] px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="flex-1 px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
                         <optgroup label="Common Timezones">
                           <option value="Europe/London">London (GMT)</option>
@@ -521,282 +669,270 @@ export default function Settings() {
                       <button
                         onClick={handleUpdateTimezone}
                         disabled={isUpdatingTimezone || timezone === profile?.timezone}
-                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {isUpdatingTimezone ? 'Saving...' : 'Save'}
                       </button>
                     </div>
                   </div>
 
-                  {/* Location */}
-                  <div className="flex-1 overflow-visible">
-                    <label className="block text-xs font-medium text-gray-300 mb-1 flex items-center">
-                      <MapPin className="w-3.5 h-3.5 mr-1.5" />
-                      Location
+                  {/* Password */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-1.5">
+                      Password
                     </label>
-                    <div className="relative overflow-visible">
-                      <input
-                        type="text"
-                        value={locationSearch}
-                        onChange={(e) => {
-                          setLocationSearch(e.target.value);
-                          searchLocation(e.target.value);
-                        }}
-                        onFocus={() => locationSuggestions.length > 0 && setShowLocationSuggestions(true)}
-                        onBlur={() => {
-                          // Delay to allow click on suggestion
-                          setTimeout(() => setShowLocationSuggestions(false), 200);
-                        }}
-                        placeholder="Search city (e.g., London, UK)"
-                        className="w-full md:max-w-[250px] px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500"
-                      />
-
-                      {showLocationSuggestions && locationSuggestions.length > 0 && (
-                        <div
-                          className="fixed z-[9999] mt-1 bg-gray-900 border border-gray-600 rounded-md shadow-2xl max-h-60 overflow-y-auto"
-                          style={{
-                            width: '250px',
-                            top: '440px', // Adjust this if needed
-                            left: '50%',
-                            transform: 'translateX(-50%)'
-                          }}
+                    <div className="flex gap-2">
+                      <div className="flex-1 relative">
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          value="••••••••"
+                          readOnly
+                          className="w-full px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white text-sm"
+                        />
+                        <button
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-300"
                         >
-                          {locationSuggestions.map((suggestion, index) => (
-                            <button
-                              key={index}
-                              onClick={() => {
-                                handleSelectLocation(suggestion);
-                                setShowLocationSuggestions(false);
-                              }}
-                              className="w-full text-left px-3 py-2 hover:bg-gray-700 text-white text-sm border-b border-gray-700 last:border-b-0"
-                            >
-                              {suggestion.place_name}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-
-                      {isUpdatingLocation && (
-                        <p className="mt-1.5 text-xs text-blue-400">
-                          Updating...
-                        </p>
-                      )}
+                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                      <button
+                        onClick={() => setShowPasswordModal(true)}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition"
+                      >
+                        Change
+                      </button>
                     </div>
                   </div>
                 </div>
-
-                {(city && countryCode) && (
-                  <p className="mt-2 text-xs text-gray-400">
-                    Current location: {city}, {countryCode}
-                  </p>
-                )}
               </div>
             </div>
+
+            {/* Emoji Picker */}
+            {showEmojiPicker && (
+              <div className="mt-4 border-t border-gray-700 pt-4">
+                <EmojiPicker
+                  onEmojiClick={(emojiData: EmojiClickData) => {
+                    handleUpdateEmoji(emojiData.emoji);
+                    setShowEmojiPicker(false);
+                  }}
+                  width="100%"
+                  height={400}
+                  theme={Theme.DARK}
+                  searchPlaceHolder="Search emoji..."
+                  previewConfig={{ showPreview: false }}
+                />
+              </div>
+            )}
           </div>
 
-          {/* Partner Linking Section */}
-          <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-700">
-            <h2 className="text-base font-bold text-white mb-3 flex items-center">
-              <UserPlus className="w-4 h-4 mr-1.5" />
-              Partner Account
-            </h2>
+          {/* Linked Accounts Section */}
+          <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700">
+            <h2 className="text-lg font-bold text-white mb-4">Linked Accounts</h2>
 
-            {partner ? (
-              /* Partner Linked */
-              <div className="space-y-3">
-                <div className="p-3 bg-green-900/20 border border-green-500/30 rounded-md">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-green-400 font-medium mb-0.5 text-sm">Partner Linked</p>
-                      <p className="text-gray-300 text-sm">
-                        <User className="w-3.5 h-3.5 inline mr-1.5" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Partner Account Card */}
+              <div className="bg-gray-900/50 border border-gray-600 rounded-lg p-4">
+                <h3 className="text-sm font-semibold text-gray-300 mb-3">Linked with</h3>
+                {partner ? (
+                  <div className="space-y-3">
+                    <div className="p-3 bg-green-900/20 border border-green-500/30 rounded-md">
+                      <p className="text-green-400 font-medium text-sm mb-1">
                         {partner.display_name || partner.email}
                       </p>
-                      <p className="text-gray-500 text-xs">{partner.email}</p>
+                      <p className="text-gray-400 text-xs">{partner.email}</p>
                     </div>
-                    <button
-                      onClick={handleUnlinkPartner}
-                      disabled={isUnlinking}
-                      className="px-3 py-1.5 bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded-md text-xs font-medium transition border border-red-500/30 disabled:opacity-50"
-                    >
-                      {isUnlinking ? 'Unlinking...' : 'Unlink'}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="text-xs text-gray-400">
-                  <p>✓ You are sharing all your YuMe data with your partner</p>
-                  <p>✓ You can see each other's memories, messages, and more</p>
-                </div>
-              </div>
-            ) : (
-              /* No Partner */
-              <div className="space-y-4">
-                {/* Your Invite Code */}
-                <div>
-                  <p className="text-gray-300 mb-2 text-sm">Share this code with your partner:</p>
-                  <div className="flex items-center space-x-2">
-                    <div className="flex-1 px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white font-mono text-base">
-                      {profile?.invite_code}
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setShowInviteCode(!showInviteCode)}
+                        className="flex-1 px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-xs font-medium transition"
+                      >
+                        View code
+                      </button>
+                      <button
+                        onClick={handleUnlinkPartner}
+                        disabled={isUnlinking}
+                        className="flex-1 px-3 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded-md text-xs font-medium transition disabled:opacity-50"
+                      >
+                        {isUnlinking ? 'Unlinking...' : 'Unlink'}
+                      </button>
                     </div>
-                    <button
-                      onClick={handleCopyInviteCode}
-                      className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm transition flex items-center space-x-1.5"
-                    >
-                      {copied ? (
-                        <>
-                          <Check className="w-4 h-4" />
-                          <span>Copied!</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-4 h-4" />
-                          <span>Copy</span>
-                        </>
-                      )}
-                    </button>
+                    {showInviteCode && (
+                      <div className="p-2 bg-gray-800 border border-gray-700 rounded">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-white font-mono text-xs">
+                            {profile?.invite_code}
+                          </span>
+                          <button
+                            onClick={handleCopyInviteCode}
+                            className="text-blue-400 hover:text-blue-300"
+                          >
+                            {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                </div>
-
-                {/* Divider */}
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-600"></div>
-                  </div>
-                  <div className="relative flex justify-center text-xs">
-                    <span className="px-3 bg-gray-800 text-gray-400">OR</span>
-                  </div>
-                </div>
-
-                {/* Enter Partner's Code */}
-                <div>
-                  <p className="text-gray-300 mb-2 text-sm">Enter your partner's invite code:</p>
-                  <div className="flex space-x-2">
+                ) : (
+                  <div className="space-y-3">
+                    <p className="text-gray-400 text-xs mb-2">Enter partner's invite code:</p>
                     <input
                       type="text"
                       value={inviteCode}
                       onChange={(e) => setInviteCode(e.target.value.trim())}
-                      className="flex-1 px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
-                      placeholder="Enter 8-character code"
+                      className="w-full px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white text-xs placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+                      placeholder="8-char code"
                       maxLength={8}
                     />
-                    <button
-                      onClick={handleLinkPartner}
-                      disabled={isLinking || !inviteCode.trim()}
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1.5"
-                    >
-                      {isLinking ? (
-                        <>
-                          <Loader className="w-4 h-4 animate-spin" />
-                          <span>Linking...</span>
-                        </>
-                      ) : (
-                        <>
-                          <UserPlus className="w-4 h-4" />
-                          <span>Link</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                <div className="text-xs text-gray-400 bg-blue-900/20 border border-blue-500/30 rounded-md p-3">
-                  <p className="font-medium text-blue-400 mb-1.5">How Partner Linking Works:</p>
-                  <ul className="space-y-0.5 list-disc list-inside">
-                    <li>Each account starts with their own private data</li>
-                    <li>Once linked, you'll share all memories and content</li>
-                    <li>Both partners can create, view, and edit shared content</li>
-                    <li>You can unlink at any time</li>
-                  </ul>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Spotify Integration Section */}
-          <div className="bg-gray-800/50 backdrop-blur-sm rounded-xl p-4 border border-gray-700">
-            <h2 className="text-base font-bold text-white mb-3 flex items-center">
-              <Music className="w-4 h-4 mr-1.5 text-green-500" />
-              Spotify Integration
-            </h2>
-
-            {spotifyConnection.connected ? (
-              /* Spotify Connected */
-              <div className="space-y-3">
-                <div className="p-3 bg-green-900/20 border border-green-500/30 rounded-md">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      {spotifyConnection.avatar_url && (
-                        <img
-                          src={spotifyConnection.avatar_url}
-                          alt="Spotify Profile"
-                          className="w-10 h-10 rounded-full"
-                        />
-                      )}
-                      <div>
-                        <p className="text-green-400 font-medium mb-0.5 text-sm">Spotify Connected</p>
-                        <p className="text-gray-300 text-sm">
-                          {spotifyConnection.display_name || 'Spotify User'}
-                        </p>
-                        {spotifyConnection.user_id && (
-                          <p className="text-gray-500 text-xs">ID: {spotifyConnection.user_id}</p>
-                        )}
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setShowInviteCode(!showInviteCode)}
+                        className="flex-1 px-3 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-xs font-medium transition"
+                      >
+                        View code
+                      </button>
+                      <button
+                        onClick={handleLinkPartner}
+                        disabled={isLinking || !inviteCode.trim()}
+                        className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs font-medium transition disabled:opacity-50"
+                      >
+                        {isLinking ? 'Linking...' : 'Link'}
+                      </button>
+                    </div>
+                    {showInviteCode && (
+                      <div className="p-2 bg-gray-800 border border-gray-700 rounded">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-white font-mono text-xs">
+                            {profile?.invite_code}
+                          </span>
+                          <button
+                            onClick={handleCopyInviteCode}
+                            className="text-blue-400 hover:text-blue-300"
+                          >
+                            {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                          </button>
+                        </div>
                       </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Spotify Card */}
+              <div className="bg-gray-900/50 border border-gray-600 rounded-lg p-4">
+                <h3 className="text-sm font-semibold text-gray-300 mb-3">
+                  <Music className="w-3.5 h-3.5 inline mr-1" />
+                  Spotify
+                </h3>
+                {spotifyConnection.connected ? (
+                  <div className="space-y-3">
+                    <div className="p-3 bg-green-900/20 border border-green-500/30 rounded-md">
+                      <p className="text-green-400 font-medium text-sm mb-1">Connected</p>
+                      <p className="text-gray-400 text-xs">
+                        {spotifyConnection.display_name || 'Spotify User'}
+                      </p>
                     </div>
                     <button
                       onClick={handleDisconnectSpotify}
                       disabled={isDisconnectingSpotify}
-                      className="px-3 py-1.5 bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded-md text-xs font-medium transition border border-red-500/30 disabled:opacity-50"
+                      className="w-full px-3 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded-md text-xs font-medium transition disabled:opacity-50"
                     >
                       {isDisconnectingSpotify ? 'Disconnecting...' : 'Disconnect'}
                     </button>
                   </div>
-                </div>
+                ) : (
+                  <div className="space-y-3">
+                    <p className="text-gray-400 text-xs">Connect to unlock music features</p>
+                    <button
+                      onClick={handleConnectSpotify}
+                      className="w-full px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md text-xs font-medium transition"
+                    >
+                      Connect Spotify
+                    </button>
+                  </div>
+                )}
+              </div>
 
-                <div className="text-xs text-gray-400">
-                  <p>✓ Search and add tracks from your Spotify library</p>
-                  <p>✓ View your Spotify playlists and recently played</p>
-                  <p>✓ Get personalized music recommendations</p>
-                  <p>✓ Create and sync playlists</p>
+              {/* Google Photos Card */}
+              <div className="bg-gray-900/50 border border-gray-600 rounded-lg p-4">
+                <h3 className="text-sm font-semibold text-gray-300 mb-3">
+                  Google Photos
+                </h3>
+                <div className="space-y-3">
+                  <p className="text-gray-400 text-xs">Upload photos from Google</p>
+                  <button
+                    onClick={() => setError('Google Photos integration coming soon!')}
+                    className="w-full px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs font-medium transition"
+                  >
+                    Connect Google
+                  </button>
                 </div>
               </div>
-            ) : (
-              /* Spotify Not Connected */
-              <div className="space-y-3">
-                <p className="text-gray-300 text-sm">
-                  Connect your Spotify account to unlock music features in YuMe's Mixtape section.
-                </p>
-
-                <button
-                  onClick={handleConnectSpotify}
-                  className="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm font-medium transition flex items-center justify-center space-x-1.5"
-                >
-                  <Music className="w-4 h-4" />
-                  <span>Connect Spotify Account</span>
-                </button>
-
-                <div className="text-xs text-gray-400 bg-gray-900/50 border border-gray-700 rounded-md p-3">
-                  <p className="font-medium text-gray-300 mb-1.5">What you can do with Spotify:</p>
-                  <ul className="space-y-0.5 list-disc list-inside">
-                    <li>Search millions of tracks directly from Spotify</li>
-                    <li>Import your existing Spotify playlists</li>
-                    <li>View your recently played and top tracks</li>
-                    <li>Get AI-powered music recommendations</li>
-                    <li>Create shared playlists with your partner</li>
-                  </ul>
-                </div>
-
-                <div className="text-xs text-gray-500 bg-blue-900/20 border border-blue-500/30 rounded-md p-2.5">
-                  <p className="font-medium text-blue-400 mb-1">Privacy Notice:</p>
-                  <p>
-                    We only request access to view and manage your Spotify playlists and library.
-                    We never share your data with third parties.
-                  </p>
-                </div>
-              </div>
-            )}
+            </div>
           </div>
         </div>
+
+        {/* Password Change Modal */}
+        {showPasswordModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[10000] p-4">
+            <div className="bg-gray-800 rounded-xl p-6 max-w-md w-full border border-gray-700">
+              <h3 className="text-xl font-bold text-white mb-4">Change Password</h3>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1.5">
+                    New Password
+                  </label>
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="w-full px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Enter new password"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1.5">
+                    Confirm Password
+                  </label>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="w-full px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Confirm new password"
+                  />
+                </div>
+
+                <p className="text-xs text-gray-400">
+                  Password must be at least 6 characters long
+                </p>
+
+                <div className="flex gap-3 mt-6">
+                  <button
+                    onClick={() => {
+                      setShowPasswordModal(false);
+                      setNewPassword('');
+                      setConfirmPassword('');
+                      setError('');
+                    }}
+                    className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-sm font-medium transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handlePasswordChange}
+                    disabled={isUpdatingPassword}
+                    className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isUpdatingPassword ? 'Updating...' : 'Update Password'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
