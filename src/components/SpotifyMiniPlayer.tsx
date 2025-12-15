@@ -25,7 +25,7 @@ export default function SpotifyMiniPlayer() {
   // Render UI based on state
   return (
     <>
-      {/* Collapsed State - Rounded Rectangle Bar */}
+      {/* Collapsed State - Rounded Rectangle Bar with controls */}
       {!isExpanded && (
         <div className="fixed bottom-4 right-4 md:bottom-4 md:right-4 z-50 w-[280px] h-16 bg-gray-900/95 backdrop-blur-md border border-gray-700 rounded-xl shadow-2xl flex items-center gap-3 px-3">
           {/* Album Art */}
@@ -54,15 +54,6 @@ export default function SpotifyMiniPlayer() {
               title="Previous"
             >
               <SkipBack className="w-4 h-4 text-white" />
-            </button>
-
-            {/* Play/Pause - Expands player so user can control Spotify */}
-            <button
-              onClick={toggleExpanded}
-              className="w-7 h-7 rounded-full hover:bg-white/10 flex items-center justify-center transition"
-              title="Expand to control playback"
-            >
-              <Play className="w-4 h-4 text-white" />
             </button>
 
             <button
@@ -149,19 +140,6 @@ export default function SpotifyMiniPlayer() {
               </div>
             </div>
 
-            {/* Spotify embed */}
-            <div className="bg-black">
-              <iframe
-                key={currentSong.spotify_id}
-                src={`https://open.spotify.com/embed/track/${currentSong.spotify_id}?theme=0`}
-                width="100%"
-                height="152"
-                allow="encrypted-media"
-                className="w-full"
-                title="Spotify Player"
-              />
-            </div>
-
             {/* Controls */}
             {hasMultipleSongs && (
               <div className="p-3 bg-gray-800/50 flex items-center justify-center space-x-4">
@@ -189,6 +167,28 @@ export default function SpotifyMiniPlayer() {
           </div>
         </div>
       )}
+
+      {/* Spotify Iframe - Always in DOM to keep music playing */}
+      <div
+        style={{
+          position: 'fixed',
+          bottom: isExpanded ? 'calc(1rem + 180px + 8px)' : '-9999px',
+          right: isExpanded ? '1rem' : '-9999px',
+          width: '320px',
+          maxWidth: 'calc(100vw - 2rem)',
+          zIndex: 35,
+        }}
+      >
+        <iframe
+          key={currentSong.spotify_id}
+          src={`https://open.spotify.com/embed/track/${currentSong.spotify_id}?theme=0`}
+          width="100%"
+          height="152"
+          allow="encrypted-media"
+          className="w-full rounded-xl border-0 shadow-2xl"
+          title="Spotify Player"
+        />
+      </div>
     </>
   );
 }
