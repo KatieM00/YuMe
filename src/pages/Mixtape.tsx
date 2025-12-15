@@ -56,7 +56,7 @@ const coverGradients = [
 ];
 
 export default function Mixtape() {
-  const { playPlaylist } = useSpotifyPlayer();
+  const { playPlaylist, playSingleTrack } = useSpotifyPlayer();
 
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | null>(null);
@@ -115,15 +115,20 @@ export default function Mixtape() {
     }, 100);
   };
 
-  const handlePlayAll = () => {
-    if (!selectedPlaylist?.songs || selectedPlaylist.songs.length === 0) return;
+  const handlePlayAll = (playlist?: Playlist) => {
+    // Use provided playlist or fall back to selected playlist
+    const targetPlaylist = playlist || selectedPlaylist;
+
+    if (!targetPlaylist?.songs || targetPlaylist.songs.length === 0) return;
 
     // Trigger global player
-    playPlaylist(selectedPlaylist);
+    playPlaylist(targetPlaylist);
 
-    // Close the modal
-    setSelectedPlaylist(null);
-    setShowAddSong(false);
+    // Close the modal only if currently viewing this playlist
+    if (selectedPlaylist?.id === targetPlaylist.id) {
+      setSelectedPlaylist(null);
+      setShowAddSong(false);
+    }
   };
 
   const fetchPlaylists = async () => {
@@ -830,6 +835,7 @@ export default function Mixtape() {
                 onClick={() => setSelectedPlaylist(playlist)}
                 className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-2.5 border border-gray-700 hover:bg-gray-800/70 hover:scale-105 transition-all cursor-pointer group relative"
               >
+                {/* Edit Button - Top Right */}
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -840,6 +846,8 @@ export default function Mixtape() {
                 >
                   <Edit2 className="w-3 h-3 text-white" />
                 </button>
+
+                {/* Album Art / Cover */}
                 <div className={`w-full aspect-square rounded-md mb-2 flex items-center justify-center relative overflow-hidden ${playlist.cover.startsWith('http') ? '' : playlist.cover}`}>
                   {playlist.cover.startsWith('http') ? (
                     <img
@@ -850,13 +858,47 @@ export default function Mixtape() {
                   ) : (
                     <Music className="w-8 h-8 text-white/50" />
                   )}
-                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition flex items-center justify-center">
-                    <Play className="w-8 h-8 text-white" />
+
+                  {/* Hover Overlay with Action Buttons */}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition flex items-center justify-center">
+                    <div className="flex flex-col items-center space-y-2 opacity-0 group-hover:opacity-100 transition">
+                      {/* Play All Button - Primary */}
+                      {playlist.songs && playlist.songs.length > 0 && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlePlayAll(playlist);
+                          }}
+                          className="px-3 py-1.5 bg-blue-500 hover:bg-blue-600 rounded-lg flex items-center space-x-1.5 text-xs font-medium text-white transition shadow-lg"
+                          title="Play all songs"
+                        >
+                          <PlayCircle className="w-4 h-4" />
+                          <span>Play All</span>
+                        </button>
+                      )}
+
+                      {/* View Playlist Button - Secondary */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedPlaylist(playlist);
+                        }}
+                        className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 rounded-lg flex items-center space-x-1.5 text-xs font-medium text-white transition"
+                        title="View playlist details"
+                      >
+                        <List className="w-4 h-4" />
+                        <span>View Playlist</span>
+                      </button>
+                    </div>
                   </div>
+
+                  {/* User Badge */}
                   <div className="absolute bottom-1.5 right-1.5">
                     <UserBadge userId={playlist.user_id} size={14} />
                   </div>
                 </div>
+
+                {/* Playlist Info */}
                 <h3 className="text-sm font-bold text-white mb-0.5 truncate">{playlist.title}</h3>
                 <p className="text-xs text-gray-400 line-clamp-1">{playlist.description}</p>
                 <p className="text-xs text-gray-500 mt-1">{playlist.songs?.length || 0} songs</p>
@@ -1094,8 +1136,6 @@ export default function Mixtape() {
                       onClick={() => {
                         setSelectedPlaylist(null);
                         setShowAddSong(false);
-                        setIsPlayingAll(false);
-                        setShowEmbedPlayer(false);
                       }}
                       className="w-9 h-9 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center transition"
                       title="Close"
@@ -1120,26 +1160,52 @@ export default function Mixtape() {
                     </button>
                   </div>
                 ) : (
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     {selectedPlaylist.songs?.map((song, index) => (
-                      <div key={song.id} className="group relative">
-                        <div className="absolute top-1.5 right-1.5 z-10 opacity-0 group-hover:opacity-100 transition">
+                      <div key={song.id} className="group bg-gray-800/50 hover:bg-gray-800/70 rounded-lg p-3 flex items-center gap-3 transition">
+                        {/* Album Art */}
+                        {song.album_art ? (
+                          <img
+                            src={song.album_art}
+                            alt={song.title}
+                            className="w-12 h-12 rounded object-cover flex-shrink-0"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 rounded bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+                            <Music className="w-6 h-6 text-white" />
+                          </div>
+                        )}
+
+                        {/* Song Info */}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-white text-sm font-medium truncate">{song.title}</p>
+                          <p className="text-gray-400 text-xs truncate">{song.artist}</p>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex items-center gap-1">
+                          {/* Play Button */}
+                          <button
+                            onClick={() => {
+                              playSingleTrack(song, selectedPlaylist.title);
+                              setSelectedPlaylist(null);
+                              setShowAddSong(false);
+                            }}
+                            className="w-8 h-8 bg-blue-500 hover:bg-blue-600 rounded-full flex items-center justify-center transition shadow-lg"
+                            title="Play this song"
+                          >
+                            <Play className="w-4 h-4 text-white" />
+                          </button>
+
+                          {/* Delete Button */}
                           <button
                             onClick={(e) => handleDeleteSong(song.id, e)}
-                            className="w-7 h-7 bg-black/70 hover:bg-red-500/70 rounded-full flex items-center justify-center transition"
+                            className="w-8 h-8 bg-gray-700 hover:bg-red-500/70 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
                             title="Remove song"
                           >
-                            <Trash2 className="w-3.5 h-3.5 text-white" />
+                            <Trash2 className="w-4 h-4 text-white" />
                           </button>
                         </div>
-                        <iframe
-                          src={`https://open.spotify.com/embed/track/${song.spotify_id}?theme=0`}
-                          width="100%"
-                          height="80"
-                          frameBorder="0"
-                          allow="encrypted-media"
-                          className="rounded-md"
-                        />
                       </div>
                     ))}
 

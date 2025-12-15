@@ -1,5 +1,5 @@
 import { useSpotifyPlayer } from '../contexts/SpotifyPlayerContext';
-import { X, ChevronLeft, ChevronRight, Music } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, ChevronUp, Music, SkipBack, SkipForward, Play } from 'lucide-react';
 
 export default function SpotifyMiniPlayer() {
   const {
@@ -22,46 +22,80 @@ export default function SpotifyMiniPlayer() {
   const canGoPrevious = hasMultipleSongs && currentTrackIndex > 0;
   const canGoNext = hasMultipleSongs && currentTrackIndex < currentPlaylist.songs.length - 1;
 
-  if (!isExpanded) {
-    // Minimized state - small floating badge
-    return (
-      <div
-        onClick={toggleExpanded}
-        className="fixed bottom-4 right-4 md:bottom-4 md:right-4 z-50 cursor-pointer group"
-        style={{ bottom: '1rem' }} // Adjust for mobile navbar if needed
-      >
-        <div className="relative">
-          {/* Album art circle */}
-          <div className="w-16 h-16 rounded-full overflow-hidden bg-gray-800 border-2 border-blue-500 group-hover:border-blue-400 transition shadow-lg">
+  // Render UI based on state
+  return (
+    <>
+      {/* Collapsed State - Rounded Rectangle Bar */}
+      {!isExpanded && (
+        <div className="fixed bottom-4 right-4 md:bottom-4 md:right-4 z-50 w-[280px] h-16 bg-gray-900/95 backdrop-blur-md border border-gray-700 rounded-xl shadow-2xl flex items-center gap-3 px-3">
+          {/* Album Art */}
+          <div className="w-12 h-12 rounded-md overflow-hidden flex-shrink-0">
             {currentSong.album_art ? (
-              <img
-                src={currentSong.album_art}
-                alt={currentSong.title}
-                className="w-full h-full object-cover"
-              />
+              <img src={currentSong.album_art} alt={currentSong.title} className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600">
-                <Music className="w-8 h-8 text-white" />
+              <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                <Music className="w-6 h-6 text-white" />
               </div>
             )}
           </div>
 
-          {/* Pulsing ring animation */}
-          <div className="absolute inset-0 rounded-full border-2 border-blue-500 animate-ping opacity-75" />
+          {/* Track Info */}
+          <div className="flex-1 min-w-0">
+            <p className="text-white text-sm font-medium truncate">{currentSong.title}</p>
+            <p className="text-gray-400 text-xs truncate">{currentSong.artist}</p>
+          </div>
 
-          {/* Track counter badge */}
-          {hasMultipleSongs && (
-            <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-lg">
-              {currentTrackIndex + 1}/{currentPlaylist.songs.length}
-            </div>
-          )}
+          {/* Playback Controls */}
+          <div className="flex items-center gap-1">
+            <button
+              onClick={previousTrack}
+              disabled={!canGoPrevious}
+              className="w-7 h-7 rounded-full hover:bg-white/10 flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed transition"
+              title="Previous"
+            >
+              <SkipBack className="w-4 h-4 text-white" />
+            </button>
+
+            {/* Play/Pause - Visual only, can't control iframe */}
+            <button
+              className="w-7 h-7 rounded-full hover:bg-white/10 flex items-center justify-center opacity-50 cursor-not-allowed"
+              title="Cannot control playback (Spotify embed limitation)"
+            >
+              <Play className="w-4 h-4 text-white" />
+            </button>
+
+            <button
+              onClick={nextTrack}
+              disabled={!canGoNext}
+              className="w-7 h-7 rounded-full hover:bg-white/10 flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed transition"
+              title="Next"
+            >
+              <SkipForward className="w-4 h-4 text-white" />
+            </button>
+          </div>
+
+          {/* Expand Button */}
+          <button
+            onClick={toggleExpanded}
+            className="w-7 h-7 rounded-full hover:bg-white/10 flex items-center justify-center transition"
+            title="Expand player"
+          >
+            <ChevronUp className="w-4 h-4 text-white" />
+          </button>
+
+          {/* Close Button */}
+          <button
+            onClick={stop}
+            className="w-7 h-7 rounded-full hover:bg-white/10 flex items-center justify-center transition"
+            title="Close"
+          >
+            <X className="w-4 h-4 text-white" />
+          </button>
         </div>
-      </div>
-    );
-  }
+      )}
 
-  // Expanded state - full player
-  return (
+      {/* Expanded State - Full Player */}
+      {isExpanded && (
     <div className="fixed bottom-4 right-4 md:bottom-4 md:right-4 z-50 w-80 max-w-[calc(100vw-2rem)]">
       <div className="bg-gray-900 rounded-xl border border-gray-700 shadow-2xl overflow-hidden">
         {/* Header */}
@@ -114,7 +148,7 @@ export default function SpotifyMiniPlayer() {
           </div>
         </div>
 
-        {/* Spotify embed */}
+        {/* Spotify embed - shown in expanded view */}
         <div className="bg-black">
           <iframe
             key={currentSong.spotify_id} // Force re-render when track changes
@@ -153,5 +187,22 @@ export default function SpotifyMiniPlayer() {
         )}
       </div>
     </div>
+      )}
+
+      {/* Spotify Iframe - Always in DOM, positioned off-screen when collapsed */}
+      {/* This keeps music playing even when mini-player is minimized */}
+      {!isExpanded && (
+        <iframe
+          key={currentSong.spotify_id}
+          src={`https://open.spotify.com/embed/track/${currentSong.spotify_id}?theme=0`}
+          width="100%"
+          height="152"
+          frameBorder="0"
+          allow="encrypted-media"
+          className="absolute -left-[9999px]"
+          title="Spotify Player (Background)"
+        />
+      )}
+    </>
   );
 }
