@@ -1,5 +1,6 @@
 import { useSpotifyPlayer } from '../contexts/SpotifyPlayerContext';
 import { X, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Music, SkipBack, SkipForward, Play } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 
 export default function SpotifyMiniPlayer() {
   const {
@@ -12,6 +13,20 @@ export default function SpotifyMiniPlayer() {
     toggleExpanded,
     stop,
   } = useSpotifyPlayer();
+
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const expandedContainerRef = useRef<HTMLDivElement>(null);
+  const offscreenContainerRef = useRef<HTMLDivElement>(null);
+
+  // Move iframe between containers when expanding/collapsing
+  useEffect(() => {
+    if (!iframeRef.current) return;
+
+    const targetContainer = isExpanded ? expandedContainerRef.current : offscreenContainerRef.current;
+    if (targetContainer && !targetContainer.contains(iframeRef.current)) {
+      targetContainer.appendChild(iframeRef.current);
+    }
+  }, [isExpanded]);
 
   if (!isPlaying || !currentPlaylist) {
     return null; // Hidden state
@@ -148,6 +163,9 @@ export default function SpotifyMiniPlayer() {
               </div>
             </div>
 
+            {/* Spotify Embed - Container for iframe when expanded */}
+            <div ref={expandedContainerRef} className="bg-black"></div>
+
             {/* Controls */}
             {hasMultipleSongs && (
               <div className="p-3 bg-gray-800/50 flex items-center justify-center space-x-4">
@@ -176,22 +194,21 @@ export default function SpotifyMiniPlayer() {
         </div>
       )}
 
-      {/* Single Spotify Iframe - Always in DOM, positioned differently based on state */}
-      <div className={isExpanded
-        ? "fixed bottom-4 right-4 md:bottom-4 md:right-4 z-50 w-80 max-w-[calc(100vw-2rem)]"
-        : "fixed -left-[9999px]"
-      }>
-        <iframe
-          key={currentSong.spotify_id}
-          src={`https://open.spotify.com/embed/track/${currentSong.spotify_id}?theme=0`}
-          width="100%"
-          height="152"
-          frameBorder="0"
-          allow="encrypted-media"
-          className={isExpanded ? "w-full rounded-b-xl" : ""}
-          title="Spotify Player"
-        />
-      </div>
+      {/* Off-screen container for iframe when collapsed */}
+      <div ref={offscreenContainerRef} className="fixed -left-[9999px]"></div>
+
+      {/* Single Spotify iframe - moves between containers */}
+      <iframe
+        ref={iframeRef}
+        key={currentSong.spotify_id}
+        src={`https://open.spotify.com/embed/track/${currentSong.spotify_id}?theme=0`}
+        width="100%"
+        height="152"
+        frameBorder="0"
+        allow="encrypted-media"
+        className="w-full"
+        title="Spotify Player"
+      />
     </>
   );
 }
