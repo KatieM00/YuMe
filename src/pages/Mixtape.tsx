@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { Play, Music, MessageSquare, X, Plus, Trash2, ExternalLink, Loader2, Edit2, PlayCircle, StopCircle, Search, TrendingUp, Clock, List } from 'lucide-react';
+import { Play, Music, MessageSquare, X, Plus, Trash2, ExternalLink, Loader2, Edit2, PlayCircle, Search, TrendingUp, Clock, List } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import UserBadge from '../components/UserBadge';
+import { useSpotifyPlayer } from '../contexts/SpotifyPlayerContext';
 import {
   checkSpotifyConnection,
   searchTracks,
@@ -55,6 +56,8 @@ const coverGradients = [
 ];
 
 export default function Mixtape() {
+  const { playPlaylist } = useSpotifyPlayer();
+
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [selectedPlaylist, setSelectedPlaylist] = useState<Playlist | null>(null);
   const [loading, setLoading] = useState(true);
@@ -82,10 +85,6 @@ export default function Mixtape() {
   // Ref for add song form
   const addSongFormRef = useRef<HTMLDivElement>(null);
   const spotifyInputRef = useRef<HTMLInputElement>(null);
-
-  // Play all functionality
-  const [isPlayingAll, setIsPlayingAll] = useState(false);
-  const [showEmbedPlayer, setShowEmbedPlayer] = useState(false);
 
   // Spotify integration
   const [spotifyConnected, setSpotifyConnected] = useState<SpotifyConnectionStatus>({ connected: false });
@@ -119,19 +118,12 @@ export default function Mixtape() {
   const handlePlayAll = () => {
     if (!selectedPlaylist?.songs || selectedPlaylist.songs.length === 0) return;
 
-    if (isPlayingAll) {
-      // Stop playing
-      setShowEmbedPlayer(false);
-      setIsPlayingAll(false);
-    } else {
-      // Start playing - open first track in Spotify
-      const firstSong = selectedPlaylist.songs[0];
-      window.open(`https://open.spotify.com/track/${firstSong.spotify_id}`, '_blank');
+    // Trigger global player
+    playPlaylist(selectedPlaylist);
 
-      // Show the embedded player view
-      setShowEmbedPlayer(true);
-      setIsPlayingAll(true);
-    }
+    // Close the modal
+    setSelectedPlaylist(null);
+    setShowAddSong(false);
   };
 
   const fetchPlaylists = async () => {
@@ -1086,13 +1078,9 @@ export default function Mixtape() {
                       <button
                         onClick={handlePlayAll}
                         className="w-9 h-9 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center transition"
-                        title={isPlayingAll ? "Stop playing" : "Play all"}
+                        title="Play all"
                       >
-                        {isPlayingAll ? (
-                          <StopCircle className="w-4.5 h-4.5 text-white" />
-                        ) : (
-                          <PlayCircle className="w-4.5 h-4.5 text-white" />
-                        )}
+                        <PlayCircle className="w-4.5 h-4.5 text-white" />
                       </button>
                     )}
                     <button
@@ -1119,48 +1107,6 @@ export default function Mixtape() {
               </div>
 
               <div className="p-4 overflow-y-auto max-h-[calc(90vh-100px)]">
-                {/* Play All Embedded Player View */}
-                {showEmbedPlayer && selectedPlaylist.songs && selectedPlaylist.songs.length > 0 && (
-                  <div className="mb-6 bg-gradient-to-br from-green-900/20 to-blue-900/20 border border-green-500/30 rounded-xl p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-white font-semibold text-lg flex items-center">
-                        <PlayCircle className="w-5 h-5 mr-2 text-green-400" />
-                        Now Playing - {selectedPlaylist.songs.length} {selectedPlaylist.songs.length === 1 ? 'track' : 'tracks'}
-                      </h3>
-                      <button
-                        onClick={() => {
-                          setShowEmbedPlayer(false);
-                          setIsPlayingAll(false);
-                        }}
-                        className="text-gray-400 hover:text-white transition"
-                      >
-                        <X className="w-5 h-5" />
-                      </button>
-                    </div>
-                    <div className="space-y-3 max-h-[400px] overflow-y-auto">
-                      {selectedPlaylist.songs.map((song, index) => (
-                        <div key={song.id} className="bg-gray-800/50 rounded-lg p-3">
-                          <div className="flex items-center space-x-3 mb-2">
-                            <span className="text-gray-400 text-sm font-medium w-6">{index + 1}</span>
-                            <div className="flex-1">
-                              <p className="text-white text-sm font-medium">{song.title}</p>
-                              <p className="text-gray-400 text-xs">{song.artist}</p>
-                            </div>
-                          </div>
-                          <iframe
-                            src={`https://open.spotify.com/embed/track/${song.spotify_id}?theme=0`}
-                            width="100%"
-                            height="80"
-                            frameBorder="0"
-                            allow="encrypted-media"
-                            className="rounded-lg"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
                 {selectedPlaylist.songs?.length === 0 && !showAddSong ? (
                   <div className="text-center py-8">
                     <Music className="w-12 h-12 text-gray-600 mx-auto mb-3" />

@@ -9,8 +9,10 @@ import Watching from './pages/Watching';
 import Vision from './pages/Vision';
 import Settings from './pages/Settings';
 import Navbar from './components/Navbar';
+import SpotifyMiniPlayer from './components/SpotifyMiniPlayer';
 import { getCurrentSession, signOut, onAuthStateChange } from './lib/authService';
 import { UserProvider } from './contexts/UserContext';
+import { SpotifyPlayerProvider } from './contexts/SpotifyPlayerContext';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -100,14 +102,17 @@ function App() {
 
   return (
     <UserProvider>
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-gray-900">
-        {currentPage !== 'dashboard' && (
-          <Navbar currentPage={currentPage} setCurrentPage={setCurrentPage} onLogout={handleLogout} />
-        )}
-        <main>
-          {renderPage()}
-        </main>
-      </div>
+      <SpotifyPlayerProvider>
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-slate-900 to-gray-900">
+          {currentPage !== 'dashboard' && (
+            <Navbar currentPage={currentPage} setCurrentPage={setCurrentPage} onLogout={handleLogout} />
+          )}
+          <main>
+            {renderPage()}
+          </main>
+          <SpotifyMiniPlayer />
+        </div>
+      </SpotifyPlayerProvider>
     </UserProvider>
   );
 }
