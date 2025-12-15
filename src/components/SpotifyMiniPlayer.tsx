@@ -1,5 +1,5 @@
 import { useSpotifyPlayer } from '../contexts/SpotifyPlayerContext';
-import { X, ChevronLeft, ChevronRight, ChevronUp, Music, SkipBack, SkipForward, Play } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Music, SkipBack, SkipForward, Play } from 'lucide-react';
 
 export default function SpotifyMiniPlayer() {
   const {
@@ -96,89 +96,91 @@ export default function SpotifyMiniPlayer() {
 
       {/* Expanded State - Full Player */}
       {isExpanded && (
-    <div className="fixed bottom-4 right-4 md:bottom-4 md:right-4 z-50 w-80 max-w-[calc(100vw-2rem)]">
-      <div className="bg-gray-900 rounded-xl border border-gray-700 shadow-2xl overflow-hidden">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-3 flex items-center justify-between">
-          <div className="flex items-center space-x-2 flex-1 min-w-0">
-            <Music className="w-4 h-4 text-white flex-shrink-0" />
-            <p className="text-white text-sm font-medium truncate">{currentPlaylist.title}</p>
-          </div>
-          <div className="flex items-center space-x-1">
-            <button
-              onClick={toggleExpanded}
-              className="w-6 h-6 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition"
-              title="Minimize"
-            >
-              <ChevronRight className="w-4 h-4 text-white" />
-            </button>
-            <button
-              onClick={stop}
-              className="w-6 h-6 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition"
-              title="Close"
-            >
-              <X className="w-4 h-4 text-white" />
-            </button>
-          </div>
-        </div>
+        <div className="fixed bottom-4 right-4 md:bottom-4 md:right-4 z-50 w-80 max-w-[calc(100vw-2rem)]">
+          <div className="bg-gray-900 rounded-xl border border-gray-700 shadow-2xl overflow-hidden">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-3 flex items-center justify-between">
+              <div className="flex items-center space-x-2 flex-1 min-w-0">
+                <Music className="w-4 h-4 text-white flex-shrink-0" />
+                <p className="text-white text-sm font-medium truncate">{currentPlaylist.title}</p>
+              </div>
+              <div className="flex items-center space-x-1">
+                <button
+                  onClick={toggleExpanded}
+                  className="w-6 h-6 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition"
+                  title="Minimize"
+                >
+                  <ChevronDown className="w-4 h-4 text-white" />
+                </button>
+                <button
+                  onClick={stop}
+                  className="w-6 h-6 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition"
+                  title="Close"
+                >
+                  <X className="w-4 h-4 text-white" />
+                </button>
+              </div>
+            </div>
 
-        {/* Track info */}
-        <div className="p-3 border-b border-gray-700">
-          <div className="flex items-center space-x-3">
-            {currentSong.album_art ? (
-              <img
-                src={currentSong.album_art}
-                alt={currentSong.title}
-                className="w-12 h-12 rounded object-cover flex-shrink-0"
-              />
-            ) : (
-              <div className="w-12 h-12 rounded bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
-                <Music className="w-6 h-6 text-white" />
+            {/* Track info */}
+            <div className="p-3 border-b border-gray-700">
+              <div className="flex items-center space-x-3">
+                {currentSong.album_art ? (
+                  <img
+                    src={currentSong.album_art}
+                    alt={currentSong.title}
+                    className="w-12 h-12 rounded object-cover flex-shrink-0"
+                  />
+                ) : (
+                  <div className="w-12 h-12 rounded bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+                    <Music className="w-6 h-6 text-white" />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-white text-sm font-medium truncate">{currentSong.title}</p>
+                  <p className="text-gray-400 text-xs truncate">{currentSong.artist}</p>
+                  {hasMultipleSongs && (
+                    <p className="text-gray-500 text-[10px] mt-0.5">
+                      Track {currentTrackIndex + 1} of {currentPlaylist.songs.length}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Controls */}
+            {hasMultipleSongs && (
+              <div className="p-3 bg-gray-800/50 flex items-center justify-center space-x-4">
+                <button
+                  onClick={previousTrack}
+                  disabled={!canGoPrevious}
+                  className="w-8 h-8 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed rounded-full flex items-center justify-center transition"
+                  title="Previous"
+                >
+                  <ChevronLeft className="w-5 h-5 text-white" />
+                </button>
+                <div className="text-gray-400 text-xs font-medium">
+                  {currentTrackIndex + 1} / {currentPlaylist.songs.length}
+                </div>
+                <button
+                  onClick={nextTrack}
+                  disabled={!canGoNext}
+                  className="w-8 h-8 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed rounded-full flex items-center justify-center transition"
+                  title="Next"
+                >
+                  <ChevronRight className="w-5 h-5 text-white" />
+                </button>
               </div>
             )}
-            <div className="flex-1 min-w-0">
-              <p className="text-white text-sm font-medium truncate">{currentSong.title}</p>
-              <p className="text-gray-400 text-xs truncate">{currentSong.artist}</p>
-              {hasMultipleSongs && (
-                <p className="text-gray-500 text-[10px] mt-0.5">
-                  Track {currentTrackIndex + 1} of {currentPlaylist.songs.length}
-                </p>
-              )}
-            </div>
           </div>
         </div>
-
-        {/* Controls */}
-        {hasMultipleSongs && (
-          <div className="p-3 bg-gray-800/50 flex items-center justify-center space-x-4">
-            <button
-              onClick={previousTrack}
-              disabled={!canGoPrevious}
-              className="w-8 h-8 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed rounded-full flex items-center justify-center transition"
-              title="Previous"
-            >
-              <ChevronLeft className="w-5 h-5 text-white" />
-            </button>
-            <div className="text-gray-400 text-xs font-medium">
-              {currentTrackIndex + 1} / {currentPlaylist.songs.length}
-            </div>
-            <button
-              onClick={nextTrack}
-              disabled={!canGoNext}
-              className="w-8 h-8 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed rounded-full flex items-center justify-center transition"
-              title="Next"
-            >
-              <ChevronRight className="w-5 h-5 text-white" />
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
       )}
 
-      {/* Spotify Iframe - Always in DOM, moves between expanded view and off-screen */}
-      {/* This keeps music playing even when mini-player is minimized */}
-      <div className={isExpanded ? "bg-black" : "absolute -left-[9999px]"}>
+      {/* Single Spotify Iframe - Always in DOM, positioned differently based on state */}
+      <div className={isExpanded
+        ? "fixed bottom-4 right-4 md:bottom-4 md:right-4 z-50 w-80 max-w-[calc(100vw-2rem)]"
+        : "fixed -left-[9999px]"
+      }>
         <iframe
           key={currentSong.spotify_id}
           src={`https://open.spotify.com/embed/track/${currentSong.spotify_id}?theme=0`}
@@ -186,7 +188,7 @@ export default function SpotifyMiniPlayer() {
           height="152"
           frameBorder="0"
           allow="encrypted-media"
-          className={isExpanded ? "w-full" : ""}
+          className={isExpanded ? "w-full rounded-b-xl" : ""}
           title="Spotify Player"
         />
       </div>
