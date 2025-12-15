@@ -149,6 +149,19 @@ export default function SpotifyMiniPlayer() {
               </div>
             </div>
 
+            {/* Spotify embed */}
+            <div className="bg-black">
+              <iframe
+                key={currentSong.spotify_id}
+                src={`https://open.spotify.com/embed/track/${currentSong.spotify_id}?theme=0`}
+                width="100%"
+                height="152"
+                allow="encrypted-media"
+                className="w-full"
+                title="Spotify Player"
+              />
+            </div>
+
             {/* Controls */}
             {hasMultipleSongs && (
               <div className="p-3 bg-gray-800/50 flex items-center justify-center space-x-4">
@@ -176,21 +189,6 @@ export default function SpotifyMiniPlayer() {
           </div>
         </div>
       )}
-
-      {/* Spotify Iframe - Always in DOM, moves between visible and off-screen */}
-      {/* This keeps music playing even when mini-player is minimized */}
-      <div className={isExpanded ? "fixed bottom-4 right-4 md:bottom-4 md:right-4 z-40 w-80 max-w-[calc(100vw-2rem)] mt-2" : "fixed -left-[9999px]"}>
-        <iframe
-          key={currentSong.spotify_id}
-          src={`https://open.spotify.com/embed/track/${currentSong.spotify_id}?theme=0`}
-          width="100%"
-          height="152"
-          frameBorder="0"
-          allow="encrypted-media"
-          className="w-full rounded-b-xl"
-          title="Spotify Player"
-        />
-      </div>
     </>
   );
 }
