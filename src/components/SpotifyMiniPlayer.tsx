@@ -1,6 +1,5 @@
 import { useSpotifyPlayer } from '../contexts/SpotifyPlayerContext';
 import { X, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Music, SkipBack, SkipForward, Play } from 'lucide-react';
-import { useEffect, useRef } from 'react';
 
 export default function SpotifyMiniPlayer() {
   const {
@@ -13,20 +12,6 @@ export default function SpotifyMiniPlayer() {
     toggleExpanded,
     stop,
   } = useSpotifyPlayer();
-
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-  const expandedContainerRef = useRef<HTMLDivElement>(null);
-  const offscreenContainerRef = useRef<HTMLDivElement>(null);
-
-  // Move iframe between containers when expanding/collapsing
-  useEffect(() => {
-    if (!iframeRef.current) return;
-
-    const targetContainer = isExpanded ? expandedContainerRef.current : offscreenContainerRef.current;
-    if (targetContainer && !targetContainer.contains(iframeRef.current)) {
-      targetContainer.appendChild(iframeRef.current);
-    }
-  }, [isExpanded]);
 
   if (!isPlaying || !currentPlaylist) {
     return null; // Hidden state
@@ -71,10 +56,11 @@ export default function SpotifyMiniPlayer() {
               <SkipBack className="w-4 h-4 text-white" />
             </button>
 
-            {/* Play/Pause - Visual only, can't control iframe */}
+            {/* Play/Pause - Expands player so user can control Spotify */}
             <button
-              className="w-7 h-7 rounded-full hover:bg-white/10 flex items-center justify-center opacity-50 cursor-not-allowed"
-              title="Cannot control playback (Spotify embed limitation)"
+              onClick={toggleExpanded}
+              className="w-7 h-7 rounded-full hover:bg-white/10 flex items-center justify-center transition"
+              title="Expand to control playback"
             >
               <Play className="w-4 h-4 text-white" />
             </button>
@@ -163,9 +149,6 @@ export default function SpotifyMiniPlayer() {
               </div>
             </div>
 
-            {/* Spotify Embed - Container for iframe when expanded */}
-            <div ref={expandedContainerRef} className="bg-black"></div>
-
             {/* Controls */}
             {hasMultipleSongs && (
               <div className="p-3 bg-gray-800/50 flex items-center justify-center space-x-4">
@@ -194,21 +177,20 @@ export default function SpotifyMiniPlayer() {
         </div>
       )}
 
-      {/* Off-screen container for iframe when collapsed */}
-      <div ref={offscreenContainerRef} className="fixed -left-[9999px]"></div>
-
-      {/* Single Spotify iframe - moves between containers */}
-      <iframe
-        ref={iframeRef}
-        key={currentSong.spotify_id}
-        src={`https://open.spotify.com/embed/track/${currentSong.spotify_id}?theme=0`}
-        width="100%"
-        height="152"
-        frameBorder="0"
-        allow="encrypted-media"
-        className="w-full"
-        title="Spotify Player"
-      />
+      {/* Spotify Iframe - Always in DOM, moves between visible and off-screen */}
+      {/* This keeps music playing even when mini-player is minimized */}
+      <div className={isExpanded ? "fixed bottom-4 right-4 md:bottom-4 md:right-4 z-40 w-80 max-w-[calc(100vw-2rem)] mt-2" : "fixed -left-[9999px]"}>
+        <iframe
+          key={currentSong.spotify_id}
+          src={`https://open.spotify.com/embed/track/${currentSong.spotify_id}?theme=0`}
+          width="100%"
+          height="152"
+          frameBorder="0"
+          allow="encrypted-media"
+          className="w-full rounded-b-xl"
+          title="Spotify Player"
+        />
+      </div>
     </>
   );
 }
