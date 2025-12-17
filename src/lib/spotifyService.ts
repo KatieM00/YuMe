@@ -363,16 +363,6 @@ export async function addTracksToPlaylist(playlistId: string, trackUris: string[
   );
 }
 
-/**
- * Delete (unfollow) a playlist
- */
-export async function deletePlaylist(playlistId: string): Promise<void> {
-  await callSpotifyAPI(
-    `playlists/${playlistId}/followers`,
-    'DELETE'
-  );
-}
-
 // =========================================================================
 // USER LIBRARY
 // =========================================================================
