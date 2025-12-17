@@ -321,8 +321,12 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
             <div onClick={() => setPage('map')} className="cursor-pointer hover:scale-[1.02] transition-transform">
               <InfoBoxContainer><TimeBox /></InfoBoxContainer>
             </div>
-            <InfoBoxContainer><CountdownBox /></InfoBoxContainer>
-            <InfoBoxContainer><MessageBox /></InfoBoxContainer>
+            <div onClick={() => setPage('vision')} className="cursor-pointer hover:scale-[1.02] transition-transform">
+              <InfoBoxContainer><CountdownBox /></InfoBoxContainer>
+            </div>
+            <div onClick={() => setPage('messages')} className="cursor-pointer hover:scale-[1.02] transition-transform">
+              <InfoBoxContainer><MessageBox /></InfoBoxContainer>
+            </div>
           </div>
 
           <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-6 gap-8 md:gap-12 justify-items-center">
