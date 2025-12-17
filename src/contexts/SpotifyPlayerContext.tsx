@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
-import { createPlaylist, addTracksToPlaylist, deletePlaylist } from '../lib/spotifyService';
+import { createPlaylist, addTracksToPlaylist } from '../lib/spotifyService';
 
 // Song type matching the Mixtape component
 interface Song {
@@ -97,17 +97,9 @@ export function SpotifyPlayerProvider({ children }: { children: ReactNode }) {
     setIsExpanded(!isExpanded);
   };
 
-  const stop = async () => {
-    // Delete the temporary Spotify playlist if it exists
-    if (spotifyPlaylistId) {
-      try {
-        await deletePlaylist(spotifyPlaylistId);
-      } catch (error) {
-        console.error('Failed to delete Spotify playlist:', error);
-        // Continue anyway
-      }
-    }
-
+  const stop = () => {
+    // Note: We don't delete the temporary Spotify playlist to avoid API rate limits
+    // The playlist will remain in the user's Spotify account
     setIsPlaying(false);
     setCurrentPlaylist(null);
     setCurrentTrackIndex(0);
