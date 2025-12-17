@@ -1120,7 +1120,7 @@ export default function Mixtape() {
                       <button
                         onClick={handlePlayAll}
                         className="w-9 h-9 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center transition"
-                        title="Play all"
+                        title="Play all (requires Spotify sign-in)"
                       >
                         <PlayCircle className="w-4.5 h-4.5 text-white" />
                       </button>
