@@ -280,7 +280,7 @@ export default function Map() {
     if (userProfile?.latitude && userProfile?.longitude && userProfile?.profile_emoji) {
       const userMarkerEl = document.createElement('div');
       userMarkerEl.className = 'user-location-marker';
-      userMarkerEl.style.fontSize = '36px';
+      userMarkerEl.style.fontSize = '24px';
       userMarkerEl.style.cursor = 'pointer';
       userMarkerEl.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))';
       userMarkerEl.textContent = userProfile.profile_emoji;
@@ -304,7 +304,7 @@ export default function Map() {
     if (partnerProfile?.latitude && partnerProfile?.longitude && partnerProfile?.profile_emoji) {
       const partnerMarkerEl = document.createElement('div');
       partnerMarkerEl.className = 'user-location-marker';
-      partnerMarkerEl.style.fontSize = '36px';
+      partnerMarkerEl.style.fontSize = '24px';
       partnerMarkerEl.style.cursor = 'pointer';
       partnerMarkerEl.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))';
       partnerMarkerEl.textContent = partnerProfile.profile_emoji;
