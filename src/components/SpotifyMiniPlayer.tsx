@@ -131,17 +131,20 @@ export default function SpotifyMiniPlayer() {
         </div>
       )}
 
-      {/* Hidden iframe for playback when minimized - keeps music playing */}
+      {/* Hidden iframe for playback when minimized - positioned off-screen to keep audio playing */}
       {!isExpanded && spotifyPlaylistId && (
-        <div className="fixed bottom-0 right-0 opacity-0 pointer-events-none w-0 h-0 overflow-hidden">
-          <iframe
-            src={`https://open.spotify.com/embed/playlist/${spotifyPlaylistId}?theme=0`}
-            width="1"
-            height="1"
-            style={{ border: 0 }}
-            allow="encrypted-media"
-          />
-        </div>
+        <iframe
+          src={`https://open.spotify.com/embed/playlist/${spotifyPlaylistId}?theme=0`}
+          style={{
+            position: 'fixed',
+            left: '-9999px',
+            width: '1px',
+            height: '1px',
+            border: 0,
+          }}
+          allow="encrypted-media"
+          title="Hidden Spotify Player"
+        />
       )}
     </>
   );
