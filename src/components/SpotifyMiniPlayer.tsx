@@ -94,6 +94,20 @@ export default function SpotifyMiniPlayer() {
               </div>
             </div>
 
+            {/* Spotify embed - INSIDE the card when expanded */}
+            <div className="bg-black">
+              <iframe
+                key={currentSong.spotify_id}
+                src={`https://open.spotify.com/embed/track/${currentSong.spotify_id}?theme=0`}
+                width="100%"
+                height="152"
+                style={{ border: 0 }}
+                allow="encrypted-media"
+                className="w-full"
+                title={`Spotify Player - ${currentSong.title}`}
+              />
+            </div>
+
             {/* Controls - INSIDE the card */}
             {hasMultipleSongs && (
               <div className="p-3 bg-gray-800/50 flex items-center justify-center space-x-4">
@@ -112,36 +126,22 @@ export default function SpotifyMiniPlayer() {
         </div>
       )}
 
-      {/* Spotify iframe - always rendered, shown when expanded, hidden when minimized */}
-      <div
-        className="fixed z-40"
-        style={
-          isExpanded
-            ? {
-                bottom: '16px',
-                right: '16px',
-                width: '320px',
-                maxWidth: 'calc(100vw - 2rem)',
-              }
-            : {
-                position: 'fixed',
-                left: '-9999px',
-                width: '1px',
-                height: '1px',
-              }
-        }
-      >
+      {/* Hidden iframe for playback when minimized - keeps music playing */}
+      {!isExpanded && (
         <iframe
           key={currentSong.spotify_id}
           src={`https://open.spotify.com/embed/track/${currentSong.spotify_id}?theme=0`}
-          width="100%"
-          height="152"
-          style={{ border: 0 }}
+          style={{
+            position: 'fixed',
+            left: '-9999px',
+            width: '1px',
+            height: '1px',
+            border: 0,
+          }}
           allow="encrypted-media"
-          className="w-full"
-          title={`Spotify Player - ${currentSong.title}`}
+          title="Hidden Spotify Player"
         />
-      </div>
+      )}
     </>
   );
 }
