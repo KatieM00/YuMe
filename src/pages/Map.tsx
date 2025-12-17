@@ -283,6 +283,7 @@ export default function Map() {
       userMarkerEl.style.fontSize = '24px';
       userMarkerEl.style.cursor = 'pointer';
       userMarkerEl.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))';
+      userMarkerEl.style.zIndex = '1000';
       userMarkerEl.textContent = userProfile.profile_emoji;
 
       const userPopup = new mapboxgl.Popup({ offset: 25 }).setHTML(`
@@ -307,6 +308,7 @@ export default function Map() {
       partnerMarkerEl.style.fontSize = '24px';
       partnerMarkerEl.style.cursor = 'pointer';
       partnerMarkerEl.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))';
+      partnerMarkerEl.style.zIndex = '1000';
       partnerMarkerEl.textContent = partnerProfile.profile_emoji;
 
       const partnerPopup = new mapboxgl.Popup({ offset: 25 }).setHTML(`
