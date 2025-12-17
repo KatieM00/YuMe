@@ -35,6 +35,8 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
   const [showMediaModal, setShowMediaModal] = useState(false);
   const [mediaModalType, setMediaModalType] = useState<'image' | 'video' | 'voice' | null>(null);
   const [mediaModalUrl, setMediaModalUrl] = useState<string | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<VisionItem | null>(null);
+  const [selectedMessageForModal, setSelectedMessageForModal] = useState<Message | null>(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -125,7 +127,7 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
     return Math.ceil(diff / (1000 * 60 * 60 * 24));
   };
 
-  const nextEvent = useMemo(() => {
+  const nextEvent: { event: string; date: Date; days: number; item: VisionItem } | null = useMemo(() => {
     // Filter vision items that have event_date set
     const eventsWithDates = visionItems.filter(item => item.event_date);
 
@@ -133,7 +135,7 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
       return null;
     }
 
-    let nearestEvent = null;
+    let nearestEvent: { event: string; date: Date; days: number; item: VisionItem } | null = null;
     let minDays = Infinity;
 
     eventsWithDates.forEach(item => {
@@ -141,7 +143,7 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
       const days = getDaysUntil(eventDate);
       if (days > 0 && days < minDays) {
         minDays = days;
-        nearestEvent = { event: item.title, date: eventDate, days: minDays };
+        nearestEvent = { event: item.title, date: eventDate, days: minDays, item };
       }
     });
 
@@ -321,10 +323,10 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
             <div onClick={() => setPage('map')} className="cursor-pointer hover:scale-[1.02] transition-transform">
               <InfoBoxContainer><TimeBox /></InfoBoxContainer>
             </div>
-            <div onClick={() => setPage('vision')} className="cursor-pointer hover:scale-[1.02] transition-transform">
+            <div onClick={() => nextEvent && setSelectedEvent(nextEvent.item)} className={nextEvent ? "cursor-pointer hover:scale-[1.02] transition-transform" : ""}>
               <InfoBoxContainer><CountdownBox /></InfoBoxContainer>
             </div>
-            <div onClick={() => setPage('messages')} className="cursor-pointer hover:scale-[1.02] transition-transform">
+            <div onClick={() => recentMessage && setSelectedMessageForModal(recentMessage)} className={recentMessage ? "cursor-pointer hover:scale-[1.02] transition-transform" : ""}>
               <InfoBoxContainer><MessageBox /></InfoBoxContainer>
             </div>
           </div>
@@ -376,6 +378,206 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
                 />
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Event Detail Modal */}
+      {selectedEvent && selectedEvent.event_date && (() => {
+        const eventDate = new Date(selectedEvent.event_date);
+        const daysUntil = getDaysUntil(eventDate);
+
+        return (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 overflow-y-auto">
+            <div className="min-h-screen px-4 flex items-center justify-center">
+              <div className="bg-gray-900 rounded-2xl max-w-md w-full p-6 border border-gray-700 my-8">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-2xl font-bold text-white">Event Details</h2>
+                  <button
+                    onClick={() => setSelectedEvent(null)}
+                    className="p-2 hover:bg-gray-800 rounded-lg transition"
+                  >
+                    <X className="w-5 h-5 text-gray-400" />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-1">
+                      Event
+                    </label>
+                    <p className="text-xl font-semibold text-white">{selectedEvent.title}</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-1">
+                      Date
+                    </label>
+                    <p className="text-white">
+                      {eventDate.toLocaleDateString('en-US', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </p>
+                  </div>
+
+                  {selectedEvent.event_start_time && selectedEvent.event_end_time && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-400 mb-1">
+                        Time
+                      </label>
+                      <p className="text-white">
+                        {selectedEvent.event_start_time} - {selectedEvent.event_end_time}
+                      </p>
+                    </div>
+                  )}
+
+                  {selectedEvent.is_all_day && (
+                    <div className="p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                      <p className="text-blue-400 text-sm">All Day Event</p>
+                    </div>
+                  )}
+
+                  <div className="p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
+                    <p className="text-green-400 text-2xl font-bold text-center">
+                      {daysUntil} {daysUntil === 1 ? 'day' : 'days'} until this event
+                    </p>
+                  </div>
+
+                  {selectedEvent.content && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-400 mb-1">
+                        Description
+                      </label>
+                      <p className="text-gray-300 whitespace-pre-wrap">{selectedEvent.content}</p>
+                    </div>
+                  )}
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-1">
+                      Type
+                    </label>
+                    <span className={`inline-block px-3 py-1 rounded-full text-sm font-medium ${
+                      selectedEvent.event_type === 'goal'
+                        ? 'bg-purple-500/20 text-purple-400'
+                        : selectedEvent.event_type === 'task'
+                        ? 'bg-green-500/20 text-green-400'
+                        : 'bg-blue-500/20 text-blue-400'
+                    }`}>
+                      {selectedEvent.event_type || 'event'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="mt-6">
+                  <button
+                    onClick={() => setPage('vision')}
+                    className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-cyan-700 transition"
+                  >
+                    View in Calendar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Message Detail Modal */}
+      {selectedMessageForModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 overflow-y-auto">
+          <div className="min-h-screen px-4 flex items-center justify-center">
+            <div className="bg-gray-900 rounded-2xl max-w-md w-full p-6 border border-gray-700 my-8">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-bold text-white">Message</h2>
+                <button
+                  onClick={() => setSelectedMessageForModal(null)}
+                  className="p-2 hover:bg-gray-800 rounded-lg transition"
+                >
+                  <X className="w-5 h-5 text-gray-400" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
+                  <div>
+                    <p className="text-sm text-gray-400">From</p>
+                    <p className="text-white font-medium">{selectedMessageForModal.from_user}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-gray-400">To</p>
+                    <p className="text-white font-medium">{selectedMessageForModal.to_user}</p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-1">
+                    Sent
+                  </label>
+                  <p className="text-white">
+                    {new Date(selectedMessageForModal.created_at).toLocaleDateString('en-US', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </p>
+                </div>
+
+                {selectedMessageForModal.type === 'text' && selectedMessageForModal.content && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-1">
+                      Message
+                    </label>
+                    <p className="text-white text-lg whitespace-pre-wrap">{selectedMessageForModal.content}</p>
+                  </div>
+                )}
+
+                {selectedMessageForModal.media_url && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-400 mb-2">
+                      {selectedMessageForModal.type === 'image' ? 'Image' : selectedMessageForModal.type === 'video' ? 'Video' : 'Voice Note'}
+                    </label>
+                    {selectedMessageForModal.type === 'image' && (
+                      <img
+                        src={selectedMessageForModal.media_url}
+                        alt="Message"
+                        className="w-full rounded-lg"
+                      />
+                    )}
+                    {selectedMessageForModal.type === 'video' && (
+                      <video
+                        src={selectedMessageForModal.media_url}
+                        controls
+                        className="w-full rounded-lg"
+                      />
+                    )}
+                    {selectedMessageForModal.type === 'voice' && (
+                      <div className="bg-gray-800 rounded-lg p-4">
+                        <audio
+                          src={selectedMessageForModal.media_url}
+                          controls
+                          className="w-full"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-6">
+                <button
+                  onClick={() => setPage('messages')}
+                  className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-cyan-700 transition"
+                >
+                  View All Messages
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
