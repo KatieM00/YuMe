@@ -368,8 +368,8 @@ export default function Settings() {
     if (locationInputRef.current) {
       const rect = locationInputRef.current.getBoundingClientRect();
       setDropdownPosition({
-        top: rect.bottom + window.scrollY,
-        left: rect.left + window.scrollX,
+        top: rect.bottom,
+        left: rect.left,
         width: rect.width,
       });
     }
