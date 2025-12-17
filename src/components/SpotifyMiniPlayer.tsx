@@ -7,7 +7,6 @@ export default function SpotifyMiniPlayer() {
     currentPlaylist,
     currentTrackIndex,
     isExpanded,
-    spotifyPlaylistId,
     nextTrack,
     previousTrack,
     toggleExpanded,
@@ -53,7 +52,7 @@ export default function SpotifyMiniPlayer() {
         </div>
       )}
 
-      {/* Expanded state - full player with iframe INSIDE the card */}
+      {/* Expanded state - full player card */}
       {isExpanded && (
         <div className="fixed bottom-4 right-4 md:bottom-4 md:right-4 z-50 w-80 max-w-[calc(100vw-2rem)]">
           <div className="bg-gray-900 rounded-xl border border-gray-700 shadow-2xl overflow-hidden">
@@ -95,24 +94,6 @@ export default function SpotifyMiniPlayer() {
               </div>
             </div>
 
-            {/* Spotify embed - INSIDE the card */}
-            <div className="bg-black">
-              {spotifyPlaylistId ? (
-                <iframe
-                  src={`https://open.spotify.com/embed/playlist/${spotifyPlaylistId}?theme=0`}
-                  width="100%"
-                  height="352"
-                  style={{ border: 0 }}
-                  allow="encrypted-media"
-                  className="w-full"
-                />
-              ) : (
-                <div className="w-full h-[152px] flex items-center justify-center text-gray-400 text-sm">
-                  Loading playlist...
-                </div>
-              )}
-            </div>
-
             {/* Controls - INSIDE the card */}
             {hasMultipleSongs && (
               <div className="p-3 bg-gray-800/50 flex items-center justify-center space-x-4">
@@ -131,21 +112,36 @@ export default function SpotifyMiniPlayer() {
         </div>
       )}
 
-      {/* Hidden iframe for playback when minimized - positioned off-screen to keep audio playing */}
-      {!isExpanded && spotifyPlaylistId && (
+      {/* Spotify iframe - always rendered, shown when expanded, hidden when minimized */}
+      <div
+        className="fixed z-40"
+        style={
+          isExpanded
+            ? {
+                bottom: '16px',
+                right: '16px',
+                width: '320px',
+                maxWidth: 'calc(100vw - 2rem)',
+              }
+            : {
+                position: 'fixed',
+                left: '-9999px',
+                width: '1px',
+                height: '1px',
+              }
+        }
+      >
         <iframe
-          src={`https://open.spotify.com/embed/playlist/${spotifyPlaylistId}?theme=0`}
-          style={{
-            position: 'fixed',
-            left: '-9999px',
-            width: '1px',
-            height: '1px',
-            border: 0,
-          }}
+          key={currentSong.spotify_id}
+          src={`https://open.spotify.com/embed/track/${currentSong.spotify_id}?theme=0`}
+          width="100%"
+          height="152"
+          style={{ border: 0 }}
           allow="encrypted-media"
-          title="Hidden Spotify Player"
+          className="w-full"
+          title={`Spotify Player - ${currentSong.title}`}
         />
-      )}
+      </div>
     </>
   );
 }

@@ -1,5 +1,4 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
-import { createPlaylist, addTracksToPlaylist } from '../lib/spotifyService';
 
 // Song type matching the Mixtape component
 interface Song {
@@ -26,7 +25,6 @@ interface SpotifyPlayerContextType {
   currentPlaylist: Playlist | null;
   currentTrackIndex: number;
   isExpanded: boolean;
-  spotifyPlaylistId: string | null;
 
   // Methods
   playPlaylist: (playlist: Playlist) => void;
@@ -44,31 +42,12 @@ export function SpotifyPlayerProvider({ children }: { children: ReactNode }) {
   const [currentPlaylist, setCurrentPlaylist] = useState<Playlist | null>(null);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [spotifyPlaylistId, setSpotifyPlaylistId] = useState<string | null>(null);
 
-  const playPlaylist = async (playlist: Playlist) => {
-    try {
-      // Create a temporary Spotify playlist
-      const spotifyPlaylist = await createPlaylist(
-        `YuMe: ${playlist.title}`,
-        `Temporary playlist for ${playlist.title}`,
-        false // private
-      );
-
-      // Add all songs to the Spotify playlist
-      const trackUris = playlist.songs.map(song => `spotify:track:${song.spotify_id}`);
-      await addTracksToPlaylist(spotifyPlaylist.id, trackUris);
-
-      // Store the Spotify playlist ID
-      setSpotifyPlaylistId(spotifyPlaylist.id);
-      setCurrentPlaylist(playlist);
-      setCurrentTrackIndex(0);
-      setIsPlaying(true);
-      setIsExpanded(true); // Auto-expand when starting playback
-    } catch (error) {
-      console.error('Failed to create Spotify playlist:', error);
-      // Fall back to not playing if playlist creation fails
-    }
+  const playPlaylist = (playlist: Playlist) => {
+    setCurrentPlaylist(playlist);
+    setCurrentTrackIndex(0);
+    setIsPlaying(true);
+    setIsExpanded(true); // Auto-expand when starting playback
   };
 
   const playSingleTrack = (song: Song, playlistTitle?: string) => {
@@ -98,13 +77,10 @@ export function SpotifyPlayerProvider({ children }: { children: ReactNode }) {
   };
 
   const stop = () => {
-    // Note: We don't delete the temporary Spotify playlist to avoid API rate limits
-    // The playlist will remain in the user's Spotify account
     setIsPlaying(false);
     setCurrentPlaylist(null);
     setCurrentTrackIndex(0);
     setIsExpanded(false);
-    setSpotifyPlaylistId(null);
   };
 
   return (
@@ -114,7 +90,6 @@ export function SpotifyPlayerProvider({ children }: { children: ReactNode }) {
         currentPlaylist,
         currentTrackIndex,
         isExpanded,
-        spotifyPlaylistId,
         playPlaylist,
         playSingleTrack,
         nextTrack,
