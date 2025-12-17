@@ -7,6 +7,7 @@ export default function SpotifyMiniPlayer() {
     currentPlaylist,
     currentTrackIndex,
     isExpanded,
+    spotifyPlaylistId,
     nextTrack,
     previousTrack,
     toggleExpanded,
@@ -113,15 +114,21 @@ export default function SpotifyMiniPlayer() {
 
           {/* Spotify embed - INSIDE the card */}
           <div className="bg-black">
-            <iframe
-              key={currentSong.spotify_id}
-              src={`https://open.spotify.com/embed/track/${currentSong.spotify_id}?theme=0`}
-              width="100%"
-              height="152"
-              style={{ border: 0 }}
-              allow="encrypted-media"
-              className="w-full"
-            />
+            {spotifyPlaylistId ? (
+              <iframe
+                key={spotifyPlaylistId}
+                src={`https://open.spotify.com/embed/playlist/${spotifyPlaylistId}?theme=0`}
+                width="100%"
+                height="352"
+                style={{ border: 0 }}
+                allow="encrypted-media"
+                className="w-full"
+              />
+            ) : (
+              <div className="w-full h-[152px] flex items-center justify-center text-gray-400 text-sm">
+                Loading playlist...
+              </div>
+            )}
           </div>
 
           {/* Controls */}
