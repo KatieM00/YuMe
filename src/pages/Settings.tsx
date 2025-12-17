@@ -667,11 +667,11 @@ export default function Settings() {
                   </div>
 
                   {/* Location */}
-                  <div className="overflow-visible">
+                  <div>
                     <label className="block text-sm font-medium text-gray-300 mb-1.5">
                       Location
                     </label>
-                    <div className="relative overflow-visible">
+                    <div className="relative">
                       <input
                         ref={locationInputRef}
                         type="text"
@@ -682,7 +682,6 @@ export default function Settings() {
                         }}
                         onFocus={() => {
                           if (locationSuggestions.length > 0) {
-                            updateDropdownPosition();
                             setShowLocationSuggestions(true);
                           }
                         }}
@@ -694,14 +693,7 @@ export default function Settings() {
                       />
 
                       {showLocationSuggestions && locationSuggestions.length > 0 && (
-                        <div
-                          className="fixed z-[9999] bg-gray-900 border border-gray-600 rounded-md shadow-2xl max-h-60 overflow-y-auto"
-                          style={{
-                            top: `${dropdownPosition.top + 4}px`,
-                            left: `${dropdownPosition.left}px`,
-                            width: `${dropdownPosition.width}px`,
-                          }}
-                        >
+                        <div className="absolute z-50 w-full mt-1 bg-gray-900 border border-gray-600 rounded-md shadow-2xl max-h-60 overflow-y-auto">
                           {locationSuggestions.map((suggestion, index) => (
                             <button
                               key={index}
