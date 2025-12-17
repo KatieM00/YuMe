@@ -55,7 +55,6 @@ export default function Settings() {
   const emojiPickerRef = useRef<HTMLDivElement>(null);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
   const [emojiPickerPosition, setEmojiPickerPosition] = useState({ top: 0, left: 0 });
-  const [showPassword, setShowPassword] = useState(false);
   const [showInviteCode, setShowInviteCode] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [newPassword, setNewPassword] = useState('');
@@ -815,20 +814,12 @@ export default function Settings() {
                       Password
                     </label>
                     <div className="flex gap-2">
-                      <div className="flex-1 relative">
-                        <input
-                          type={showPassword ? "text" : "password"}
-                          value="••••••••"
-                          readOnly
-                          className="w-full px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white text-sm cursor-default"
-                        />
-                        <button
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-300"
-                        >
-                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                        </button>
-                      </div>
+                      <input
+                        type="password"
+                        value="••••••••"
+                        readOnly
+                        className="flex-1 px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white text-sm cursor-default"
+                      />
                       <button
                         onClick={() => setShowPasswordModal(true)}
                         className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition whitespace-nowrap"
