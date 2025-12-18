@@ -393,16 +393,16 @@ export default function Vision() {
             {/* Calendar Grid */}
             <div className="bg-black/20 rounded-lg p-2 border border-gray-700/30">
               {/* Week days header */}
-              <div className="grid grid-cols-7 gap-1.5 mb-1.5">
+              <div className="grid grid-cols-7 gap-0.5 mb-0.5">
                 {weekDays.map(day => (
-                  <div key={day} className="text-center text-gray-400 text-xs font-semibold py-1.5">
+                  <div key={day} className="text-center text-gray-400 text-xs font-semibold py-1">
                     {day}
                   </div>
                 ))}
               </div>
 
               {/* Calendar days */}
-              <div className="grid grid-cols-7 gap-1.5">
+              <div className="grid grid-cols-7 gap-0.5">
                 {/* Empty cells for days before month starts */}
                 {Array.from({ length: startingDayOfWeek }).map((_, i) => (
                   <div key={`empty-${i}`} className="aspect-square" />
@@ -505,18 +505,16 @@ export default function Vision() {
           {/* Right: Countdown Cards Sidebar */}
           <div className="space-y-2.5">
             {/* Reunion Countdown */}
-            {countdowns.reunion && (
-              <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-md rounded-xl p-2.5 border border-gray-700/50 shadow-[0_0_15px_rgba(59,130,246,0.1)] hover:shadow-[0_0_25px_rgba(59,130,246,0.2)] transition-all duration-300">
-                <div className="text-cyan-400 text-[10px] font-medium mb-1 flex items-center">
-                  <Sparkles className="w-2.5 h-2.5 mr-1" />
-                  Reunion
-                </div>
-                <div className="text-xl font-bold text-white mb-0.5">
-                  {countdowns.reunion.days}
-                </div>
-                <div className="text-gray-400 text-[10px]">days</div>
+            <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-md rounded-xl p-2.5 border border-gray-700/50 shadow-[0_0_15px_rgba(59,130,246,0.1)] hover:shadow-[0_0_25px_rgba(59,130,246,0.2)] transition-all duration-300">
+              <div className="text-cyan-400 text-[10px] font-medium mb-1 flex items-center">
+                <Sparkles className="w-2.5 h-2.5 mr-1" />
+                Reunion
               </div>
-            )}
+              <div className="text-xl font-bold text-white mb-0.5">
+                {countdowns.reunion ? countdowns.reunion.days : '--'}
+              </div>
+              <div className="text-gray-400 text-[10px]">days</div>
+            </div>
 
             {/* Anniversary Countdown */}
             <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-md rounded-xl p-2.5 border border-gray-700/50 shadow-[0_0_15px_rgba(236,72,153,0.1)] hover:shadow-[0_0_25px_rgba(236,72,153,0.2)] transition-all duration-300">
