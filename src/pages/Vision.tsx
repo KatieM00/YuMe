@@ -367,31 +367,31 @@ export default function Vision() {
         {/* Two Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_200px] gap-3">
           {/* Left: Calendar */}
-          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-md rounded-xl p-3 md:p-4 border border-gray-700/50 shadow-2xl">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg md:text-xl font-bold text-white flex items-center">
-                <CalendarIcon className="w-5 h-5 mr-2 text-cyan-400" />
+          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-md rounded-xl p-2.5 border border-gray-700/50 shadow-2xl max-w-2xl">
+            <div className="flex items-center justify-between mb-2.5">
+              <h2 className="text-base font-bold text-white flex items-center">
+                <CalendarIcon className="w-4 h-4 mr-1.5 text-cyan-400" />
                 Sanctuary
               </h2>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-1.5">
                 <button
                   onClick={handlePreviousMonth}
-                  className="p-1.5 bg-gray-800/80 hover:bg-gray-700/80 rounded-lg transition border border-gray-600/50"
+                  className="p-1 bg-gray-800/80 hover:bg-gray-700/80 rounded-lg transition border border-gray-600/50"
                 >
-                  <ChevronLeft className="w-4 h-4 text-white" />
+                  <ChevronLeft className="w-3.5 h-3.5 text-white" />
                 </button>
-                <span className="text-white text-sm font-semibold min-w-[140px] text-center">{monthName}</span>
+                <span className="text-white text-xs font-semibold min-w-[120px] text-center">{monthName}</span>
                 <button
                   onClick={handleNextMonth}
-                  className="p-1.5 bg-gray-800/80 hover:bg-gray-700/80 rounded-lg transition border border-gray-600/50"
+                  className="p-1 bg-gray-800/80 hover:bg-gray-700/80 rounded-lg transition border border-gray-600/50"
                 >
-                  <ChevronRight className="w-4 h-4 text-white" />
+                  <ChevronRight className="w-3.5 h-3.5 text-white" />
                 </button>
               </div>
             </div>
 
             {/* Calendar Grid */}
-            <div className="bg-black/20 rounded-lg p-2 border border-gray-700/30">
+            <div className="bg-black/20 rounded-lg p-1.5 border border-gray-700/30">
               {/* Week days header */}
               <div className="grid grid-cols-7 gap-0.5 mb-0.5">
                 {weekDays.map(day => (
@@ -459,11 +459,11 @@ export default function Vision() {
 
             {/* Events List for Selected Date */}
             {selectedDate && (
-              <div className="mt-4 bg-gray-900/50 rounded-xl p-3 border border-gray-700/40">
-                <h3 className="text-sm font-bold text-white mb-2">
+              <div className="mt-2.5 bg-gray-900/50 rounded-xl p-2 border border-gray-700/40">
+                <h3 className="text-xs font-bold text-white mb-1.5">
                   Events on {selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
                 </h3>
-                <div className="space-y-2 max-h-40 overflow-y-auto">
+                <div className="space-y-1.5 max-h-32 overflow-y-auto">
                   {getEventsForDate(selectedDate).map(event => (
                     <div
                       key={event.id}
