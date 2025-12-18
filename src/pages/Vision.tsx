@@ -363,27 +363,27 @@ export default function Vision() {
 
   return (
     <div className="min-h-screen p-3 md:p-4 pt-14 md:pt-16">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         {/* Two Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-3">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_200px] gap-3">
           {/* Left: Calendar */}
-          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-md rounded-xl p-3 md:p-4 border border-gray-700/50 shadow-lg h-fit">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-base md:text-lg font-bold text-white flex items-center">
-                <CalendarIcon className="w-4 h-4 md:w-5 md:h-5 mr-1.5 text-cyan-400" />
+          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-md rounded-xl p-3 md:p-4 border border-gray-700/50 shadow-2xl">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg md:text-xl font-bold text-white flex items-center">
+                <CalendarIcon className="w-5 h-5 mr-2 text-cyan-400" />
                 Sanctuary
               </h2>
-              <div className="flex items-center space-x-1">
+              <div className="flex items-center space-x-2">
                 <button
                   onClick={handlePreviousMonth}
-                  className="p-1 bg-gray-800/80 hover:bg-gray-700/80 rounded-lg transition border border-gray-600/50"
+                  className="p-1.5 bg-gray-800/80 hover:bg-gray-700/80 rounded-lg transition border border-gray-600/50"
                 >
                   <ChevronLeft className="w-4 h-4 text-white" />
                 </button>
-                <span className="text-white text-xs md:text-sm font-semibold min-w-[120px] md:min-w-[150px] text-center">{monthName}</span>
+                <span className="text-white text-sm font-semibold min-w-[140px] text-center">{monthName}</span>
                 <button
                   onClick={handleNextMonth}
-                  className="p-1 bg-gray-800/80 hover:bg-gray-700/80 rounded-lg transition border border-gray-600/50"
+                  className="p-1.5 bg-gray-800/80 hover:bg-gray-700/80 rounded-lg transition border border-gray-600/50"
                 >
                   <ChevronRight className="w-4 h-4 text-white" />
                 </button>
@@ -393,16 +393,16 @@ export default function Vision() {
             {/* Calendar Grid */}
             <div className="bg-black/20 rounded-lg p-2 border border-gray-700/30">
               {/* Week days header */}
-              <div className="grid grid-cols-7 gap-1 mb-1">
+              <div className="grid grid-cols-7 gap-1.5 mb-1.5">
                 {weekDays.map(day => (
-                  <div key={day} className="text-center text-gray-400 text-xs font-semibold py-1">
-                    {day.substring(0, 2)}
+                  <div key={day} className="text-center text-gray-400 text-xs font-semibold py-1.5">
+                    {day}
                   </div>
                 ))}
               </div>
 
               {/* Calendar days */}
-              <div className="grid grid-cols-7 gap-1">
+              <div className="grid grid-cols-7 gap-1.5">
                 {/* Empty cells for days before month starts */}
                 {Array.from({ length: startingDayOfWeek }).map((_, i) => (
                   <div key={`empty-${i}`} className="aspect-square" />
@@ -420,11 +420,11 @@ export default function Vision() {
                     <div
                       key={day}
                       onClick={() => handleDateClick(date)}
-                      className={`aspect-square p-1 rounded cursor-pointer transition-all duration-200 ${
+                      className={`aspect-square p-1.5 rounded-lg cursor-pointer transition-all duration-200 ${
                         isToday
-                          ? 'bg-gradient-to-br from-blue-600/40 to-cyan-600/40 border border-blue-500/50 shadow-[inset_0_0_15px_rgba(59,130,246,0.3)]'
+                          ? 'bg-gradient-to-br from-blue-600/40 to-cyan-600/40 border border-blue-500/50 shadow-[inset_0_0_20px_rgba(59,130,246,0.3)]'
                           : hasEvents
-                          ? 'bg-gray-800/60 border border-gray-600/40 shadow-[inset_0_0_10px_rgba(6,182,212,0.2)]'
+                          ? 'bg-gray-800/60 border border-gray-600/40 shadow-[inset_0_0_15px_rgba(6,182,212,0.2)]'
                           : 'bg-gray-800/40 border border-gray-700/30 hover:bg-gray-700/50'
                       }`}
                     >
@@ -434,18 +434,18 @@ export default function Vision() {
                         </span>
                         {events.length > 0 && (
                           <div className="mt-0.5 flex-1 overflow-hidden">
-                            {events.slice(0, 1).map((event) => (
+                            {events.slice(0, 2).map((event) => (
                               <div
                                 key={event.id}
-                                className="text-[8px] text-white bg-cyan-600/80 hover:bg-cyan-500 rounded px-0.5 truncate cursor-pointer transition border border-cyan-400/30"
+                                className="text-[9px] text-white bg-cyan-600/80 hover:bg-cyan-500 rounded px-0.5 py-0.5 mb-0.5 truncate cursor-pointer transition border border-cyan-400/30"
                                 onClick={(e) => handleEditEvent(event, e)}
                               >
                                 {event.title}
                               </div>
                             ))}
-                            {events.length > 1 && (
+                            {events.length > 2 && (
                               <div className="text-[8px] text-cyan-400 font-medium">
-                                +{events.length - 1}
+                                +{events.length - 2}
                               </div>
                             )}
                           </div>
@@ -459,11 +459,11 @@ export default function Vision() {
 
             {/* Events List for Selected Date */}
             {selectedDate && (
-              <div className="mt-3 bg-gray-900/50 rounded-xl p-3 border border-gray-700/40">
+              <div className="mt-4 bg-gray-900/50 rounded-xl p-3 border border-gray-700/40">
                 <h3 className="text-sm font-bold text-white mb-2">
                   Events on {selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
                 </h3>
-                <div className="space-y-2 max-h-48 overflow-y-auto">
+                <div className="space-y-2 max-h-40 overflow-y-auto">
                   {getEventsForDate(selectedDate).map(event => (
                     <div
                       key={event.id}
@@ -503,40 +503,52 @@ export default function Vision() {
           </div>
 
           {/* Right: Countdown Cards Sidebar */}
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {/* Reunion Countdown */}
             {countdowns.reunion && (
-              <div className="bg-gradient-to-br from-pink-900/40 to-purple-900/40 backdrop-blur-md rounded-xl p-3 border border-pink-500/30 shadow-lg">
-                <h3 className="text-xs font-semibold text-pink-300 mb-1">Next Reunion</h3>
-                <div className="text-2xl font-bold text-white mb-1">{countdowns.reunion.days}</div>
-                <p className="text-xs text-pink-200/80">days</p>
-                <p className="text-xs text-pink-300/70 mt-1 truncate">{countdowns.reunion.item.title}</p>
+              <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-md rounded-xl p-2.5 border border-gray-700/50 shadow-[0_0_15px_rgba(59,130,246,0.1)] hover:shadow-[0_0_25px_rgba(59,130,246,0.2)] transition-all duration-300">
+                <div className="text-cyan-400 text-[10px] font-medium mb-1 flex items-center">
+                  <Sparkles className="w-2.5 h-2.5 mr-1" />
+                  Reunion
+                </div>
+                <div className="text-xl font-bold text-white mb-0.5">
+                  {countdowns.reunion.days}
+                </div>
+                <div className="text-gray-400 text-[10px]">days</div>
               </div>
             )}
 
             {/* Anniversary Countdown */}
-            <div className="bg-gradient-to-br from-red-900/40 to-pink-900/40 backdrop-blur-md rounded-xl p-3 border border-red-500/30 shadow-lg">
-              <h3 className="text-xs font-semibold text-red-300 mb-1">Anniversary</h3>
-              <div className="text-2xl font-bold text-white mb-1">{countdowns.anniversary}</div>
-              <p className="text-xs text-red-200/80">days</p>
+            <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-md rounded-xl p-2.5 border border-gray-700/50 shadow-[0_0_15px_rgba(236,72,153,0.1)] hover:shadow-[0_0_25px_rgba(236,72,153,0.2)] transition-all duration-300">
+              <div className="text-pink-400 text-[10px] font-medium mb-1 flex items-center">
+                <Heart className="w-2.5 h-2.5 mr-1" />
+                Anniversary
+              </div>
+              <div className="text-xl font-bold text-white mb-0.5">
+                {countdowns.anniversary}
+              </div>
+              <div className="text-gray-400 text-[10px]">days</div>
             </div>
 
             {/* Birthday Countdown */}
-            <div className="bg-gradient-to-br from-blue-900/40 to-cyan-900/40 backdrop-blur-md rounded-xl p-3 border border-blue-500/30 shadow-lg">
-              <h3 className="text-xs font-semibold text-blue-300 mb-1">Birthday</h3>
-              <div className="text-2xl font-bold text-white mb-1">{countdowns.birthday}</div>
-              <p className="text-xs text-blue-200/80">days</p>
+            <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-md rounded-xl p-2.5 border border-gray-700/50 shadow-[0_0_15px_rgba(168,85,247,0.1)] hover:shadow-[0_0_25px_rgba(168,85,247,0.2)] transition-all duration-300">
+              <div className="text-purple-400 text-[10px] font-medium mb-1 flex items-center">
+                <CalendarIcon className="w-2.5 h-2.5 mr-1" />
+                Birthday
+              </div>
+              <div className="text-xl font-bold text-white mb-0.5">
+                {countdowns.birthday}
+              </div>
+              <div className="text-gray-400 text-[10px]">days</div>
             </div>
 
             {/* Make a Wish Button */}
             <button
               onClick={() => setShowWishModal(true)}
-              className="w-full bg-gradient-to-br from-cyan-900/40 to-blue-900/40 backdrop-blur-md rounded-xl p-3 border border-cyan-500/30 shadow-lg hover:from-cyan-800/50 hover:to-blue-800/50 transition-all group"
+              className="w-full bg-gradient-to-br from-blue-600/20 to-cyan-600/20 backdrop-blur-md rounded-xl p-2.5 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.15)] hover:shadow-[0_0_30px_rgba(59,130,246,0.3)] hover:scale-[1.02] transition-all duration-300 flex flex-col items-center justify-center group"
             >
-              <div className="flex items-center justify-center space-x-2">
-                <Sparkles className="w-4 h-4 text-cyan-400 group-hover:text-cyan-300" />
-                <span className="text-sm font-semibold text-cyan-300 group-hover:text-cyan-200">Make a Wish</span>
-              </div>
+              <Sparkles className="w-4 h-4 text-blue-400 mb-1 group-hover:text-cyan-300 transition-colors" />
+              <span className="text-white text-[11px] font-semibold">Make a Wish</span>
             </button>
           </div>
         </div>
