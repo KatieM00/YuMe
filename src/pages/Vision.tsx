@@ -360,190 +360,183 @@ export default function Vision() {
   const accomplished = visionBoardItems.filter(item => item.goal_completed);
 
   return (
-    <div className="min-h-screen p-4 md:p-8 pt-20 md:pt-24">
-      <div className="max-w-5xl mx-auto">
-        {/* Header Countdown Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
-          {/* Reunion Countdown */}
-          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-md rounded-xl p-4 border border-gray-700/50 shadow-[0_0_15px_rgba(59,130,246,0.1)] hover:shadow-[0_0_25px_rgba(59,130,246,0.2)] transition-all duration-300">
-            <div className="text-cyan-400 text-xs font-medium mb-2 flex items-center">
-              <Sparkles className="w-3 h-3 mr-1" />
-              Reunion
-            </div>
-            <div className="text-3xl font-bold text-white mb-1">
-              {countdowns.reunion ? countdowns.reunion.days : '--'}
-            </div>
-            <div className="text-gray-400 text-xs">days</div>
-          </div>
-
-          {/* Anniversary Countdown */}
-          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-md rounded-xl p-4 border border-gray-700/50 shadow-[0_0_15px_rgba(236,72,153,0.1)] hover:shadow-[0_0_25px_rgba(236,72,153,0.2)] transition-all duration-300">
-            <div className="text-pink-400 text-xs font-medium mb-2 flex items-center">
-              <Heart className="w-3 h-3 mr-1" />
-              Anniversary
-            </div>
-            <div className="text-3xl font-bold text-white mb-1">
-              {countdowns.anniversary}
-            </div>
-            <div className="text-gray-400 text-xs">days</div>
-          </div>
-
-          {/* Birthday Countdown */}
-          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-md rounded-xl p-4 border border-gray-700/50 shadow-[0_0_15px_rgba(168,85,247,0.1)] hover:shadow-[0_0_25px_rgba(168,85,247,0.2)] transition-all duration-300">
-            <div className="text-purple-400 text-xs font-medium mb-2 flex items-center">
-              <CalendarIcon className="w-3 h-3 mr-1" />
-              Birthday
-            </div>
-            <div className="text-3xl font-bold text-white mb-1">
-              {countdowns.birthday}
-            </div>
-            <div className="text-gray-400 text-xs">days</div>
-          </div>
-
-          {/* Make a Wish Button */}
-          <button
-            onClick={() => setShowWishModal(true)}
-            className="bg-gradient-to-br from-blue-600/20 to-cyan-600/20 backdrop-blur-md rounded-xl p-4 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.15)] hover:shadow-[0_0_30px_rgba(59,130,246,0.3)] hover:scale-[1.02] transition-all duration-300 flex flex-col items-center justify-center group"
-          >
-            <Sparkles className="w-6 h-6 text-blue-400 mb-2 group-hover:text-cyan-300 transition-colors" />
-            <span className="text-white text-sm font-semibold">Make a Wish</span>
-          </button>
-        </div>
-
-        {/* Hero Calendar */}
-        <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-md rounded-2xl p-6 border border-gray-700/50 shadow-2xl">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-white flex items-center">
-              <CalendarIcon className="w-6 h-6 mr-2 text-cyan-400" />
-              Sanctuary
-            </h2>
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={handlePreviousMonth}
-                className="p-2 bg-gray-800/80 hover:bg-gray-700/80 rounded-lg transition border border-gray-600/50"
-              >
-                <ChevronLeft className="w-5 h-5 text-white" />
-              </button>
-              <span className="text-white text-base font-semibold min-w-[200px] text-center">{monthName}</span>
-              <button
-                onClick={handleNextMonth}
-                className="p-2 bg-gray-800/80 hover:bg-gray-700/80 rounded-lg transition border border-gray-600/50"
-              >
-                <ChevronRight className="w-5 h-5 text-white" />
-              </button>
-            </div>
-          </div>
-
-          {/* Calendar Grid */}
-          <div className="bg-black/20 rounded-xl p-4 border border-gray-700/30">
-            {/* Week days header */}
-            <div className="grid grid-cols-7 gap-2 mb-2">
-              {weekDays.map(day => (
-                <div key={day} className="text-center text-gray-400 text-sm font-semibold py-2">
-                  {day}
-                </div>
-              ))}
-            </div>
-
-            {/* Calendar days */}
-            <div className="grid grid-cols-7 gap-2">
-              {/* Empty cells for days before month starts */}
-              {Array.from({ length: startingDayOfWeek }).map((_, i) => (
-                <div key={`empty-${i}`} className="aspect-square" />
-              ))}
-
-              {/* Days of the month */}
-              {Array.from({ length: daysInMonth }).map((_, i) => {
-                const day = i + 1;
-                const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
-                const events = getEventsForDate(date);
-                const isToday = date.toDateString() === new Date().toDateString();
-                const hasEvents = events.length > 0;
-
-                return (
-                  <div
-                    key={day}
-                    onClick={() => handleDateClick(date)}
-                    className={`aspect-square p-2 rounded-lg cursor-pointer transition-all duration-200 ${
-                      isToday
-                        ? 'bg-gradient-to-br from-blue-600/40 to-cyan-600/40 border border-blue-500/50 shadow-[inset_0_0_20px_rgba(59,130,246,0.3)]'
-                        : hasEvents
-                        ? 'bg-gray-800/60 border border-gray-600/40 shadow-[inset_0_0_15px_rgba(6,182,212,0.2)]'
-                        : 'bg-gray-800/40 border border-gray-700/30 hover:bg-gray-700/50'
-                    }`}
-                  >
-                    <div className="flex flex-col h-full">
-                      <span className={`text-sm font-semibold ${isToday ? 'text-white' : 'text-gray-300'}`}>
-                        {day}
-                      </span>
-                      {events.length > 0 && (
-                        <div className="mt-1 flex-1 overflow-hidden">
-                          {events.slice(0, 2).map((event) => (
-                            <div
-                              key={event.id}
-                              className="text-[10px] text-white bg-cyan-600/80 hover:bg-cyan-500 rounded px-1 py-0.5 mb-0.5 truncate cursor-pointer transition border border-cyan-400/30"
-                              onClick={(e) => handleEditEvent(event, e)}
-                            >
-                              {event.title}
-                            </div>
-                          ))}
-                          {events.length > 2 && (
-                            <div className="text-[9px] text-cyan-400 font-medium">
-                              +{events.length - 2}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Events List for Selected Date */}
-          {selectedDate && (
-            <div className="mt-6 bg-gray-900/50 rounded-xl p-4 border border-gray-700/40">
-              <h3 className="text-lg font-bold text-white mb-3">
-                Events on {selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
-              </h3>
-              <div className="space-y-2 max-h-64 overflow-y-auto">
-                {getEventsForDate(selectedDate).map(event => (
-                  <div
-                    key={event.id}
-                    className="bg-gray-800/70 rounded-lg p-3 group flex items-center justify-between border border-gray-700/50"
-                  >
-                    <div
-                      className="flex-1 cursor-pointer"
-                      onClick={() => openDetailModal(event)}
-                    >
-                      <h4 className="text-white text-sm font-semibold">{event.title}</h4>
-                      {event.content && (
-                        <p className="text-gray-400 text-xs mt-1 line-clamp-1">{event.content}</p>
-                      )}
-                    </div>
-                    <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition">
-                      <button
-                        onClick={(e) => handleEditEvent(event, e)}
-                        className="p-1.5 bg-blue-600 hover:bg-blue-700 rounded border border-blue-500/50"
-                      >
-                        <Edit2 className="w-3.5 h-3.5 text-white" />
-                      </button>
-                      <button
-                        onClick={(e) => handleDeleteEvent(event, e)}
-                        className="p-1.5 bg-red-600 hover:bg-red-700 rounded border border-red-500/50"
-                      >
-                        <Trash2 className="w-3.5 h-3.5 text-white" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-                {getEventsForDate(selectedDate).length === 0 && (
-                  <p className="text-gray-400 text-sm italic text-center py-4">No events on this day</p>
-                )}
+    <div className="min-h-screen p-3 md:p-4 pt-14 md:pt-16">
+      <div className="max-w-7xl mx-auto">
+        {/* Two Column Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-3">
+          {/* Left: Calendar */}
+          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-md rounded-xl p-3 md:p-4 border border-gray-700/50 shadow-lg h-fit">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-base md:text-lg font-bold text-white flex items-center">
+                <CalendarIcon className="w-4 h-4 md:w-5 md:h-5 mr-1.5 text-cyan-400" />
+                Sanctuary
+              </h2>
+              <div className="flex items-center space-x-1">
+                <button
+                  onClick={handlePreviousMonth}
+                  className="p-1 bg-gray-800/80 hover:bg-gray-700/80 rounded-lg transition border border-gray-600/50"
+                >
+                  <ChevronLeft className="w-4 h-4 text-white" />
+                </button>
+                <span className="text-white text-xs md:text-sm font-semibold min-w-[120px] md:min-w-[150px] text-center">{monthName}</span>
+                <button
+                  onClick={handleNextMonth}
+                  className="p-1 bg-gray-800/80 hover:bg-gray-700/80 rounded-lg transition border border-gray-600/50"
+                >
+                  <ChevronRight className="w-4 h-4 text-white" />
+                </button>
               </div>
             </div>
-          )}
+
+            {/* Calendar Grid */}
+            <div className="bg-black/20 rounded-lg p-2 border border-gray-700/30">
+              {/* Week days header */}
+              <div className="grid grid-cols-7 gap-1 mb-1">
+                {weekDays.map(day => (
+                  <div key={day} className="text-center text-gray-400 text-xs font-semibold py-1">
+                    {day.substring(0, 2)}
+                  </div>
+                ))}
+              </div>
+
+              {/* Calendar days */}
+              <div className="grid grid-cols-7 gap-1">
+                {/* Empty cells for days before month starts */}
+                {Array.from({ length: startingDayOfWeek }).map((_, i) => (
+                  <div key={`empty-${i}`} className="aspect-square" />
+                ))}
+
+                {/* Days of the month */}
+                {Array.from({ length: daysInMonth }).map((_, i) => {
+                  const day = i + 1;
+                  const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+                  const events = getEventsForDate(date);
+                  const isToday = date.toDateString() === new Date().toDateString();
+                  const hasEvents = events.length > 0;
+
+                  return (
+                    <div
+                      key={day}
+                      onClick={() => handleDateClick(date)}
+                      className={`aspect-square p-1 rounded cursor-pointer transition-all duration-200 ${
+                        isToday
+                          ? 'bg-gradient-to-br from-blue-600/40 to-cyan-600/40 border border-blue-500/50 shadow-[inset_0_0_15px_rgba(59,130,246,0.3)]'
+                          : hasEvents
+                          ? 'bg-gray-800/60 border border-gray-600/40 shadow-[inset_0_0_10px_rgba(6,182,212,0.2)]'
+                          : 'bg-gray-800/40 border border-gray-700/30 hover:bg-gray-700/50'
+                      }`}
+                    >
+                      <div className="flex flex-col h-full">
+                        <span className={`text-xs font-semibold ${isToday ? 'text-white' : 'text-gray-300'}`}>
+                          {day}
+                        </span>
+                        {events.length > 0 && (
+                          <div className="mt-0.5 flex-1 overflow-hidden">
+                            {events.slice(0, 1).map((event) => (
+                              <div
+                                key={event.id}
+                                className="text-[8px] text-white bg-cyan-600/80 hover:bg-cyan-500 rounded px-0.5 truncate cursor-pointer transition border border-cyan-400/30"
+                                onClick={(e) => handleEditEvent(event, e)}
+                              >
+                                {event.title}
+                              </div>
+                            ))}
+                            {events.length > 1 && (
+                              <div className="text-[8px] text-cyan-400 font-medium">
+                                +{events.length - 1}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Events List for Selected Date */}
+            {selectedDate && (
+              <div className="mt-3 bg-gray-900/50 rounded-xl p-3 border border-gray-700/40">
+                <h3 className="text-sm font-bold text-white mb-2">
+                  Events on {selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
+                </h3>
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {getEventsForDate(selectedDate).map(event => (
+                    <div
+                      key={event.id}
+                      className="bg-gray-800/70 rounded-lg p-2 group flex items-center justify-between border border-gray-700/50"
+                    >
+                      <div
+                        className="flex-1 cursor-pointer"
+                        onClick={() => openDetailModal(event)}
+                      >
+                        <h4 className="text-white text-xs font-semibold">{event.title}</h4>
+                        {event.content && (
+                          <p className="text-gray-400 text-[10px] mt-0.5 line-clamp-1">{event.content}</p>
+                        )}
+                      </div>
+                      <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition">
+                        <button
+                          onClick={(e) => handleEditEvent(event, e)}
+                          className="p-1 bg-blue-600 hover:bg-blue-700 rounded border border-blue-500/50"
+                        >
+                          <Edit2 className="w-3 h-3 text-white" />
+                        </button>
+                        <button
+                          onClick={(e) => handleDeleteEvent(event, e)}
+                          className="p-1 bg-red-600 hover:bg-red-700 rounded border border-red-500/50"
+                        >
+                          <Trash2 className="w-3 h-3 text-white" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  {getEventsForDate(selectedDate).length === 0 && (
+                    <p className="text-gray-400 text-xs italic text-center py-2">No events on this day</p>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Right: Countdown Cards Sidebar */}
+          <div className="space-y-3">
+            {/* Reunion Countdown */}
+            {countdowns.reunion && (
+              <div className="bg-gradient-to-br from-pink-900/40 to-purple-900/40 backdrop-blur-md rounded-xl p-3 border border-pink-500/30 shadow-lg">
+                <h3 className="text-xs font-semibold text-pink-300 mb-1">Next Reunion</h3>
+                <div className="text-2xl font-bold text-white mb-1">{countdowns.reunion.days}</div>
+                <p className="text-xs text-pink-200/80">days</p>
+                <p className="text-xs text-pink-300/70 mt-1 truncate">{countdowns.reunion.item.title}</p>
+              </div>
+            )}
+
+            {/* Anniversary Countdown */}
+            <div className="bg-gradient-to-br from-red-900/40 to-pink-900/40 backdrop-blur-md rounded-xl p-3 border border-red-500/30 shadow-lg">
+              <h3 className="text-xs font-semibold text-red-300 mb-1">Anniversary</h3>
+              <div className="text-2xl font-bold text-white mb-1">{countdowns.anniversary}</div>
+              <p className="text-xs text-red-200/80">days</p>
+            </div>
+
+            {/* Birthday Countdown */}
+            <div className="bg-gradient-to-br from-blue-900/40 to-cyan-900/40 backdrop-blur-md rounded-xl p-3 border border-blue-500/30 shadow-lg">
+              <h3 className="text-xs font-semibold text-blue-300 mb-1">Birthday</h3>
+              <div className="text-2xl font-bold text-white mb-1">{countdowns.birthday}</div>
+              <p className="text-xs text-blue-200/80">days</p>
+            </div>
+
+            {/* Make a Wish Button */}
+            <button
+              onClick={() => setShowWishModal(true)}
+              className="w-full bg-gradient-to-br from-cyan-900/40 to-blue-900/40 backdrop-blur-md rounded-xl p-3 border border-cyan-500/30 shadow-lg hover:from-cyan-800/50 hover:to-blue-800/50 transition-all group"
+            >
+              <div className="flex items-center justify-center space-x-2">
+                <Sparkles className="w-4 h-4 text-cyan-400 group-hover:text-cyan-300" />
+                <span className="text-sm font-semibold text-cyan-300 group-hover:text-cyan-200">Make a Wish</span>
+              </div>
+            </button>
+          </div>
         </div>
 
         {/* Add Event Modal */}
