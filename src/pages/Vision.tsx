@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Plus,
   Image as ImageIcon,
@@ -13,9 +13,10 @@ import {
   Calendar as CalendarIcon,
   Clock,
   Edit2,
-  Trash2
+  Trash2,
+  Heart,
+  Sparkles
 } from 'lucide-react';
-import Masonry from 'react-masonry-css';
 import UserBadge from '../components/UserBadge';
 import {
   VisionItem,
@@ -34,7 +35,7 @@ import {
 
 export default function Vision() {
   const [items, setItems] = useState<VisionItem[]>([]);
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [showWishModal, setShowWishModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showEventModal, setShowEventModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState<VisionItem | null>(null);
@@ -42,7 +43,7 @@ export default function Vision() {
   const [editingEvent, setEditingEvent] = useState<VisionItem | null>(null);
 
   // Vision board item states
-  const [newItemType, setNewItemType] = useState<'text' | 'goal' | 'image'>('text');
+  const [newItemType, setNewItemType] = useState<'text' | 'goal' | 'image'>('goal');
   const [newItemTitle, setNewItemTitle] = useState('');
   const [newItemContent, setNewItemContent] = useState('');
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
@@ -83,6 +84,47 @@ export default function Vision() {
       console.error('Error loading comments:', error);
     }
   };
+
+  // Helper function to calculate days until a date
+  const getDaysUntil = (date: Date) => {
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    const targetDate = new Date(date);
+    targetDate.setHours(0, 0, 0, 0);
+    const diff = targetDate.getTime() - now.getTime();
+    return Math.ceil(diff / (1000 * 60 * 60 * 24));
+  };
+
+  // Calculate countdowns for header cards
+  const countdowns = useMemo(() => {
+    const eventsWithDates = items.filter(item => item.event_date);
+
+    // Find next "travel" event (event_type === 'event' with keyword 'travel' or 'trip')
+    const travelEvents = eventsWithDates.filter(item =>
+      item.event_type === 'event' &&
+      (item.title.toLowerCase().includes('travel') ||
+       item.title.toLowerCase().includes('trip') ||
+       item.title.toLowerCase().includes('reunion'))
+    );
+    const nextTravel = travelEvents
+      .map(item => ({ item, days: getDaysUntil(new Date(item.event_date!)) }))
+      .filter(({ days }) => days >= 0)
+      .sort((a, b) => a.days - b.days)[0];
+
+    // Placeholder for anniversary (can be configured later)
+    const anniversaryDate = new Date(new Date().getFullYear(), 5, 15); // June 15th placeholder
+    const anniversaryDays = getDaysUntil(anniversaryDate);
+
+    // Placeholder for birthday (can be configured later)
+    const birthdayDate = new Date(new Date().getFullYear(), 8, 20); // Sept 20th placeholder
+    const birthdayDays = getDaysUntil(birthdayDate);
+
+    return {
+      reunion: nextTravel ? { days: nextTravel.days, item: nextTravel.item } : null,
+      anniversary: anniversaryDays >= 0 ? anniversaryDays : anniversaryDays + 365,
+      birthday: birthdayDays >= 0 ? birthdayDays : birthdayDays + 365,
+    };
+  }, [items]);
 
   // Calendar helper functions
   const getDaysInMonth = (date: Date) => {
@@ -216,7 +258,7 @@ export default function Vision() {
         image_url: uploadedImageUrl || undefined,
       });
       setItems([newItem, ...items]);
-      setShowAddModal(false);
+      setShowWishModal(false);
       resetForm();
     } catch (error) {
       console.error('Error creating vision item:', error);
@@ -269,6 +311,11 @@ export default function Vision() {
     }
   };
 
+  const handleNudge = (itemId: string) => {
+    console.log('Nudge interaction for item:', itemId);
+    // Placeholder for future notification service integration
+  };
+
   const handleAddComment = async () => {
     if (!selectedItem || !newCommentText.trim()) return;
 
@@ -297,305 +344,206 @@ export default function Vision() {
   };
 
   const resetForm = () => {
-    setNewItemType('text');
+    setNewItemType('goal');
     setNewItemTitle('');
     setNewItemContent('');
     setUploadedImageUrl(null);
-  };
-
-  const getCardColor = (index: number) => {
-    const colors = [
-      'bg-gradient-to-br from-blue-600 to-cyan-600',
-      'bg-gradient-to-br from-cyan-600 to-teal-600',
-      'bg-gradient-to-br from-slate-600 to-blue-600',
-      'bg-gradient-to-br from-gray-600 to-slate-600',
-      'bg-gradient-to-br from-blue-700 to-indigo-700',
-    ];
-    return colors[index % colors.length];
-  };
-
-  const breakpointColumnsObj = {
-    default: 2,
-    1536: 2,
-    1024: 1,
-    640: 1,
   };
 
   const { daysInMonth, startingDayOfWeek } = getDaysInMonth(currentMonth);
   const monthName = currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-  // Filter items for vision board (items without event_date or can include all)
-  const visionBoardItems = items.filter(item => !item.event_date);
+  // Filter items for vision board (items without event_date)
+  const visionBoardItems = items.filter(item => !item.event_date && item.type === 'goal');
+  const workingTowards = visionBoardItems.filter(item => !item.goal_completed);
+  const accomplished = visionBoardItems.filter(item => item.goal_completed);
 
   return (
     <div className="min-h-screen p-4 md:p-8 pt-20 md:pt-24">
-      <div className="max-w-[1800px] mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          
+      <div className="max-w-5xl mx-auto">
+        {/* Header Countdown Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
+          {/* Reunion Countdown */}
+          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-md rounded-xl p-4 border border-gray-700/50 shadow-[0_0_15px_rgba(59,130,246,0.1)] hover:shadow-[0_0_25px_rgba(59,130,246,0.2)] transition-all duration-300">
+            <div className="text-cyan-400 text-xs font-medium mb-2 flex items-center">
+              <Sparkles className="w-3 h-3 mr-1" />
+              Reunion
+            </div>
+            <div className="text-3xl font-bold text-white mb-1">
+              {countdowns.reunion ? countdowns.reunion.days : '--'}
+            </div>
+            <div className="text-gray-400 text-xs">days</div>
+          </div>
+
+          {/* Anniversary Countdown */}
+          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-md rounded-xl p-4 border border-gray-700/50 shadow-[0_0_15px_rgba(236,72,153,0.1)] hover:shadow-[0_0_25px_rgba(236,72,153,0.2)] transition-all duration-300">
+            <div className="text-pink-400 text-xs font-medium mb-2 flex items-center">
+              <Heart className="w-3 h-3 mr-1" />
+              Anniversary
+            </div>
+            <div className="text-3xl font-bold text-white mb-1">
+              {countdowns.anniversary}
+            </div>
+            <div className="text-gray-400 text-xs">days</div>
+          </div>
+
+          {/* Birthday Countdown */}
+          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-md rounded-xl p-4 border border-gray-700/50 shadow-[0_0_15px_rgba(168,85,247,0.1)] hover:shadow-[0_0_25px_rgba(168,85,247,0.2)] transition-all duration-300">
+            <div className="text-purple-400 text-xs font-medium mb-2 flex items-center">
+              <CalendarIcon className="w-3 h-3 mr-1" />
+              Birthday
+            </div>
+            <div className="text-3xl font-bold text-white mb-1">
+              {countdowns.birthday}
+            </div>
+            <div className="text-gray-400 text-xs">days</div>
+          </div>
+
+          {/* Make a Wish Button */}
+          <button
+            onClick={() => setShowWishModal(true)}
+            className="bg-gradient-to-br from-blue-600/20 to-cyan-600/20 backdrop-blur-md rounded-xl p-4 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.15)] hover:shadow-[0_0_30px_rgba(59,130,246,0.3)] hover:scale-[1.02] transition-all duration-300 flex flex-col items-center justify-center group"
+          >
+            <Sparkles className="w-6 h-6 text-blue-400 mb-2 group-hover:text-cyan-300 transition-colors" />
+            <span className="text-white text-sm font-semibold">Make a Wish</span>
+          </button>
         </div>
 
-        {/* Split Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* LEFT: Calendar */}
-          <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-4 border border-gray-700">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-white flex items-center">
-                <CalendarIcon className="w-5 h-5 mr-1.5" />
-                Calendar
-              </h2>
-              <div className="flex items-center space-x-1.5">
-                <button
-                  onClick={handlePreviousMonth}
-                  className="p-1.5 bg-gray-700 hover:bg-gray-600 rounded-lg transition"
-                >
-                  <ChevronLeft className="w-4 h-4 text-white" />
-                </button>
-                <span className="text-white text-sm font-semibold min-w-[180px] text-center">{monthName}</span>
-                <button
-                  onClick={handleNextMonth}
-                  className="p-1.5 bg-gray-700 hover:bg-gray-600 rounded-lg transition"
-                >
-                  <ChevronRight className="w-4 h-4 text-white" />
-                </button>
-              </div>
-            </div>
-
-            {/* Calendar Grid */}
-            <div className="bg-gray-900/50 rounded-lg p-3">
-              {/* Week days header */}
-              <div className="grid grid-cols-7 gap-1.5 mb-1.5">
-                {weekDays.map(day => (
-                  <div key={day} className="text-center text-gray-400 text-xs font-medium py-1">
-                    {day}
-                  </div>
-                ))}
-              </div>
-
-              {/* Calendar days */}
-              <div className="grid grid-cols-7 gap-1.5">
-                {/* Empty cells for days before month starts */}
-                {Array.from({ length: startingDayOfWeek }).map((_, i) => (
-                  <div key={`empty-${i}`} className="aspect-square" />
-                ))}
-
-                {/* Days of the month */}
-                {Array.from({ length: daysInMonth }).map((_, i) => {
-                  const day = i + 1;
-                  const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
-                  const events = getEventsForDate(date);
-                  const isToday =
-                    date.toDateString() === new Date().toDateString();
-
-                  return (
-                    <div
-                      key={day}
-                      onClick={() => handleDateClick(date)}
-                      className={`aspect-square p-1.5 rounded cursor-pointer transition ${
-                        isToday
-                          ? 'bg-blue-600 hover:bg-blue-700'
-                          : 'bg-gray-800 hover:bg-gray-700'
-                      }`}
-                    >
-                      <div className="flex flex-col h-full">
-                        <span className={`text-xs font-medium ${isToday ? 'text-white' : 'text-gray-300'}`}>
-                          {day}
-                        </span>
-                        {events.length > 0 && (
-                          <div className="mt-0.5 flex-1 overflow-hidden">
-                            {events.slice(0, 2).map((event, idx) => (
-                              <div
-                                key={event.id}
-                                className="text-[9px] text-white bg-cyan-600 hover:bg-cyan-700 rounded px-0.5 py-0.5 mb-0.5 truncate cursor-pointer transition"
-                                onClick={(e) => handleEditEvent(event, e)}
-                              >
-                                {event.title}
-                              </div>
-                            ))}
-                            {events.length > 2 && (
-                              <div className="text-[8px] text-gray-400">
-                                +{events.length - 2}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Events List for Selected Date */}
-            {selectedDate && (
-              <div className="mt-4">
-                <h3 className="text-base font-bold text-white mb-2">
-                  Events on {selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
-                </h3>
-                <div className="space-y-1.5 max-h-48 overflow-y-auto">
-                  {getEventsForDate(selectedDate).map(event => (
-                    <div
-                      key={event.id}
-                      className="bg-gray-800 rounded p-2 group flex items-center justify-between"
-                    >
-                      <div
-                        className="flex-1 cursor-pointer"
-                        onClick={() => openDetailModal(event)}
-                      >
-                        <h4 className="text-white text-sm font-medium">{event.title}</h4>
-                        {event.content && (
-                          <p className="text-gray-400 text-xs mt-0.5 line-clamp-1">{event.content}</p>
-                        )}
-                      </div>
-                      <div className="flex items-center space-x-1.5 opacity-0 group-hover:opacity-100 transition">
-                        <button
-                          onClick={(e) => handleEditEvent(event, e)}
-                          className="p-1 bg-blue-600 hover:bg-blue-700 rounded"
-                        >
-                          <Edit2 className="w-2.5 h-2.5 text-white" />
-                        </button>
-                        <button
-                          onClick={(e) => handleDeleteEvent(event, e)}
-                          className="p-1 bg-red-600 hover:bg-red-700 rounded"
-                        >
-                          <Trash2 className="w-2.5 h-2.5 text-white" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                  {getEventsForDate(selectedDate).length === 0 && (
-                    <p className="text-gray-400 text-xs italic">No events on this day</p>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* RIGHT: Vision Board */}
-          <div className="bg-gray-800/50 backdrop-blur-sm rounded-lg p-4 border border-gray-700">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-white">Vision Board</h2>
+        {/* Hero Calendar */}
+        <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-md rounded-2xl p-6 border border-gray-700/50 shadow-2xl">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-white flex items-center">
+              <CalendarIcon className="w-6 h-6 mr-2 text-cyan-400" />
+              Sanctuary
+            </h2>
+            <div className="flex items-center space-x-2">
               <button
-                onClick={() => setShowAddModal(true)}
-                className="flex items-center space-x-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg text-sm font-medium hover:from-blue-700 hover:to-cyan-700 transition"
+                onClick={handlePreviousMonth}
+                className="p-2 bg-gray-800/80 hover:bg-gray-700/80 rounded-lg transition border border-gray-600/50"
               >
-                <Plus className="w-4 h-4" />
-                <span>Add Item</span>
+                <ChevronLeft className="w-5 h-5 text-white" />
+              </button>
+              <span className="text-white text-base font-semibold min-w-[200px] text-center">{monthName}</span>
+              <button
+                onClick={handleNextMonth}
+                className="p-2 bg-gray-800/80 hover:bg-gray-700/80 rounded-lg transition border border-gray-600/50"
+              >
+                <ChevronRight className="w-5 h-5 text-white" />
               </button>
             </div>
+          </div>
 
-            {/* Vision Board Grid */}
-            <div className="overflow-y-auto max-h-[calc(100vh-200px)]">
-              <Masonry
-                breakpointCols={breakpointColumnsObj}
-                className="flex -ml-4 w-auto"
-                columnClassName="pl-4 bg-clip-padding"
-              >
-                {visionBoardItems.map((item, index) => (
+          {/* Calendar Grid */}
+          <div className="bg-black/20 rounded-xl p-4 border border-gray-700/30">
+            {/* Week days header */}
+            <div className="grid grid-cols-7 gap-2 mb-2">
+              {weekDays.map(day => (
+                <div key={day} className="text-center text-gray-400 text-sm font-semibold py-2">
+                  {day}
+                </div>
+              ))}
+            </div>
+
+            {/* Calendar days */}
+            <div className="grid grid-cols-7 gap-2">
+              {/* Empty cells for days before month starts */}
+              {Array.from({ length: startingDayOfWeek }).map((_, i) => (
+                <div key={`empty-${i}`} className="aspect-square" />
+              ))}
+
+              {/* Days of the month */}
+              {Array.from({ length: daysInMonth }).map((_, i) => {
+                const day = i + 1;
+                const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+                const events = getEventsForDate(date);
+                const isToday = date.toDateString() === new Date().toDateString();
+                const hasEvents = events.length > 0;
+
+                return (
                   <div
-                    key={item.id}
-                    className="mb-3 group cursor-pointer"
-                    onClick={() => openDetailModal(item)}
+                    key={day}
+                    onClick={() => handleDateClick(date)}
+                    className={`aspect-square p-2 rounded-lg cursor-pointer transition-all duration-200 ${
+                      isToday
+                        ? 'bg-gradient-to-br from-blue-600/40 to-cyan-600/40 border border-blue-500/50 shadow-[inset_0_0_20px_rgba(59,130,246,0.3)]'
+                        : hasEvents
+                        ? 'bg-gray-800/60 border border-gray-600/40 shadow-[inset_0_0_15px_rgba(6,182,212,0.2)]'
+                        : 'bg-gray-800/40 border border-gray-700/30 hover:bg-gray-700/50'
+                    }`}
                   >
-                    {item.type === 'image' && (
-                      <div className="relative overflow-hidden rounded-lg shadow-xl transform transition-all duration-300 hover:scale-105">
-                        <img
-                          src={item.image_url || ''}
-                          alt={item.title}
-                          className="w-full h-auto object-cover"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                          <div className="absolute bottom-0 left-0 right-0 p-3">
-                            <h3 className="text-white font-semibold text-sm">{item.title}</h3>
-                          </div>
-                        </div>
-                        <div className="absolute bottom-1.5 right-1.5">
-                          <UserBadge userId={item.user_id} size={16} />
-                        </div>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteItem(item.id, item.image_url);
-                          }}
-                          className="absolute top-1.5 right-1.5 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
-                        >
-                          <X className="w-3 h-3 text-white" />
-                        </button>
-                      </div>
-                    )}
-
-                    {item.type === 'text' && (
-                      <div className="relative">
-                        <div className={`${getCardColor(index)} p-2.5 rounded shadow-lg transform transition-all duration-300 hover:scale-105`}>
-                          <h3 className="text-white font-bold text-xs mb-0.5">{item.title}</h3>
-                          {item.content && (
-                            <p className="text-white/90 text-[10px] line-clamp-3">{item.content}</p>
+                    <div className="flex flex-col h-full">
+                      <span className={`text-sm font-semibold ${isToday ? 'text-white' : 'text-gray-300'}`}>
+                        {day}
+                      </span>
+                      {events.length > 0 && (
+                        <div className="mt-1 flex-1 overflow-hidden">
+                          {events.slice(0, 2).map((event) => (
+                            <div
+                              key={event.id}
+                              className="text-[10px] text-white bg-cyan-600/80 hover:bg-cyan-500 rounded px-1 py-0.5 mb-0.5 truncate cursor-pointer transition border border-cyan-400/30"
+                              onClick={(e) => handleEditEvent(event, e)}
+                            >
+                              {event.title}
+                            </div>
+                          ))}
+                          {events.length > 2 && (
+                            <div className="text-[9px] text-cyan-400 font-medium">
+                              +{events.length - 2}
+                            </div>
                           )}
                         </div>
-                        <div className="absolute bottom-1.5 right-1.5">
-                          <UserBadge userId={item.user_id} size={16} />
-                        </div>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteItem(item.id, null);
-                          }}
-                          className="absolute top-1.5 right-1.5 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
-                        >
-                          <X className="w-3 h-3 text-white" />
-                        </button>
-                      </div>
-                    )}
-
-                    {item.type === 'goal' && (
-                      <div className="relative">
-                        <div className={`${getCardColor(index)} p-2.5 rounded shadow-lg transform transition-all duration-300 hover:scale-105`}>
-                          <div className="flex items-start space-x-1.5">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleToggleGoal(item.id, item.goal_completed);
-                              }}
-                              className={`w-3.5 h-3.5 rounded-full border-2 flex-shrink-0 mt-0.5 flex items-center justify-center transition ${
-                                item.goal_completed
-                                  ? 'bg-white border-white'
-                                  : 'border-white bg-transparent hover:bg-white/20'
-                              }`}
-                            >
-                              {item.goal_completed && <Check className="w-2.5 h-2.5 text-blue-600" />}
-                            </button>
-                            <div className="flex-1">
-                              <h3 className={`text-white font-bold text-xs ${item.goal_completed ? 'line-through opacity-70' : ''}`}>
-                                {item.title}
-                              </h3>
-                              {item.content && (
-                                <p className={`text-white/90 text-[10px] mt-0.5 line-clamp-3 ${item.goal_completed ? 'line-through opacity-70' : ''}`}>
-                                  {item.content}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="absolute bottom-1.5 right-1.5">
-                          <UserBadge userId={item.user_id} size={16} />
-                        </div>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteItem(item.id, null);
-                          }}
-                          className="absolute top-1.5 right-1.5 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
-                        >
-                          <X className="w-3 h-3 text-white" />
-                        </button>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
-                ))}
-              </Masonry>
+                );
+              })}
             </div>
           </div>
+
+          {/* Events List for Selected Date */}
+          {selectedDate && (
+            <div className="mt-6 bg-gray-900/50 rounded-xl p-4 border border-gray-700/40">
+              <h3 className="text-lg font-bold text-white mb-3">
+                Events on {selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
+              </h3>
+              <div className="space-y-2 max-h-64 overflow-y-auto">
+                {getEventsForDate(selectedDate).map(event => (
+                  <div
+                    key={event.id}
+                    className="bg-gray-800/70 rounded-lg p-3 group flex items-center justify-between border border-gray-700/50"
+                  >
+                    <div
+                      className="flex-1 cursor-pointer"
+                      onClick={() => openDetailModal(event)}
+                    >
+                      <h4 className="text-white text-sm font-semibold">{event.title}</h4>
+                      {event.content && (
+                        <p className="text-gray-400 text-xs mt-1 line-clamp-1">{event.content}</p>
+                      )}
+                    </div>
+                    <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition">
+                      <button
+                        onClick={(e) => handleEditEvent(event, e)}
+                        className="p-1.5 bg-blue-600 hover:bg-blue-700 rounded border border-blue-500/50"
+                      >
+                        <Edit2 className="w-3.5 h-3.5 text-white" />
+                      </button>
+                      <button
+                        onClick={(e) => handleDeleteEvent(event, e)}
+                        className="p-1.5 bg-red-600 hover:bg-red-700 rounded border border-red-500/50"
+                      >
+                        <Trash2 className="w-3.5 h-3.5 text-white" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                {getEventsForDate(selectedDate).length === 0 && (
+                  <p className="text-gray-400 text-sm italic text-center py-4">No events on this day</p>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Add Event Modal */}
@@ -764,124 +712,219 @@ export default function Vision() {
           </div>
         )}
 
-        {/* Add Vision Item Modal */}
-        {showAddModal && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-gray-900 rounded-2xl max-w-md w-full p-6 border border-gray-700">
-              <h2 className="text-2xl font-bold text-white mb-4">Add to Vision Board</h2>
-
-              {/* Type Selector */}
-              <div className="flex space-x-2 mb-4">
-                <button
-                  onClick={() => setNewItemType('image')}
-                  className={`flex-1 flex flex-col items-center justify-center py-4 rounded-lg transition ${
-                    newItemType === 'image'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-                  }`}
-                >
-                  <ImageIcon className="w-6 h-6 mb-1" />
-                  <span className="text-sm">Image</span>
-                </button>
-                <button
-                  onClick={() => setNewItemType('text')}
-                  className={`flex-1 flex flex-col items-center justify-center py-4 rounded-lg transition ${
-                    newItemType === 'text'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-                  }`}
-                >
-                  <Type className="w-6 h-6 mb-1" />
-                  <span className="text-sm">Text</span>
-                </button>
-                <button
-                  onClick={() => setNewItemType('goal')}
-                  className={`flex-1 flex flex-col items-center justify-center py-4 rounded-lg transition ${
-                    newItemType === 'goal'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-                  }`}
-                >
-                  <List className="w-6 h-6 mb-1" />
-                  <span className="text-sm">Goal</span>
-                </button>
-              </div>
-
-              {/* Image Upload */}
-              {newItemType === 'image' && (
-                <>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                  />
-                  <div
-                    onClick={() => fileInputRef.current?.click()}
-                    className="border-2 border-dashed border-gray-700 rounded-xl p-8 text-center hover:border-blue-500 transition cursor-pointer mb-4"
+        {/* Make a Wish Modal */}
+        {showWishModal && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 overflow-y-auto lg:flex lg:items-center lg:justify-center">
+            <div className="min-h-screen lg:min-h-0 lg:max-h-[90vh] px-4 py-4 lg:py-8">
+              <div className="bg-gray-900 rounded-t-3xl lg:rounded-2xl max-w-4xl w-full lg:mx-auto p-6 border border-gray-700 lg:my-8 overflow-y-auto max-h-[calc(100vh-2rem)] lg:max-h-[85vh]">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-6 sticky top-0 bg-gray-900 pb-4 border-b border-gray-700/50">
+                  <h2 className="text-2xl font-bold text-white flex items-center">
+                    <Sparkles className="w-6 h-6 mr-2 text-cyan-400" />
+                    Make a Wish
+                  </h2>
+                  <button
+                    onClick={() => setShowWishModal(false)}
+                    className="text-gray-400 hover:text-white transition"
                   >
-                    {isUploading ? (
-                      <p className="text-blue-400">Uploading...</p>
-                    ) : uploadedImageUrl ? (
-                      <div>
-                        <img src={uploadedImageUrl} alt="Preview" className="max-h-40 mx-auto mb-2 rounded" />
-                        <p className="text-green-400 text-sm">Image uploaded!</p>
+                    <X className="w-6 h-6" />
+                  </button>
+                </div>
+
+                {/* Add New Wish Form */}
+                <div className="mb-8 bg-gray-800/50 rounded-xl p-5 border border-gray-700/50">
+                  <h3 className="text-lg font-semibold text-white mb-4">Add New Wish</h3>
+
+                  {/* Type Selector */}
+                  <div className="flex space-x-2 mb-4">
+                    <button
+                      onClick={() => setNewItemType('goal')}
+                      className={`flex-1 flex flex-col items-center justify-center py-3 rounded-lg transition ${
+                        newItemType === 'goal'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                      }`}
+                    >
+                      <List className="w-5 h-5 mb-1" />
+                      <span className="text-sm">Goal</span>
+                    </button>
+                    <button
+                      onClick={() => setNewItemType('text')}
+                      className={`flex-1 flex flex-col items-center justify-center py-3 rounded-lg transition ${
+                        newItemType === 'text'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                      }`}
+                    >
+                      <Type className="w-5 h-5 mb-1" />
+                      <span className="text-sm">Text</span>
+                    </button>
+                    <button
+                      onClick={() => setNewItemType('image')}
+                      className={`flex-1 flex flex-col items-center justify-center py-3 rounded-lg transition ${
+                        newItemType === 'image'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
+                      }`}
+                    >
+                      <ImageIcon className="w-5 h-5 mb-1" />
+                      <span className="text-sm">Image</span>
+                    </button>
+                  </div>
+
+                  {/* Image Upload */}
+                  {newItemType === 'image' && (
+                    <>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                      />
+                      <div
+                        onClick={() => fileInputRef.current?.click()}
+                        className="border-2 border-dashed border-gray-700 rounded-xl p-8 text-center hover:border-blue-500 transition cursor-pointer mb-4"
+                      >
+                        {isUploading ? (
+                          <p className="text-blue-400">Uploading...</p>
+                        ) : uploadedImageUrl ? (
+                          <div>
+                            <img src={uploadedImageUrl} alt="Preview" className="max-h-40 mx-auto mb-2 rounded" />
+                            <p className="text-green-400 text-sm">Image uploaded!</p>
+                          </div>
+                        ) : (
+                          <>
+                            <Upload className="w-12 h-12 text-gray-600 mx-auto mb-2" />
+                            <p className="text-gray-400">Click to upload image</p>
+                            <p className="text-gray-600 text-sm mt-1">Max 5MB</p>
+                          </>
+                        )}
                       </div>
-                    ) : (
-                      <>
-                        <Upload className="w-12 h-12 text-gray-600 mx-auto mb-2" />
-                        <p className="text-gray-400">Click to upload image</p>
-                        <p className="text-gray-600 text-sm mt-1">Max 5MB</p>
-                      </>
+                      <input
+                        type="text"
+                        value={newItemTitle}
+                        onChange={(e) => setNewItemTitle(e.target.value)}
+                        placeholder="Image title..."
+                        className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
+                      />
+                    </>
+                  )}
+
+                  {/* Text/Goal Input */}
+                  {newItemType !== 'image' && (
+                    <>
+                      <input
+                        type="text"
+                        value={newItemTitle}
+                        onChange={(e) => setNewItemTitle(e.target.value)}
+                        placeholder={newItemType === 'goal' ? 'Goal title...' : 'Text title...'}
+                        className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
+                      />
+                      <textarea
+                        value={newItemContent}
+                        onChange={(e) => setNewItemContent(e.target.value)}
+                        placeholder={newItemType === 'goal' ? 'Goal description (optional)...' : 'Text content (optional)...'}
+                        className="w-full h-24 px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none mb-4"
+                      />
+                    </>
+                  )}
+
+                  <button
+                    onClick={handleAddItem}
+                    className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-cyan-700 transition"
+                  >
+                    Add Wish
+                  </button>
+                </div>
+
+                {/* Working Towards Section */}
+                <div className="mb-8">
+                  <h3 className="text-xl font-bold text-white mb-4 flex items-center">
+                    <Sparkles className="w-5 h-5 mr-2 text-cyan-400" />
+                    Working Towards ({workingTowards.length})
+                  </h3>
+                  <div className="space-y-3 max-h-80 overflow-y-auto pr-2">
+                    {workingTowards.map((item) => (
+                      <div
+                        key={item.id}
+                        className="bg-gradient-to-br from-gray-800/80 to-gray-700/80 rounded-xl p-4 border border-gray-600/50 hover:border-cyan-500/50 transition-all group"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h4 className="text-white font-semibold text-base mb-1">{item.title}</h4>
+                            {item.content && (
+                              <p className="text-gray-300 text-sm mb-3">{item.content}</p>
+                            )}
+                            <div className="flex items-center space-x-3">
+                              <button
+                                onClick={() => handleNudge(item.id)}
+                                className="flex items-center space-x-1.5 px-3 py-1.5 bg-pink-600/20 hover:bg-pink-600/30 border border-pink-500/30 rounded-lg transition text-pink-400 text-xs"
+                              >
+                                <Heart className="w-3.5 h-3.5" />
+                                <span>Nudge</span>
+                              </button>
+                              <button
+                                onClick={() => handleToggleGoal(item.id, item.goal_completed)}
+                                className="flex items-center space-x-1.5 px-3 py-1.5 bg-green-600/20 hover:bg-green-600/30 border border-green-500/30 rounded-lg transition text-green-400 text-xs"
+                              >
+                                <Check className="w-3.5 h-3.5" />
+                                <span>Complete</span>
+                              </button>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => handleDeleteItem(item.id, null)}
+                            className="opacity-0 group-hover:opacity-100 transition ml-3"
+                          >
+                            <X className="w-5 h-5 text-red-400 hover:text-red-300" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                    {workingTowards.length === 0 && (
+                      <p className="text-gray-400 text-center py-8 italic">No active wishes yet. Add one above!</p>
                     )}
                   </div>
-                  <input
-                    type="text"
-                    value={newItemTitle}
-                    onChange={(e) => setNewItemTitle(e.target.value)}
-                    placeholder="Image title..."
-                    className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
-                  />
-                </>
-              )}
+                </div>
 
-              {/* Text/Goal Input */}
-              {newItemType !== 'image' && (
-                <>
-                  <input
-                    type="text"
-                    value={newItemTitle}
-                    onChange={(e) => setNewItemTitle(e.target.value)}
-                    placeholder={newItemType === 'goal' ? 'Goal title...' : 'Text title...'}
-                    className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
-                  />
-                  <textarea
-                    value={newItemContent}
-                    onChange={(e) => setNewItemContent(e.target.value)}
-                    placeholder={newItemType === 'goal' ? 'Goal description (optional)...' : 'Text content (optional)...'}
-                    className="w-full h-32 px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none mb-4"
-                  />
-                </>
-              )}
-
-              {/* Action Buttons */}
-              <div className="flex space-x-2">
-                <button
-                  onClick={handleAddItem}
-                  className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-cyan-700 transition"
-                >
-                  Add
-                </button>
-                <button
-                  onClick={() => {
-                    setShowAddModal(false);
-                    resetForm();
-                  }}
-                  className="px-4 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition"
-                >
-                  Cancel
-                </button>
+                {/* Accomplished Section */}
+                <div>
+                  <h3 className="text-xl font-bold text-white mb-4 flex items-center">
+                    <Check className="w-5 h-5 mr-2 text-green-400" />
+                    Accomplished ({accomplished.length})
+                  </h3>
+                  <div className="space-y-3 max-h-80 overflow-y-auto pr-2">
+                    {accomplished.map((item) => (
+                      <div
+                        key={item.id}
+                        className="bg-gray-800/40 rounded-xl p-4 border border-gray-700/30 grayscale opacity-70 hover:opacity-100 transition-all group"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h4 className="text-white font-semibold text-base mb-1 line-through">{item.title}</h4>
+                            {item.content && (
+                              <p className="text-gray-300 text-sm mb-2 line-through">{item.content}</p>
+                            )}
+                            <div className="flex items-center space-x-2 text-xs text-green-400">
+                              <Check className="w-3.5 h-3.5" />
+                              <span>Completed on {new Date(item.updated_at).toLocaleDateString()}</span>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => handleDeleteItem(item.id, null)}
+                            className="opacity-0 group-hover:opacity-100 transition ml-3"
+                          >
+                            <X className="w-5 h-5 text-red-400 hover:text-red-300" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                    {accomplished.length === 0 && (
+                      <p className="text-gray-400 text-center py-8 italic">No accomplished wishes yet.</p>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
