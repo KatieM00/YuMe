@@ -415,7 +415,7 @@ export default function Vision() {
           </div>
 
           {/* Right: Calendar */}
-          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-md rounded-xl p-2 border border-gray-700/50 shadow-2xl">
+          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-md rounded-xl p-2 border border-gray-700/50 shadow-2xl max-w-[420px]">
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-sm font-bold text-white flex items-center">
                 <CalendarIcon className="w-3.5 h-3.5 mr-1 text-cyan-400" />
