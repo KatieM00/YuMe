@@ -415,35 +415,35 @@ export default function Vision() {
           </div>
 
           {/* Right: Calendar */}
-          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-md rounded-xl p-2.5 border border-gray-700/50 shadow-2xl">
-            <div className="flex items-center justify-between mb-2.5">
-              <h2 className="text-base font-bold text-white flex items-center">
-                <CalendarIcon className="w-4 h-4 mr-1.5 text-cyan-400" />
+          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-md rounded-xl p-2 border border-gray-700/50 shadow-2xl">
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-sm font-bold text-white flex items-center">
+                <CalendarIcon className="w-3.5 h-3.5 mr-1 text-cyan-400" />
                 Sanctuary
               </h2>
-              <div className="flex items-center space-x-1.5">
+              <div className="flex items-center space-x-1">
                 <button
                   onClick={handlePreviousMonth}
-                  className="p-1 bg-gray-800/80 hover:bg-gray-700/80 rounded-lg transition border border-gray-600/50"
+                  className="p-0.5 bg-gray-800/80 hover:bg-gray-700/80 rounded transition border border-gray-600/50"
                 >
-                  <ChevronLeft className="w-3.5 h-3.5 text-white" />
+                  <ChevronLeft className="w-3 h-3 text-white" />
                 </button>
-                <span className="text-white text-xs font-semibold min-w-[120px] text-center">{monthName}</span>
+                <span className="text-white text-[10px] font-semibold min-w-[100px] text-center">{monthName}</span>
                 <button
                   onClick={handleNextMonth}
-                  className="p-1 bg-gray-800/80 hover:bg-gray-700/80 rounded-lg transition border border-gray-600/50"
+                  className="p-0.5 bg-gray-800/80 hover:bg-gray-700/80 rounded transition border border-gray-600/50"
                 >
-                  <ChevronRight className="w-3.5 h-3.5 text-white" />
+                  <ChevronRight className="w-3 h-3 text-white" />
                 </button>
               </div>
             </div>
 
             {/* Calendar Grid */}
-            <div className="bg-black/20 rounded-lg p-1.5 border border-gray-700/30">
+            <div className="bg-black/20 rounded-lg p-1 border border-gray-700/30">
               {/* Week days header */}
               <div className="grid grid-cols-7 gap-0.5 mb-0.5">
                 {weekDays.map(day => (
-                  <div key={day} className="text-center text-gray-400 text-xs font-semibold py-1">
+                  <div key={day} className="text-center text-gray-400 text-[10px] font-semibold py-0.5">
                     {day}
                   </div>
                 ))}
@@ -468,7 +468,7 @@ export default function Vision() {
                     <div
                       key={day}
                       onClick={() => handleDateClick(date)}
-                      className={`aspect-square p-1.5 rounded-lg cursor-pointer transition-all duration-200 ${
+                      className={`aspect-square p-1 rounded cursor-pointer transition-all duration-200 ${
                         isToday
                           ? 'bg-gradient-to-br from-blue-600/40 to-cyan-600/40 border border-blue-500/50 shadow-[inset_0_0_20px_rgba(59,130,246,0.3)]'
                           : hasEvents
@@ -477,23 +477,23 @@ export default function Vision() {
                       }`}
                     >
                       <div className="flex flex-col h-full">
-                        <span className={`text-xs font-semibold ${isToday ? 'text-white' : 'text-gray-300'}`}>
+                        <span className={`text-[10px] font-semibold ${isToday ? 'text-white' : 'text-gray-300'}`}>
                           {day}
                         </span>
                         {events.length > 0 && (
                           <div className="mt-0.5 flex-1 overflow-hidden">
-                            {events.slice(0, 2).map((event) => (
+                            {events.slice(0, 1).map((event) => (
                               <div
                                 key={event.id}
-                                className="text-[9px] text-white bg-cyan-600/80 hover:bg-cyan-500 rounded px-0.5 py-0.5 mb-0.5 truncate cursor-pointer transition border border-cyan-400/30"
+                                className="text-[8px] text-white bg-cyan-600/80 hover:bg-cyan-500 rounded px-0.5 py-0.5 truncate cursor-pointer transition border border-cyan-400/30"
                                 onClick={(e) => handleEditEvent(event, e)}
                               >
                                 {event.title}
                               </div>
                             ))}
-                            {events.length > 2 && (
-                              <div className="text-[8px] text-cyan-400 font-medium">
-                                +{events.length - 2}
+                            {events.length > 1 && (
+                              <div className="text-[7px] text-cyan-400 font-medium mt-0.5">
+                                +{events.length - 1}
                               </div>
                             )}
                           </div>
@@ -507,11 +507,11 @@ export default function Vision() {
 
             {/* Events List for Selected Date */}
             {selectedDate && (
-              <div className="mt-2.5 bg-gray-900/50 rounded-xl p-2 border border-gray-700/40">
-                <h3 className="text-xs font-bold text-white mb-1.5">
+              <div className="mt-2 bg-gray-900/50 rounded-xl p-1.5 border border-gray-700/40">
+                <h3 className="text-[10px] font-bold text-white mb-1">
                   Events on {selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
                 </h3>
-                <div className="space-y-1.5 max-h-32 overflow-y-auto">
+                <div className="space-y-1 max-h-24 overflow-y-auto">
                   {getEventsForDate(selectedDate).map(event => (
                     <div
                       key={event.id}
