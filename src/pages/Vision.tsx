@@ -363,11 +363,11 @@ export default function Vision() {
 
   return (
     <div className="min-h-screen p-3 md:p-4 pt-14 md:pt-16">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         {/* Two Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_200px] gap-3">
+        <div className="grid grid-cols-1 lg:grid-cols-[580px_220px] gap-3">
           {/* Left: Calendar */}
-          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-md rounded-xl p-2.5 border border-gray-700/50 shadow-2xl max-w-2xl">
+          <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-md rounded-xl p-2.5 border border-gray-700/50 shadow-2xl w-full max-w-[580px]">
             <div className="flex items-center justify-between mb-2.5">
               <h2 className="text-base font-bold text-white flex items-center">
                 <CalendarIcon className="w-4 h-4 mr-1.5 text-cyan-400" />
@@ -503,50 +503,50 @@ export default function Vision() {
           </div>
 
           {/* Right: Countdown Cards Sidebar */}
-          <div className="space-y-2.5">
+          <div className="space-y-3">
             {/* Reunion Countdown */}
-            <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-md rounded-xl p-2.5 border border-gray-700/50 shadow-[0_0_15px_rgba(59,130,246,0.1)] hover:shadow-[0_0_25px_rgba(59,130,246,0.2)] transition-all duration-300">
-              <div className="text-cyan-400 text-[10px] font-medium mb-1 flex items-center">
-                <Sparkles className="w-2.5 h-2.5 mr-1" />
+            <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-md rounded-xl p-3 border border-gray-700/50 shadow-[0_0_15px_rgba(59,130,246,0.1)] hover:shadow-[0_0_25px_rgba(59,130,246,0.2)] transition-all duration-300">
+              <div className="text-cyan-400 text-xs font-medium mb-1.5 flex items-center">
+                <Sparkles className="w-3 h-3 mr-1" />
                 Reunion
               </div>
-              <div className="text-xl font-bold text-white mb-0.5">
+              <div className="text-2xl font-bold text-white mb-1">
                 {countdowns.reunion ? countdowns.reunion.days : '--'}
               </div>
-              <div className="text-gray-400 text-[10px]">days</div>
+              <div className="text-gray-400 text-xs">days</div>
             </div>
 
             {/* Anniversary Countdown */}
-            <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-md rounded-xl p-2.5 border border-gray-700/50 shadow-[0_0_15px_rgba(236,72,153,0.1)] hover:shadow-[0_0_25px_rgba(236,72,153,0.2)] transition-all duration-300">
-              <div className="text-pink-400 text-[10px] font-medium mb-1 flex items-center">
-                <Heart className="w-2.5 h-2.5 mr-1" />
+            <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-md rounded-xl p-3 border border-gray-700/50 shadow-[0_0_15px_rgba(236,72,153,0.1)] hover:shadow-[0_0_25px_rgba(236,72,153,0.2)] transition-all duration-300">
+              <div className="text-pink-400 text-xs font-medium mb-1.5 flex items-center">
+                <Heart className="w-3 h-3 mr-1" />
                 Anniversary
               </div>
-              <div className="text-xl font-bold text-white mb-0.5">
+              <div className="text-2xl font-bold text-white mb-1">
                 {countdowns.anniversary}
               </div>
-              <div className="text-gray-400 text-[10px]">days</div>
+              <div className="text-gray-400 text-xs">days</div>
             </div>
 
             {/* Birthday Countdown */}
-            <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-md rounded-xl p-2.5 border border-gray-700/50 shadow-[0_0_15px_rgba(168,85,247,0.1)] hover:shadow-[0_0_25px_rgba(168,85,247,0.2)] transition-all duration-300">
-              <div className="text-purple-400 text-[10px] font-medium mb-1 flex items-center">
-                <CalendarIcon className="w-2.5 h-2.5 mr-1" />
+            <div className="bg-gradient-to-br from-gray-900/90 to-gray-800/90 backdrop-blur-md rounded-xl p-3 border border-gray-700/50 shadow-[0_0_15px_rgba(168,85,247,0.1)] hover:shadow-[0_0_25px_rgba(168,85,247,0.2)] transition-all duration-300">
+              <div className="text-purple-400 text-xs font-medium mb-1.5 flex items-center">
+                <CalendarIcon className="w-3 h-3 mr-1" />
                 Birthday
               </div>
-              <div className="text-xl font-bold text-white mb-0.5">
+              <div className="text-2xl font-bold text-white mb-1">
                 {countdowns.birthday}
               </div>
-              <div className="text-gray-400 text-[10px]">days</div>
+              <div className="text-gray-400 text-xs">days</div>
             </div>
 
             {/* Make a Wish Button */}
             <button
               onClick={() => setShowWishModal(true)}
-              className="w-full bg-gradient-to-br from-blue-600/20 to-cyan-600/20 backdrop-blur-md rounded-xl p-2.5 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.15)] hover:shadow-[0_0_30px_rgba(59,130,246,0.3)] hover:scale-[1.02] transition-all duration-300 flex flex-col items-center justify-center group"
+              className="w-full bg-gradient-to-br from-blue-600/20 to-cyan-600/20 backdrop-blur-md rounded-xl p-3 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.15)] hover:shadow-[0_0_30px_rgba(59,130,246,0.3)] hover:scale-[1.02] transition-all duration-300 flex flex-col items-center justify-center group"
             >
-              <Sparkles className="w-4 h-4 text-blue-400 mb-1 group-hover:text-cyan-300 transition-colors" />
-              <span className="text-white text-[11px] font-semibold">Make a Wish</span>
+              <Sparkles className="w-5 h-5 text-blue-400 mb-1.5 group-hover:text-cyan-300 transition-colors" />
+              <span className="text-white text-xs font-semibold">Make a Wish</span>
             </button>
           </div>
         </div>
