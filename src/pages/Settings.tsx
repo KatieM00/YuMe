@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Heart, Copy, Check, UserPlus, Loader, User, Globe, Music, MapPin, Eye, EyeOff } from 'lucide-react';
 import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react';
 import { supabase } from '../lib/supabase';
+import Toast from '../components/Toast';
 import {
   getCurrentUserProfile,
   getPartnerInfo,
@@ -48,8 +49,7 @@ export default function Settings() {
   const [locationSearch, setLocationSearch] = useState('');
   const [locationSuggestions, setLocationSuggestions] = useState<Array<{ place_name: string; center: [number, number]; country_code: string; country_name: string; city: string }>>([]);
   const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [toasts, setToasts] = useState<Array<{ id: number; message: string; type: 'success' | 'error' | 'info' }>>([]);
   const locationInputRef = useRef<HTMLInputElement>(null);
   const emojiButtonRef = useRef<HTMLButtonElement>(null);
   const emojiPickerRef = useRef<HTMLDivElement>(null);
@@ -66,6 +66,16 @@ export default function Settings() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+
+  // Toast notification helper
+  const showToast = (message: string, type: 'success' | 'error' | 'info') => {
+    const id = Date.now();
+    setToasts(prev => [...prev, { id, message, type }]);
+  };
+
+  const removeToast = (id: number) => {
+    setToasts(prev => prev.filter(toast => toast.id !== id));
+  };
 
   useEffect(() => {
     loadProfile();
@@ -90,12 +100,12 @@ export default function Settings() {
     // Check for Spotify connection status from URL params
     const params = new URLSearchParams(window.location.search);
     if (params.get('spotify_connected') === 'true') {
-      setSuccess('Spotify account connected successfully!');
+      showToast('Spotify account connected successfully!', 'success');
       loadSpotifyConnection();
       // Clean up URL
       window.history.replaceState({}, '', window.location.pathname);
     } else if (params.get('spotify_error')) {
-      setError(`Failed to connect Spotify: ${params.get('spotify_error')}`);
+      showToast(`Failed to connect Spotify: ${params.get('spotify_error')}`, 'error');
       // Clean up URL
       window.history.replaceState({}, '', window.location.pathname);
     }
@@ -217,25 +227,23 @@ export default function Settings() {
 
   const handleUpdateFullName = async () => {
     if (!fullName.trim()) {
-      setError('Full name cannot be empty');
+      showToast('Full name cannot be empty', 'error');
       return;
     }
 
     setIsUpdatingFullName(true);
-    setError('');
-    setSuccess('');
 
     try {
       const result = await updateFullName(fullName.trim());
 
       if (result) {
-        setSuccess('Full name updated successfully');
+        showToast('Full name updated successfully', 'success');
         await loadProfile();
       } else {
-        setError('Failed to update full name');
+        showToast('Failed to update full name', 'error');
       }
     } catch (err) {
-      setError('Failed to update full name');
+      showToast('Failed to update full name', 'error');
     } finally {
       setIsUpdatingFullName(false);
     }
@@ -243,26 +251,26 @@ export default function Settings() {
 
   const handleLinkPartner = async () => {
     if (!inviteCode.trim()) {
-      setError('Please enter an invite code');
+      showToast('Please enter an invite code', 'error');
       return;
     }
 
     setIsLinking(true);
-    setError('');
-    setSuccess('');
+    showToast('', 'error');
+    showToast('', 'success');
 
     try {
       const result = await linkPartnerAccount(inviteCode.trim());
 
       if (result.success) {
-        setSuccess(result.message);
+        showToast(result.message, 'success');
         setInviteCode('');
         await loadProfile();
       } else {
-        setError(result.message);
+        showToast(result.message, 'error');
       }
     } catch (err) {
-      setError('Failed to link partner account');
+      showToast('Failed to link partner account', 'error');
     } finally {
       setIsLinking(false);
     }
@@ -274,21 +282,21 @@ export default function Settings() {
     }
 
     setIsUnlinking(true);
-    setError('');
-    setSuccess('');
+    showToast('', 'error');
+    showToast('', 'success');
 
     try {
       const result = await unlinkPartnerAccount();
 
       if (result.success) {
-        setSuccess(result.message);
+        showToast(result.message, 'success');
         setPartner(null);
         await loadProfile();
       } else {
-        setError(result.message);
+        showToast(result.message, 'error');
       }
     } catch (err) {
-      setError('Failed to unlink partner account');
+      showToast('Failed to unlink partner account', 'error');
     } finally {
       setIsUnlinking(false);
     }
@@ -296,25 +304,25 @@ export default function Settings() {
 
   const handleUpdateDisplayName = async () => {
     if (!displayName.trim()) {
-      setError('Display name cannot be empty');
+      showToast('Display name cannot be empty', 'error');
       return;
     }
 
     setIsUpdatingName(true);
-    setError('');
-    setSuccess('');
+    showToast('', 'error');
+    showToast('', 'success');
 
     try {
       const result = await updateDisplayName(displayName.trim());
 
       if (result) {
-        setSuccess('Display name updated successfully');
+        showToast('Display name updated successfully', 'success');
         await loadProfile();
       } else {
-        setError('Failed to update display name');
+        showToast('Failed to update display name', 'error');
       }
     } catch (err) {
-      setError('Failed to update display name');
+      showToast('Failed to update display name', 'error');
     } finally {
       setIsUpdatingName(false);
     }
@@ -322,22 +330,22 @@ export default function Settings() {
 
   const handleUpdateEmoji = async (emoji: string | null) => {
     setIsUpdatingEmoji(true);
-    setError('');
-    setSuccess('');
+    showToast('', 'error');
+    showToast('', 'success');
 
     try {
       const result = await updateProfileEmoji(emoji);
 
       if (result) {
         setSelectedEmoji(emoji);
-        setSuccess(emoji ? 'Profile emoji updated successfully' : 'Profile emoji removed');
+        showToast(emoji ? 'Profile emoji updated successfully' : 'Profile emoji removed', 'success');
         await loadProfile();
         setShowEmojiPicker(false);
       } else {
-        setError('Failed to update profile emoji');
+        showToast('Failed to update profile emoji', 'error');
       }
     } catch (err) {
-      setError('Failed to update profile emoji');
+      showToast('Failed to update profile emoji', 'error');
     } finally {
       setIsUpdatingEmoji(false);
     }
@@ -345,20 +353,20 @@ export default function Settings() {
 
   const handleUpdateTimezone = async () => {
     setIsUpdatingTimezone(true);
-    setError('');
-    setSuccess('');
+    showToast('', 'error');
+    showToast('', 'success');
 
     try {
       const result = await updateTimezone(timezone);
 
       if (result) {
-        setSuccess('Timezone updated successfully');
+        showToast('Timezone updated successfully', 'success');
         await loadProfile();
       } else {
-        setError('Failed to update timezone');
+        showToast('Failed to update timezone', 'error');
       }
     } catch (err) {
-      setError('Failed to update timezone');
+      showToast('Failed to update timezone', 'error');
     } finally {
       setIsUpdatingTimezone(false);
     }
@@ -419,8 +427,8 @@ export default function Settings() {
     setLocationSearch(suggestion.place_name);
     setShowLocationSuggestions(false);
     setIsUpdatingLocation(true);
-    setError('');
-    setSuccess('');
+    showToast('', 'error');
+    showToast('', 'success');
 
     try {
       const [lng, lat] = suggestion.center;
@@ -437,16 +445,16 @@ export default function Settings() {
       });
 
       if (result) {
-        setSuccess('Location updated successfully');
+        showToast('Location updated successfully', 'success');
         setCity(cityName);
         setCountryCode(suggestion.country_code || '');
         await loadProfile();
       } else {
-        setError('Failed to update location');
+        showToast('Failed to update location', 'error');
       }
     } catch (err) {
       console.error('Error updating location:', err);
-      setError('Failed to update location');
+      showToast('Failed to update location', 'error');
     } finally {
       setIsUpdatingLocation(false);
     }
@@ -454,7 +462,7 @@ export default function Settings() {
 
   const handleConnectSpotify = async () => {
     if (!profile?.id) {
-      setError('User profile not loaded');
+      showToast('User profile not loaded', 'error');
       return;
     }
 
@@ -463,7 +471,7 @@ export default function Settings() {
       window.location.href = authUrl;
     } catch (err) {
       console.error('Error getting Spotify auth URL:', err);
-      setError('Failed to connect to Spotify. Please try again.');
+      showToast('Failed to connect to Spotify. Please try again.', 'error');
     }
   };
 
@@ -473,15 +481,15 @@ export default function Settings() {
     }
 
     setIsDisconnectingSpotify(true);
-    setError('');
-    setSuccess('');
+    showToast('', 'error');
+    showToast('', 'success');
 
     try {
       await disconnectSpotify();
-      setSuccess('Spotify account disconnected successfully');
+      showToast('Spotify account disconnected successfully', 'success');
       await loadSpotifyConnection();
     } catch (err) {
-      setError('Failed to disconnect Spotify account');
+      showToast('Failed to disconnect Spotify account', 'error');
     } finally {
       setIsDisconnectingSpotify(false);
     }
@@ -489,37 +497,37 @@ export default function Settings() {
 
   const handlePasswordChange = async () => {
     if (!newPassword || !confirmPassword) {
-      setError('Please fill in all password fields');
+      showToast('Please fill in all password fields', 'error');
       return;
     }
 
     if (newPassword.length < 6) {
-      setError('Password must be at least 6 characters');
+      showToast('Password must be at least 6 characters', 'error');
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      setError('Passwords do not match');
+      showToast('Passwords do not match', 'error');
       return;
     }
 
     setIsUpdatingPassword(true);
-    setError('');
-    setSuccess('');
+    showToast('', 'error');
+    showToast('', 'success');
 
     try {
       const result = await updatePassword(newPassword);
 
       if (result.success) {
-        setSuccess('Password updated successfully');
+        showToast('Password updated successfully', 'success');
         setShowPasswordModal(false);
         setNewPassword('');
         setConfirmPassword('');
       } else {
-        setError(result.message);
+        showToast(result.message, 'error');
       }
     } catch (err) {
-      setError('Failed to update password');
+      showToast('Failed to update password', 'error');
     } finally {
       setIsUpdatingPassword(false);
     }
@@ -527,8 +535,8 @@ export default function Settings() {
 
   const handleSaveAllChanges = async () => {
     setIsSavingChanges(true);
-    setError('');
-    setSuccess('');
+    showToast('', 'error');
+    showToast('', 'success');
 
     try {
       const promises = [];
@@ -551,7 +559,7 @@ export default function Settings() {
       // Update password if entered
       if (password.trim()) {
         if (password.length < 6) {
-          setError('Password must be at least 6 characters');
+          showToast('Password must be at least 6 characters', 'error');
           setIsSavingChanges(false);
           return;
         }
@@ -560,11 +568,11 @@ export default function Settings() {
 
       await Promise.all(promises);
 
-      setSuccess('Changes saved successfully');
+      showToast('Changes saved successfully', 'success');
       setPassword(''); // Clear password field after saving
       await loadProfile();
     } catch (err) {
-      setError('Failed to save some changes');
+      showToast('Failed to save some changes', 'error');
     } finally {
       setIsSavingChanges(false);
     }
@@ -572,12 +580,12 @@ export default function Settings() {
 
   const handleDeleteAccount = async () => {
     if (deleteConfirmText !== 'DELETE') {
-      setError('Please type DELETE to confirm');
+      showToast('Please type DELETE to confirm', 'error');
       return;
     }
 
     setIsDeletingAccount(true);
-    setError('');
+    showToast('', 'error');
 
     try {
       // Delete user account via Supabase Auth
@@ -590,7 +598,7 @@ export default function Settings() {
         const { error: deleteError } = await supabase.rpc('delete_user_account');
 
         if (deleteError) {
-          setError('Failed to delete account. Please contact support.');
+          showToast('Failed to delete account. Please contact support.', 'error');
           setIsDeletingAccount(false);
           return;
         }
@@ -600,7 +608,7 @@ export default function Settings() {
       await supabase.auth.signOut();
       window.location.href = '/';
     } catch (err) {
-      setError('Failed to delete account. Please try again.');
+      showToast('Failed to delete account. Please try again.', 'error');
       setIsDeletingAccount(false);
     }
   };
@@ -620,18 +628,6 @@ export default function Settings() {
           <Heart className="w-6 h-6 text-blue-400 mr-2" />
           <h1 className="text-2xl md:text-3xl font-bold text-white">Settings</h1>
         </div>
-
-        {error && (
-          <div className="mb-4 p-3 bg-red-500/10 border border-red-500/50 rounded-lg text-red-400 text-sm">
-            {error}
-          </div>
-        )}
-
-        {success && (
-          <div className="mb-4 p-3 bg-green-500/10 border border-green-500/50 rounded-lg text-green-400 text-sm">
-            {success}
-          </div>
-        )}
 
         <div className="space-y-4">
           {/* Profile Section */}
@@ -978,7 +974,7 @@ export default function Settings() {
                 <div className="space-y-3">
                   <p className="text-gray-400 text-xs">Upload photos from Google</p>
                   <button
-                    onClick={() => setError('Google Photos integration coming soon!')}
+                    onClick={() => showToast('Google Photos integration coming soon!', 'error')}
                     className="w-full px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs font-medium transition"
                   >
                     Connect Google
@@ -1021,7 +1017,7 @@ export default function Settings() {
                     onClick={() => {
                       setShowDeleteModal(false);
                       setDeleteConfirmText('');
-                      setError('');
+                      showToast('', 'error');
                     }}
                     className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-sm font-medium transition"
                   >
@@ -1079,7 +1075,7 @@ export default function Settings() {
                       setShowPasswordModal(false);
                       setNewPassword('');
                       setConfirmPassword('');
-                      setError('');
+                      showToast('', 'error');
                     }}
                     className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-md text-sm font-medium transition"
                   >
@@ -1127,6 +1123,16 @@ export default function Settings() {
           </>
         )}
       </div>
+
+      {/* Toast Notifications */}
+      {toasts.map((toast) => (
+        <Toast
+          key={toast.id}
+          message={toast.message}
+          type={toast.type}
+          onClose={() => removeToast(toast.id)}
+        />
+      ))}
     </div>
   );
 }
