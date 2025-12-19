@@ -13,7 +13,7 @@ export interface VisionItem {
   image_url: string | null;
   goal_completed: boolean;
   event_date?: string | null;
-  event_type?: 'goal' | 'event' | 'task' | null;
+  event_type?: 'goal' | 'event' | 'task' | 'reunion' | null;
   is_all_day?: boolean;
   event_start_time?: string | null;
   event_end_time?: string | null;
@@ -35,7 +35,7 @@ export interface CreateVisionItemData {
   image_url?: string;
   goal_completed?: boolean;
   event_date?: string | null;
-  event_type?: 'goal' | 'event' | 'task' | null;
+  event_type?: 'goal' | 'event' | 'task' | 'reunion' | null;
   is_all_day?: boolean;
   event_start_time?: string | null;
   event_end_time?: string | null;

@@ -67,7 +67,7 @@ export default function Vision() {
   const [eventTitle, setEventTitle] = useState('');
   const [eventDescription, setEventDescription] = useState('');
   const [eventDate, setEventDate] = useState('');
-  const [eventType, setEventType] = useState<'goal' | 'event' | 'task'>('event');
+  const [eventType, setEventType] = useState<'goal' | 'event' | 'task' | 'reunion'>('event');
   const [isAllDay, setIsAllDay] = useState(false);
   const [eventStartTime, setEventStartTime] = useState('09:00');
   const [eventEndTime, setEventEndTime] = useState('10:00');
@@ -703,11 +703,11 @@ export default function Vision() {
                     {/* Type Selector - Compact Pills */}
                     <div>
                       <label className="block text-[10px] text-gray-400 mb-1.5">Type</label>
-                      <div className="flex gap-1.5">
+                      <div className="grid grid-cols-2 gap-1.5">
                         <button
                           type="button"
                           onClick={() => setEventType('goal')}
-                          className={`flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition ${
+                          className={`px-2 py-1.5 rounded-md text-xs font-medium transition ${
                             eventType === 'goal'
                               ? 'bg-purple-600/80 text-white border border-purple-400/30'
                               : 'bg-black/20 text-gray-400 border border-white/5 hover:bg-black/30'
@@ -718,7 +718,7 @@ export default function Vision() {
                         <button
                           type="button"
                           onClick={() => setEventType('event')}
-                          className={`flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition ${
+                          className={`px-2 py-1.5 rounded-md text-xs font-medium transition ${
                             eventType === 'event'
                               ? 'bg-blue-600/80 text-white border border-blue-400/30'
                               : 'bg-black/20 text-gray-400 border border-white/5 hover:bg-black/30'
@@ -729,13 +729,24 @@ export default function Vision() {
                         <button
                           type="button"
                           onClick={() => setEventType('task')}
-                          className={`flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition ${
+                          className={`px-2 py-1.5 rounded-md text-xs font-medium transition ${
                             eventType === 'task'
                               ? 'bg-green-600/80 text-white border border-green-400/30'
                               : 'bg-black/20 text-gray-400 border border-white/5 hover:bg-black/30'
                           }`}
                         >
                           Task
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEventType('reunion')}
+                          className={`px-2 py-1.5 rounded-md text-xs font-medium transition ${
+                            eventType === 'reunion'
+                              ? 'bg-orange-600/80 text-white border border-orange-400/30'
+                              : 'bg-black/20 text-gray-400 border border-white/5 hover:bg-black/30'
+                          }`}
+                        >
+                          Reunion
                         </button>
                       </div>
                     </div>
