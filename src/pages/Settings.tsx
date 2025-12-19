@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Heart, Copy, Check, UserPlus, Loader, User, Globe, Music, MapPin, Eye, EyeOff } from 'lucide-react';
+import { Heart, Copy, Check, UserPlus, Loader, User, Globe, Music, MapPin, Eye, EyeOff, X } from 'lucide-react';
 import EmojiPicker, { EmojiClickData, Theme } from 'emoji-picker-react';
 import { supabase } from '../lib/supabase';
 import Toast from '../components/Toast';
@@ -733,31 +733,34 @@ export default function Settings() {
 
                 {/* Right Column */}
                 <div className="space-y-3">
-                  {/* Display Name */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1.5">
-                      Display Name
-                    </label>
-                    <input
-                      type="text"
-                      value={displayName}
-                      onChange={(e) => setDisplayName(e.target.value)}
-                      className="w-full px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="Enter your display name"
-                    />
-                  </div>
+                  {/* Display Name & Birthday in same row */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {/* Display Name */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1.5">
+                        Display Name
+                      </label>
+                      <input
+                        type="text"
+                        value={displayName}
+                        onChange={(e) => setDisplayName(e.target.value)}
+                        className="w-full px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="Enter your display name"
+                      />
+                    </div>
 
-                  {/* Birthday Date */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1.5">
-                      Birthday
-                    </label>
-                    <input
-                      type="date"
-                      value={birthdayDate}
-                      onChange={(e) => setBirthdayDate(e.target.value)}
-                      className="w-full px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+                    {/* Birthday Date */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1.5">
+                        Birthday
+                      </label>
+                      <input
+                        type="date"
+                        value={birthdayDate}
+                        onChange={(e) => setBirthdayDate(e.target.value)}
+                        className="w-full px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
                   </div>
 
                   {/* Timezone */}
