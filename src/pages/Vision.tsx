@@ -56,6 +56,7 @@ export default function Vision() {
   const [editingWishId, setEditingWishId] = useState<string | null>(null);
   const [editingWishTitle, setEditingWishTitle] = useState('');
   const [editingWishContent, setEditingWishContent] = useState('');
+  const [expandedWishId, setExpandedWishId] = useState<string | null>(null);
 
   // Refs for horizontal scroll navigation
   const workingTowardsScrollRef = useRef<HTMLDivElement>(null);
@@ -865,16 +866,17 @@ export default function Vision() {
                     {/* Active Wishes - Micro-Polaroids */}
                     {workingTowards.map((item, index) => {
                       const isEditing = editingWishId === item.id;
+                      const isExpanded = expandedWishId === item.id;
 
                       return (
                         <div
                           key={item.id}
                           style={{ marginRight: index === workingTowards.length - 1 ? '0.5rem' : '0' }}
-                          className={`group flex-shrink-0 w-[180px] md:w-[190px] h-[240px] md:h-[250px] snap-start rounded-lg border ${
+                          className={`group flex-shrink-0 w-[180px] md:w-[190px] snap-start rounded-lg border ${
                             isEditing ? 'border-cyan-500/30' : 'border-gray-700/50'
                           } bg-gradient-to-br from-gray-950/95 via-gray-900/95 to-gray-950/95 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 hover:border-cyan-500/30 relative overflow-hidden ${
                             completingItemId === item.id ? 'animate-pulse' : ''
-                          }`}
+                          } ${isExpanded ? 'h-auto' : 'h-[240px] md:h-[250px]'}`}
                         >
                           {/* 1px Brushed metal border */}
                           <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-black/20 pointer-events-none rounded-lg" />
@@ -952,17 +954,51 @@ export default function Vision() {
                               </div>
                             </div>
                           ) : (
-                            <div
-                              className="relative h-full p-2.5 flex flex-col cursor-pointer"
-                              onClick={() => handleEditWish(item)}
-                            >
-                              <h4 className="text-white font-bold text-xs mb-1.5 line-clamp-2">{item.title}</h4>
+                            <div className="relative h-full p-2.5 flex flex-col">
+                              {/* Title - Clickable to expand on mobile, clickable to edit on desktop */}
+                              <h4
+                                className="text-white font-bold text-xs mb-1.5 line-clamp-2 cursor-pointer"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  // On mobile: toggle expand, on desktop: edit
+                                  if (window.innerWidth < 768) {
+                                    setExpandedWishId(isExpanded ? null : item.id);
+                                  } else {
+                                    handleEditWish(item);
+                                  }
+                                }}
+                              >
+                                {item.title}
+                              </h4>
+
+                              {/* Content - Hidden on mobile unless expanded, always visible on desktop */}
                               {item.content && (
-                                <p className="text-gray-300 text-[11px] line-clamp-5 leading-relaxed">{item.content}</p>
+                                <p
+                                  className={`text-gray-300 text-[11px] leading-relaxed ${
+                                    isExpanded ? 'block' : 'hidden md:block md:line-clamp-5'
+                                  }`}
+                                >
+                                  {item.content}
+                                </p>
                               )}
 
-                              {/* Action Buttons - Icons Only (Thumb-Friendly) - Always at bottom */}
+                              {/* Action Buttons - Always at bottom, with Edit button on mobile */}
                               <div className="flex items-center justify-between mt-auto pt-1.5 border-t border-gray-700/30">
+                                {/* Mobile: Edit, Heart, Check, X */}
+                                {/* Desktop: Heart, Check, X (hover shows delete) */}
+
+                                {/* Edit button - Mobile only */}
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleEditWish(item);
+                                  }}
+                                  className="md:hidden p-1 hover:bg-blue-600/20 rounded-full transition"
+                                  title="Edit"
+                                >
+                                  <Edit2 className="w-3.5 h-3.5 text-blue-400" />
+                                </button>
+
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
@@ -992,7 +1028,7 @@ export default function Vision() {
                                     e.stopPropagation();
                                     handleDeleteItem(item.id, null);
                                   }}
-                                  className="p-1 opacity-0 md:group-hover:opacity-100 hover:bg-red-600/20 rounded-full transition"
+                                  className="p-1 md:opacity-0 md:group-hover:opacity-100 hover:bg-red-600/20 rounded-full transition"
                                   title="Delete"
                                 >
                                   <X className="w-3.5 h-3.5 text-red-400" />
