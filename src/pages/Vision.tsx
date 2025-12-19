@@ -960,11 +960,11 @@ export default function Vision() {
                             >
                               <h4 className="text-white font-bold text-xs mb-1.5 line-clamp-2">{item.title}</h4>
                               {item.content && (
-                                <p className="text-gray-300 text-[11px] mb-auto line-clamp-5 leading-relaxed">{item.content}</p>
+                                <p className="text-gray-300 text-[11px] line-clamp-5 leading-relaxed">{item.content}</p>
                               )}
 
-                              {/* Action Buttons - Icons Only (Thumb-Friendly) */}
-                              <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-gray-700/30">
+                              {/* Action Buttons - Icons Only (Thumb-Friendly) - Always at bottom */}
+                              <div className="flex items-center justify-between mt-auto pt-1.5 border-t border-gray-700/30">
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
