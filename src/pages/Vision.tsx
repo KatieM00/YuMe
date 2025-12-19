@@ -862,20 +862,60 @@ export default function Vision() {
                                 value={editingWishContent}
                                 onChange={(e) => setEditingWishContent(e.target.value)}
                                 placeholder="Describe your dream..."
-                                className="flex-1 w-full px-2 py-1.5 bg-gray-800/80 border border-gray-600/50 rounded text-white text-[11px] placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 resize-none mb-1.5"
+                                className="flex-1 w-full px-2 py-1.5 bg-gray-800/80 border border-gray-600/50 rounded text-white text-[11px] placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 resize-none mb-2"
                               />
-                              <div className="flex gap-1.5">
+
+                              {/* Save/Cancel Buttons */}
+                              <div className="flex gap-1.5 mb-2">
                                 <button
                                   onClick={handleSaveWishEdit}
-                                  className="flex-1 px-2 py-1.5 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded text-[11px] font-medium hover:from-blue-700 hover:to-cyan-700 transition"
+                                  className="flex-1 px-2 py-1 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded text-[11px] font-medium hover:from-blue-700 hover:to-cyan-700 transition"
                                 >
                                   Save
                                 </button>
                                 <button
                                   onClick={handleCancelWishEdit}
-                                  className="px-2 py-1.5 bg-gray-700/80 hover:bg-gray-600/80 text-white rounded text-[11px] transition"
+                                  className="px-2 py-1 bg-gray-700/80 hover:bg-gray-600/80 text-white rounded text-[11px] transition"
                                 >
                                   Cancel
+                                </button>
+                              </div>
+
+                              {/* Action Buttons - Always visible for continuity */}
+                              <div className="flex items-center justify-between pt-1.5 border-t border-gray-700/30">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleNudge(item.id);
+                                  }}
+                                  className="p-1 hover:bg-pink-600/20 rounded-full transition"
+                                  title="Nudge partner"
+                                >
+                                  <Heart className="w-3.5 h-3.5 text-pink-400/70 hover:text-pink-400 transition" />
+                                </button>
+
+                                <button
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    setCompletingItemId(item.id);
+                                    await handleToggleGoal(item.id, item.goal_completed);
+                                    setTimeout(() => setCompletingItemId(null), 600);
+                                  }}
+                                  className="p-1 bg-green-600/20 hover:bg-green-600/30 border border-green-500/30 rounded-full transition"
+                                  title="Complete"
+                                >
+                                  <Check className="w-3.5 h-3.5 text-green-400" />
+                                </button>
+
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDeleteItem(item.id, null);
+                                  }}
+                                  className="p-1 hover:bg-red-600/20 rounded-full transition"
+                                  title="Delete"
+                                >
+                                  <X className="w-3.5 h-3.5 text-red-400" />
                                 </button>
                               </div>
                             </div>
