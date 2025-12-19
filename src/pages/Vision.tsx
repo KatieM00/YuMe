@@ -362,8 +362,8 @@ export default function Vision() {
   const accomplished = visionBoardItems.filter(item => item.goal_completed);
 
   return (
-    <div className="min-h-screen p-3 md:p-4 pt-14 md:pt-16">
-      <div className="max-w-5xl mx-auto">
+    <div className="min-h-screen p-3 md:p-4 pt-20 md:pt-20">
+      <div className="max-w-7xl mx-auto flex justify-center">
         {/* Two Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-[auto_1fr] gap-3">
           {/* Left: Countdown Cards Sidebar - Full Height */}
