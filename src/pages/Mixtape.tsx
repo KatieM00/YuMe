@@ -1090,18 +1090,6 @@ export default function Mixtape() {
                         <span className="text-white">Use album art</span>
                       </button>
                     )}
-
-                    {/* Preview */}
-                    <div className="mt-2">
-                      <label className="block text-[10px] text-gray-400 mb-1.5">Preview</label>
-                      <div className={`w-full aspect-square ${selectedCover.startsWith('http') ? '' : selectedCover} rounded-lg flex items-center justify-center`}>
-                        {selectedCover.startsWith('http') ? (
-                          <img src={selectedCover} alt="Cover" className="w-full h-full object-cover rounded-lg" />
-                        ) : (
-                          <Music className="w-12 h-12 text-white/50" />
-                        )}
-                      </div>
-                    </div>
                   </div>
                 </div>
 
@@ -1174,23 +1162,24 @@ export default function Mixtape() {
           </div>
         )}
 
-        {/* Playlist Detail Modal */}
+        {/* Playlist Detail Modal - Premium Glass Tray */}
         {selectedPlaylist && (
           <div
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-end md:items-center justify-center p-0 md:p-4"
             onClick={() => {
               setSelectedPlaylist(null);
               setShowAddSong(false);
             }}
           >
+            {/* Mobile: Bottom Sheet | Desktop: Compact Glass Tray */}
             <div
-              className="bg-gray-900 rounded-xl max-w-3xl w-full max-h-[90vh] overflow-hidden border border-gray-700"
+              className="bg-slate-900/80 backdrop-blur-2xl rounded-t-2xl md:rounded-xl w-full md:max-w-3xl border-t md:border border-white/10 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)] h-[85vh] md:max-h-[80vh] overflow-hidden flex flex-col"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Simple compact header */}
-              <div className={`${selectedPlaylist.cover.startsWith('http') ? 'bg-gradient-to-br from-gray-800 to-gray-900' : selectedPlaylist.cover} relative`}>
+              {/* Compact Header with Cover Gradient */}
+              <div className={`${selectedPlaylist.cover.startsWith('http') ? 'bg-gradient-to-br from-slate-800/90 to-slate-900/90' : selectedPlaylist.cover} relative border-b border-white/5`}>
                 {selectedPlaylist.cover.startsWith('http') && (
-                  <div className="absolute inset-0 opacity-20 blur-sm">
+                  <div className="absolute inset-0 opacity-10 blur-sm">
                     <img
                       src={selectedPlaylist.cover}
                       alt={selectedPlaylist.title}
@@ -1198,69 +1187,70 @@ export default function Mixtape() {
                     />
                   </div>
                 )}
-                <div className="relative flex items-center justify-between p-4">
+                <div className="relative flex items-center justify-between px-4 py-3">
                   <div className="flex-1 min-w-0">
-                    <h2 className="text-xl font-bold text-white truncate">{selectedPlaylist.title}</h2>
-                    <p className="text-white/70 text-sm">{selectedPlaylist.songs?.length || 0} songs</p>
+                    <h2 className="text-base md:text-lg font-bold text-white truncate">{selectedPlaylist.title}</h2>
+                    <p className="text-white/60 text-xs md:text-sm">{selectedPlaylist.songs?.length || 0} songs</p>
                   </div>
-                  <div className="flex items-center space-x-2 ml-4">
+                  <div className="flex items-center gap-1.5 ml-3 flex-shrink-0">
                     {selectedPlaylist.songs && selectedPlaylist.songs.length > 0 && (
                       <button
                         onClick={handlePlayAll}
-                        className="w-9 h-9 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center transition"
+                        className="p-1.5 md:p-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center transition"
                         title="Play all (requires Spotify sign-in)"
                       >
-                        <PlayCircle className="w-4.5 h-4.5 text-white" />
+                        <PlayCircle className="w-4 h-4 text-white" />
                       </button>
                     )}
                     <button
                       onClick={scrollToAddSongForm}
-                      className="w-9 h-9 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center transition"
+                      className="p-1.5 md:p-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center transition"
                       title="Add song"
                     >
-                      <Plus className="w-4.5 h-4.5 text-white" />
+                      <Plus className="w-4 h-4 text-white" />
                     </button>
                     <button
                       onClick={() => {
                         setSelectedPlaylist(null);
                         setShowAddSong(false);
                       }}
-                      className="w-9 h-9 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center transition"
+                      className="p-1.5 md:p-2 hover:bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center transition text-gray-400 hover:text-white"
                       title="Close"
                     >
-                      <X className="w-4.5 h-4.5 text-white" />
+                      <X className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
               </div>
 
-              <div className="p-4 overflow-y-auto max-h-[calc(90vh-100px)]">
+              {/* Content Area */}
+              <div className="flex-1 overflow-y-auto px-4 py-3">
                 {selectedPlaylist.songs?.length === 0 && !showAddSong ? (
                   <div className="text-center py-8">
-                    <Music className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+                    <Music className="w-10 md:w-12 h-10 md:h-12 text-gray-600 mx-auto mb-3 opacity-50" />
                     <p className="text-gray-400 text-sm mb-3">No songs yet. Add your first song!</p>
                     <button
                       onClick={scrollToAddSongForm}
-                      className="px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-lg transition inline-flex items-center space-x-1.5"
+                      className="px-3 py-1.5 bg-gradient-to-r from-blue-600/90 to-cyan-600/90 hover:from-blue-600 hover:to-cyan-600 text-white text-sm rounded-lg transition inline-flex items-center gap-1.5 shadow-lg shadow-cyan-500/10"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       <span>Add Song</span>
                     </button>
                   </div>
                 ) : (
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     {selectedPlaylist.songs?.map((song, index) => (
-                      <div key={song.id} className="group bg-gray-800/50 hover:bg-gray-800/70 rounded-lg p-3 flex items-center gap-3 transition">
+                      <div key={song.id} className="group bg-black/20 hover:bg-black/30 rounded-lg p-2.5 flex items-center gap-2.5 transition border border-white/5 hover:border-cyan-500/20">
                         {/* Album Art */}
                         {song.album_art ? (
                           <img
                             src={song.album_art}
                             alt={song.title}
-                            className="w-12 h-12 rounded object-cover flex-shrink-0"
+                            className="w-10 h-10 rounded object-cover flex-shrink-0"
                           />
                         ) : (
-                          <div className="w-12 h-12 rounded bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
-                            <Music className="w-6 h-6 text-white" />
+                          <div className="w-10 h-10 rounded bg-gradient-to-br from-blue-500/80 to-purple-600/80 flex items-center justify-center flex-shrink-0">
+                            <Music className="w-5 h-5 text-white" />
                           </div>
                         )}
 
@@ -1271,7 +1261,7 @@ export default function Mixtape() {
                         </div>
 
                         {/* Action Buttons */}
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 flex-shrink-0">
                           {/* Play Button */}
                           <button
                             onClick={() => {
@@ -1279,19 +1269,19 @@ export default function Mixtape() {
                               setSelectedPlaylist(null);
                               setShowAddSong(false);
                             }}
-                            className="w-8 h-8 bg-blue-500 hover:bg-blue-600 rounded-full flex items-center justify-center transition shadow-lg"
+                            className="w-7 h-7 bg-gradient-to-r from-blue-600/90 to-cyan-600/90 hover:from-blue-600 hover:to-cyan-600 rounded-full flex items-center justify-center transition shadow-lg shadow-cyan-500/20"
                             title="Play this song"
                           >
-                            <Play className="w-4 h-4 text-white" />
+                            <Play className="w-3.5 h-3.5 text-white" />
                           </button>
 
                           {/* Delete Button */}
                           <button
                             onClick={(e) => handleDeleteSong(song.id, e)}
-                            className="w-8 h-8 bg-gray-700 hover:bg-red-500/70 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+                            className="w-7 h-7 bg-red-500/10 hover:bg-red-500/30 border border-red-500/20 hover:border-red-500/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
                             title="Remove song"
                           >
-                            <Trash2 className="w-4 h-4 text-white" />
+                            <Trash2 className="w-3.5 h-3.5 text-red-400" />
                           </button>
                         </div>
                       </div>
@@ -1299,27 +1289,27 @@ export default function Mixtape() {
 
                     {/* Add Song Form */}
                     {showAddSong ? (
-                      <div ref={addSongFormRef} className="bg-gray-800/50 rounded-lg p-4 border border-blue-500/50">
-                        <h3 className="text-white font-medium mb-3">Add a Song</h3>
+                      <div ref={addSongFormRef} className="bg-black/30 rounded-lg p-3 border border-cyan-500/30 mt-2">
+                        <h3 className="text-white font-semibold text-sm mb-2.5">Add a Song</h3>
                         {addSongError && (
-                          <div className="mb-3 p-2 bg-red-500/10 border border-red-500/50 rounded text-red-400 text-sm">
+                          <div className="mb-2.5 p-2 bg-red-500/10 border border-red-500/30 rounded text-red-400 text-xs">
                             {addSongError}
                           </div>
                         )}
 
                         {/* Spotify Connected - Show Search */}
                         {spotifyConnected.connected ? (
-                          <div className="space-y-3">
-                            <div className="flex items-center space-x-2 p-2 bg-green-900/20 border border-green-500/30 rounded-lg">
-                              <Music className="w-4 h-4 text-green-400" />
-                              <span className="text-green-400 text-sm">Spotify Connected</span>
+                          <div className="space-y-2.5">
+                            <div className="flex items-center gap-2 p-1.5 bg-green-600/10 border border-green-500/20 rounded-lg">
+                              <Music className="w-3.5 h-3.5 text-green-400" />
+                              <span className="text-green-400 text-xs">Spotify Connected</span>
                             </div>
 
-                            {/* Inline Search Field - Always visible */}
-                            <div className="space-y-3">
+                            {/* Inline Search Field */}
+                            <div className="space-y-2.5">
                               <div className="relative">
                                 <div className="relative">
-                                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
                                   <input
                                     type="text"
                                     value={searchQuery}
@@ -1327,22 +1317,22 @@ export default function Mixtape() {
                                       setSearchQuery(e.target.value);
                                       setShowSpotifySearch(true);
                                     }}
-                                    placeholder="Search Spotify for songs or artists..."
-                                    className="w-full pl-10 pr-10 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500"
+                                    placeholder="Search Spotify..."
+                                    className="w-full pl-9 pr-9 py-2 bg-black/20 border border-white/10 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-green-500/50 focus:ring-1 focus:ring-green-500/30"
                                     disabled={isSearching}
                                   />
                                   {isSearching && (
-                                    <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 animate-spin" />
+                                    <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500 animate-spin" />
                                   )}
                                 </div>
 
                                 {/* Inline suggestions dropdown */}
                                 {searchResults.length > 0 && (
-                                  <div className="absolute z-10 w-full mt-1 bg-gray-900 border border-gray-700 rounded-lg shadow-xl max-h-96 overflow-y-auto">
+                                  <div className="absolute z-10 w-full mt-1 bg-slate-900 border border-white/10 rounded-lg shadow-xl max-h-80 overflow-y-auto">
                                     {searchResults.map((track) => (
                                       <div
                                         key={track.id}
-                                        className="flex items-center space-x-3 p-3 hover:bg-gray-800 transition cursor-pointer border-b border-gray-800 last:border-b-0"
+                                        className="flex items-center gap-2.5 p-2.5 hover:bg-black/30 transition cursor-pointer border-b border-white/5 last:border-b-0"
                                         onClick={() => {
                                           handleAddSpotifyTrack(track);
                                           setSearchQuery('');
@@ -1353,16 +1343,16 @@ export default function Mixtape() {
                                           <img
                                             src={track.album.images[2].url}
                                             alt={track.name}
-                                            className="w-12 h-12 rounded object-cover"
+                                            className="w-10 h-10 rounded object-cover"
                                           />
                                         )}
                                         <div className="flex-1 min-w-0">
-                                          <p className="text-white text-sm font-medium truncate">{track.name}</p>
-                                          <p className="text-gray-400 text-xs truncate">
+                                          <p className="text-white text-xs font-medium truncate">{track.name}</p>
+                                          <p className="text-gray-400 text-[10px] truncate">
                                             {track.artists.map(a => a.name).join(', ')}
                                           </p>
                                         </div>
-                                        <Plus className="w-5 h-5 text-green-400 flex-shrink-0" />
+                                        <Plus className="w-4 h-4 text-green-400 flex-shrink-0" />
                                       </div>
                                     ))}
                                   </div>
@@ -1374,15 +1364,15 @@ export default function Mixtape() {
                                   setShowBrowse(true);
                                   loadBrowseData('top');
                                 }}
-                                className="w-full px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition flex items-center justify-center space-x-2"
+                                className="w-full px-3 py-2 bg-gradient-to-r from-purple-600/80 to-pink-600/80 hover:from-purple-600 hover:to-pink-600 text-white text-sm rounded-lg transition flex items-center justify-center gap-2 shadow-lg shadow-purple-500/10"
                               >
-                                <TrendingUp className="w-4 h-4" />
+                                <TrendingUp className="w-3.5 h-3.5" />
                                 <span>Browse Your Music</span>
                               </button>
                             </div>
 
-                            <div className="pt-2 border-t border-gray-700">
-                              <p className="text-xs text-gray-500 mb-2">Or paste a Spotify URL:</p>
+                            <div className="pt-2 border-t border-white/5">
+                              <p className="text-[10px] text-gray-400 mb-1.5">Or paste Spotify URL:</p>
                               <input
                                 type="text"
                                 value={spotifyInput}
@@ -1391,12 +1381,12 @@ export default function Mixtape() {
                                   setAddSongError(null);
                                 }}
                                 placeholder="https://open.spotify.com/track/..."
-                                className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-3 py-2 bg-black/20 border border-white/10 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30"
                                 disabled={addingSong}
                               />
                             </div>
 
-                            <div className="flex space-x-2">
+                            <div className="flex gap-2">
                               <button
                                 onClick={() => {
                                   setShowAddSong(false);
@@ -1406,7 +1396,7 @@ export default function Mixtape() {
                                   setSearchQuery('');
                                   setSearchResults([]);
                                 }}
-                                className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition"
+                                className="flex-1 px-3 py-2 bg-black/20 hover:bg-black/30 border border-white/10 text-white text-sm rounded-lg transition"
                                 disabled={addingSong}
                               >
                                 Cancel
@@ -1415,11 +1405,11 @@ export default function Mixtape() {
                                 <button
                                   onClick={handleAddSong}
                                   disabled={addingSong}
-                                  className="flex-1 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                                  className="flex-1 px-3 py-2 bg-gradient-to-r from-blue-600/90 to-cyan-600/90 hover:from-blue-600 hover:to-cyan-600 text-white text-sm rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-lg shadow-cyan-500/10"
                                 >
                                   {addingSong ? (
                                     <>
-                                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                      <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
                                       Adding...
                                     </>
                                   ) : (
@@ -1431,10 +1421,10 @@ export default function Mixtape() {
                           </div>
                         ) : (
                           /* Not Connected - Show URL Input Only */
-                          <div className="space-y-3">
-                            <div className="p-3 bg-yellow-900/20 border border-yellow-500/30 rounded-lg">
-                              <p className="text-yellow-400 text-sm">
-                                Connect Spotify in Settings to search and browse your music!
+                          <div className="space-y-2.5">
+                            <div className="p-2 bg-yellow-500/10 border border-yellow-500/20 rounded-lg">
+                              <p className="text-yellow-400 text-xs">
+                                Connect Spotify in Settings to search and browse!
                               </p>
                             </div>
                             <div>
@@ -1447,21 +1437,21 @@ export default function Mixtape() {
                                   setAddSongError(null);
                                 }}
                                 placeholder="Paste Spotify Song URL or Track ID"
-                                className="w-full px-4 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="w-full px-3 py-2 bg-black/20 border border-white/10 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30"
                                 disabled={addingSong}
                               />
-                              <p className="text-xs text-gray-500 mt-1">
+                              <p className="text-[10px] text-gray-500 mt-1">
                                 e.g., https://open.spotify.com/track/...
                               </p>
                             </div>
-                            <div className="flex space-x-2">
+                            <div className="flex gap-2">
                               <button
                                 onClick={() => {
                                   setShowAddSong(false);
                                   setSpotifyInput('');
                                   setAddSongError(null);
                                 }}
-                                className="flex-1 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition"
+                                className="flex-1 px-3 py-2 bg-black/20 hover:bg-black/30 border border-white/10 text-white text-sm rounded-lg transition"
                                 disabled={addingSong}
                               >
                                 Cancel
@@ -1469,11 +1459,11 @@ export default function Mixtape() {
                               <button
                                 onClick={handleAddSong}
                                 disabled={addingSong || !spotifyInput.trim()}
-                                className="flex-1 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                                className="flex-1 px-3 py-2 bg-gradient-to-r from-blue-600/90 to-cyan-600/90 hover:from-blue-600 hover:to-cyan-600 text-white text-sm rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-lg shadow-cyan-500/10"
                               >
                                 {addingSong ? (
                                   <>
-                                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
                                     Adding...
                                   </>
                                 ) : (
@@ -1487,10 +1477,10 @@ export default function Mixtape() {
                     ) : (
                       <button
                         onClick={scrollToAddSongForm}
-                        className="w-full px-4 py-3 bg-gray-800/50 hover:bg-gray-800 border border-gray-700 border-dashed rounded-lg text-gray-400 hover:text-white transition flex items-center justify-center space-x-2"
+                        className="w-full px-3 py-2.5 bg-black/20 hover:bg-black/30 border border-white/10 border-dashed rounded-lg text-gray-400 hover:text-white transition flex items-center justify-center gap-2 mt-2"
                       >
-                        <Plus className="w-5 h-5" />
-                        <span>Add Song</span>
+                        <Plus className="w-4 h-4" />
+                        <span className="text-sm">Add Song</span>
                       </button>
                     )}
                   </div>
