@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Play, Music, MessageSquare, X, Plus, Trash2, ExternalLink, Loader2, Edit2, PlayCircle, Search, TrendingUp, Clock, List } from 'lucide-react';
+import { Play, Music, MessageSquare, X, Plus, Trash2, ExternalLink, Loader2, Edit2, PlayCircle, Search, TrendingUp, Clock, List, Check } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import UserBadge from '../components/UserBadge';
 import { useSpotifyPlayer } from '../contexts/SpotifyPlayerContext';
@@ -907,139 +907,40 @@ export default function Mixtape() {
           </div>
         )}
 
-        {/* Create/Edit Playlist Modal */}
+        {/* Create/Edit Playlist Modal - Premium Glass Tray */}
         {showCreateModal && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-gray-900 rounded-xl max-w-md w-full border border-gray-700 max-h-[90vh] flex flex-col">
-              <div className="p-5 overflow-y-auto flex-1">
-                <h2 className="text-xl font-bold text-white mb-5">
-                  {editingPlaylist ? 'Edit Playlist' : 'Create Playlist'}
+          <div
+            className="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-end md:items-center justify-center p-0 md:p-4"
+            onClick={() => {
+              setShowCreateModal(false);
+              setEditingPlaylist(null);
+              setPlaylistTitle('');
+              setPlaylistDescription('');
+              setSelectedCover(coverGradients[0]);
+              setSongsToAdd([]);
+              setSpotifyInput('');
+              setAddSongError(null);
+            }}
+          >
+            {/* Mobile: Bottom Sheet | Desktop: Compact Glass Tray */}
+            <div
+              className="bg-slate-900/80 backdrop-blur-2xl rounded-t-2xl md:rounded-xl w-full md:max-w-xl border-t md:border border-white/10 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)] h-[70vh] md:max-h-[65vh] overflow-hidden flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Compact Header with Auto-Save Indicator & Delete Icon */}
+              <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/5 flex-shrink-0">
+                <h2 className="text-sm md:text-base font-bold text-white">
+                  {editingPlaylist ? 'Edit Playlist' : 'New Playlist'}
                 </h2>
-
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Playlist Name *
-                    </label>
-                    <input
-                      type="text"
-                      value={playlistTitle}
-                      onChange={(e) => setPlaylistTitle(e.target.value)}
-                      placeholder="e.g., Summer Vibes"
-                      className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Description
-                    </label>
-                    <textarea
-                      value={playlistDescription}
-                      onChange={(e) => setPlaylistDescription(e.target.value)}
-                      placeholder="What's this playlist about?"
-                      rows={3}
-                      className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                    />
-                  </div>
-
-                  {!editingPlaylist && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">
-                        Add Songs (Optional)
-                      </label>
-                      <div className="space-y-2">
-                        <div className="flex space-x-2">
-                          <input
-                            type="text"
-                            value={spotifyInput}
-                            onChange={(e) => setSpotifyInput(e.target.value)}
-                            placeholder="Paste Spotify track link..."
-                            className="flex-1 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            onKeyPress={async (e) => {
-                              if (e.key === 'Enter' && spotifyInput.trim()) {
-                                e.preventDefault();
-                                await handleAddSongToList();
-                              }
-                            }}
-                          />
-                          <button
-                            onClick={handleAddSongToList}
-                            disabled={!spotifyInput.trim() || addingSong}
-                            className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            {addingSong ? <Loader2 className="w-5 h-5 animate-spin" /> : <Plus className="w-5 h-5" />}
-                          </button>
-                        </div>
-                        {songsToAdd.length > 0 && (
-                          <div className="mt-3 space-y-2 max-h-48 overflow-y-auto">
-                            {songsToAdd.map((song, index) => (
-                              <div key={index} className="flex items-center space-x-3 p-2 bg-gray-800 rounded-lg">
-                                {song.album_art && (
-                                  <img src={song.album_art} alt={song.title} className="w-10 h-10 rounded object-cover" />
-                                )}
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-white text-sm font-medium truncate">{song.title}</p>
-                                  <p className="text-gray-400 text-xs truncate">{song.artist}</p>
-                                </div>
-                                <button
-                                  onClick={() => setSongsToAdd(songsToAdd.filter((_, i) => i !== index))}
-                                  className="text-gray-400 hover:text-red-500 transition"
-                                >
-                                  <X className="w-4 h-4" />
-                                </button>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-3">
-                      Cover
-                    </label>
-                    <div className="space-y-3">
-                      <div className="grid grid-cols-5 gap-3">
-                        {coverGradients.map((gradient) => (
-                          <button
-                            key={gradient}
-                            onClick={() => setSelectedCover(gradient)}
-                            className={`w-full aspect-square ${gradient} rounded-lg transition ${
-                              selectedCover === gradient && !selectedCover.startsWith('http')
-                                ? 'ring-4 ring-white scale-110'
-                                : 'hover:scale-105'
-                            }`}
-                          />
-                        ))}
-                      </div>
-                      {editingPlaylist && editingPlaylist.songs && editingPlaylist.songs.length > 0 && editingPlaylist.songs[0].album_art && (
-                        <button
-                          onClick={() => setSelectedCover(editingPlaylist.songs[0].album_art!)}
-                          className={`w-full px-4 py-3 rounded-lg border-2 transition flex items-center space-x-3 ${
-                            selectedCover === editingPlaylist.songs[0].album_art
-                              ? 'border-white bg-gray-700'
-                              : 'border-gray-700 bg-gray-800 hover:bg-gray-700'
-                          }`}
-                        >
-                          <img
-                            src={editingPlaylist.songs[0].album_art}
-                            alt="Album art"
-                            className="w-12 h-12 rounded object-cover"
-                          />
-                          <span className="text-white text-sm">Use first song's album art</span>
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {editingPlaylist && (
-                  <div className="mt-4 pt-4 border-t border-gray-700">
+                <div className="flex items-center gap-2">
+                  {/* Auto-save indicator (placeholder for now) */}
+                  <Check className="w-3.5 h-3.5 text-cyan-400 opacity-0" id="playlist-save-indicator" />
+                  {/* Delete button (top-right, low opacity) */}
+                  {editingPlaylist && (
                     <button
-                      onClick={async () => {
-                        if (window.confirm(`Are you sure you want to delete "${editingPlaylist.title}"? This action cannot be undone.`)) {
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        if (window.confirm(`Delete "${editingPlaylist.title}"?`)) {
                           try {
                             const { error } = await supabase
                               .from('playlists')
@@ -1057,40 +958,181 @@ export default function Mixtape() {
                           }
                         }
                       }}
-                      className="w-full px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition flex items-center justify-center space-x-2 border border-red-500/30"
+                      className="p-1 hover:bg-red-500/10 rounded transition opacity-40 hover:opacity-100"
+                      title="Delete playlist"
                     >
-                      <Trash2 className="w-4 h-4" />
-                      <span>Delete Playlist</span>
+                      <Trash2 className="w-3.5 h-3.5 text-red-400" />
                     </button>
+                  )}
+                  <button
+                    onClick={() => {
+                      setShowCreateModal(false);
+                      setEditingPlaylist(null);
+                      setPlaylistTitle('');
+                      setPlaylistDescription('');
+                      setSelectedCover(coverGradients[0]);
+                      setSongsToAdd([]);
+                      setSpotifyInput('');
+                      setAddSongError(null);
+                    }}
+                    className="p-1 hover:bg-white/5 rounded transition text-gray-400 hover:text-white"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Two-Column Grid Form */}
+              <div className="flex-1 overflow-y-auto px-4 py-3">
+                <div className="grid md:grid-cols-2 gap-4">
+                  {/* Left Column: Name & Description */}
+                  <div className="space-y-3">
+                    {/* Playlist Name with Floating Label */}
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={playlistTitle}
+                        onChange={(e) => setPlaylistTitle(e.target.value)}
+                        placeholder=" "
+                        className="peer w-full px-3 py-2 bg-black/20 border border-white/10 rounded-lg text-white text-sm placeholder-transparent focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30"
+                      />
+                      <label className="absolute left-3 -top-2 bg-slate-900 px-1 text-[10px] text-gray-400 peer-placeholder-shown:text-sm peer-placeholder-shown:top-2 peer-placeholder-shown:bg-transparent peer-focus:-top-2 peer-focus:text-[10px] peer-focus:text-cyan-400 peer-focus:bg-slate-900 transition-all">
+                        Playlist Name *
+                      </label>
+                    </div>
+
+                    {/* Description with Floating Label */}
+                    <div className="relative">
+                      <textarea
+                        value={playlistDescription}
+                        onChange={(e) => setPlaylistDescription(e.target.value)}
+                        placeholder=" "
+                        rows={4}
+                        className="peer w-full px-3 py-2 bg-black/20 border border-white/10 rounded-lg text-white text-sm placeholder-transparent focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 resize-none"
+                      />
+                      <label className="absolute left-3 -top-2 bg-slate-900 px-1 text-[10px] text-gray-400 peer-placeholder-shown:text-sm peer-placeholder-shown:top-2 peer-placeholder-shown:bg-transparent peer-focus:-top-2 peer-focus:text-[10px] peer-focus:text-cyan-400 peer-focus:bg-slate-900 transition-all">
+                        Description
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Right Column: Cover Selection */}
+                  <div className="space-y-3">
+                    <label className="block text-[10px] text-gray-400 mb-1">Cover Color</label>
+
+                    {/* Compact Horizontal Scrolling Swatches */}
+                    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
+                      {coverGradients.map((gradient) => (
+                        <button
+                          key={gradient}
+                          onClick={() => setSelectedCover(gradient)}
+                          className={`flex-shrink-0 w-12 h-12 ${gradient} rounded-lg transition ${
+                            selectedCover === gradient && !selectedCover.startsWith('http')
+                              ? 'ring-2 ring-cyan-400 scale-110'
+                              : 'hover:scale-105 opacity-70 hover:opacity-100'
+                          }`}
+                        />
+                      ))}
+                    </div>
+
+                    {/* Album Art Option (if editing with songs) */}
+                    {editingPlaylist && editingPlaylist.songs && editingPlaylist.songs.length > 0 && editingPlaylist.songs[0].album_art && (
+                      <button
+                        onClick={() => setSelectedCover(editingPlaylist.songs[0].album_art!)}
+                        className={`w-full px-3 py-2 rounded-lg transition flex items-center gap-2 text-xs ${
+                          selectedCover === editingPlaylist.songs[0].album_art
+                            ? 'bg-cyan-500/20 border border-cyan-400/30'
+                            : 'bg-black/20 border border-white/10 hover:bg-black/30'
+                        }`}
+                      >
+                        <img
+                          src={editingPlaylist.songs[0].album_art}
+                          alt="Album art"
+                          className="w-8 h-8 rounded object-cover"
+                        />
+                        <span className="text-white">Use album art</span>
+                      </button>
+                    )}
+
+                    {/* Preview */}
+                    <div className="mt-2">
+                      <label className="block text-[10px] text-gray-400 mb-1.5">Preview</label>
+                      <div className={`w-full aspect-square ${selectedCover.startsWith('http') ? '' : selectedCover} rounded-lg flex items-center justify-center`}>
+                        {selectedCover.startsWith('http') ? (
+                          <img src={selectedCover} alt="Cover" className="w-full h-full object-cover rounded-lg" />
+                        ) : (
+                          <Music className="w-12 h-12 text-white/50" />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Initial Songs (Create Mode Only) */}
+                {!editingPlaylist && (
+                  <div className="mt-4 pt-3 border-t border-white/5">
+                    <label className="block text-[10px] text-gray-400 mb-2">Add Songs (Optional)</label>
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={spotifyInput}
+                          onChange={(e) => setSpotifyInput(e.target.value)}
+                          placeholder="Paste Spotify track link..."
+                          className="flex-1 px-3 py-2 bg-black/20 border border-white/10 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30"
+                          onKeyDown={async (e) => {
+                            if (e.key === 'Enter' && spotifyInput.trim() && !e.shiftKey) {
+                              e.preventDefault();
+                              await handleAddSongToList();
+                            }
+                          }}
+                        />
+                        <button
+                          onClick={handleAddSongToList}
+                          disabled={!spotifyInput.trim() || addingSong}
+                          className="px-3 py-2 bg-gradient-to-r from-blue-600/90 to-cyan-600/90 hover:from-blue-600 hover:to-cyan-600 text-white rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-cyan-500/10"
+                        >
+                          {addingSong ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                        </button>
+                      </div>
+                      {songsToAdd.length > 0 && (
+                        <div className="mt-2 space-y-1.5 max-h-32 overflow-y-auto">
+                          {songsToAdd.map((song, index) => (
+                            <div key={index} className="flex items-center gap-2 p-2 bg-black/20 rounded-lg border border-white/5">
+                              {song.album_art && (
+                                <img src={song.album_art} alt={song.title} className="w-8 h-8 rounded object-cover" />
+                              )}
+                              <div className="flex-1 min-w-0">
+                                <p className="text-white text-xs font-medium truncate">{song.title}</p>
+                                <p className="text-gray-400 text-[10px] truncate">{song.artist}</p>
+                              </div>
+                              <button
+                                onClick={() => setSongsToAdd(songsToAdd.filter((_, i) => i !== index))}
+                                className="text-gray-400 hover:text-red-400 transition"
+                              >
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
 
-              {/* Fixed Footer with Buttons */}
-              <div className="p-4 border-t border-gray-700 flex space-x-2 bg-gray-900 rounded-b-xl">
-                <button
-                  onClick={() => {
-                    setShowCreateModal(false);
-                    setEditingPlaylist(null);
-                    setPlaylistTitle('');
-                    setPlaylistDescription('');
-                    setSelectedCover(coverGradients[0]);
-                    setSongsToAdd([]);
-                    setSpotifyInput('');
-                    setAddSongError(null);
-                  }}
-                  className="flex-1 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white text-sm rounded-lg transition"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleCreateOrUpdatePlaylist}
-                  disabled={!playlistTitle.trim()}
-                  className="flex-1 px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white text-sm rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {editingPlaylist ? 'Update Playlist' : 'Create Playlist'}
-                </button>
-              </div>
+              {/* Footer - Only for Create Mode */}
+              {!editingPlaylist && (
+                <div className="px-4 py-2.5 border-t border-white/5 flex-shrink-0">
+                  <button
+                    onClick={handleCreateOrUpdatePlaylist}
+                    disabled={!playlistTitle.trim()}
+                    className="w-full px-3 py-2 bg-gradient-to-r from-pink-600/90 to-purple-600/90 hover:from-pink-600 hover:to-purple-600 text-white text-sm font-medium rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-purple-500/10"
+                  >
+                    Create Playlist
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}
