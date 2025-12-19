@@ -717,14 +717,15 @@ export default function Vision() {
           </div>
         )}
 
-        {/* Make a Wish Modal - Polaroid Dream Vault */}
+        {/* Make a Wish Modal - Netflix-Style Horizontal Scrolling */}
         {showWishModal && (
-          <div className="fixed inset-0 bg-black/90 backdrop-blur-xl z-50 flex items-center justify-center p-4">
-            <div className="bg-gradient-to-br from-gray-950/95 to-gray-900/95 backdrop-blur-md rounded-2xl max-w-6xl w-full border border-gray-700/50 shadow-2xl max-h-[90vh] overflow-hidden flex flex-col">
-              {/* Header */}
-              <div className="flex items-center justify-between p-6 border-b border-gray-700/30">
-                <h2 className="text-3xl font-bold text-white flex items-center">
-                  <Sparkles className="w-7 h-7 mr-3 text-cyan-400" />
+          <div className="fixed inset-0 bg-black/90 backdrop-blur-2xl z-50 flex items-end md:items-center justify-center p-0 md:p-4">
+            {/* Mobile: Bottom Sheet (85vh) | Desktop: Centered Modal (max-w-4xl, max-h-75vh) */}
+            <div className="bg-gradient-to-br from-gray-950/98 to-gray-900/98 backdrop-blur-md rounded-t-2xl md:rounded-xl w-full md:max-w-4xl border-t md:border border-gray-700/50 shadow-2xl h-[85vh] md:h-auto md:max-h-[75vh] overflow-hidden flex flex-col">
+              {/* Compact Header */}
+              <div className="flex items-center justify-between px-4 py-2.5 border-b border-gray-700/30 flex-shrink-0">
+                <h2 className="text-base md:text-lg font-bold text-white flex items-center">
+                  <Sparkles className="w-3.5 md:w-4 h-3.5 md:h-4 mr-1.5 text-cyan-400" />
                   Our Shared Dreams
                 </h2>
                 <button
@@ -733,52 +734,52 @@ export default function Vision() {
                     setIsCreatingNewWish(false);
                     resetForm();
                   }}
-                  className="p-2 hover:bg-gray-800/50 rounded-lg transition text-gray-400 hover:text-white"
+                  className="p-1 hover:bg-gray-800/50 rounded-lg transition text-gray-400 hover:text-white"
                 >
-                  <X className="w-6 h-6" />
+                  <X className="w-4 h-4" />
                 </button>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-6">
-                {/* Working Towards Section - Polaroid Grid */}
-                <div className="mb-8">
-                  <h3 className="text-xl font-bold text-white mb-4 flex items-center">
-                    <Sparkles className="w-5 h-5 mr-2 text-cyan-400" />
+              <div className="flex-1 overflow-y-auto px-3 md:px-4 py-3 space-y-4">
+                {/* Working Towards Section - Horizontal Scroll */}
+                <div>
+                  <h3 className="text-xs md:text-sm font-bold text-white mb-2 flex items-center">
+                    <Sparkles className="w-3 h-3 mr-1 text-cyan-400" />
                     Working Towards
                   </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {/* Empty Slot - Add New Wish Card */}
+                  <div className="flex overflow-x-auto snap-x snap-mandatory gap-2 pb-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
+                    {/* Ghost Card - Add New Wish */}
                     {!isCreatingNewWish ? (
                       <button
                         onClick={() => setIsCreatingNewWish(true)}
-                        className="group aspect-[3/4] rounded-lg border-2 border-dashed border-gray-600/50 hover:border-cyan-500/50 bg-gradient-to-br from-gray-900/40 to-gray-800/40 backdrop-blur-sm transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/10 flex flex-col items-center justify-center"
+                        className="group flex-shrink-0 w-[180px] md:w-[190px] h-[240px] md:h-[250px] snap-start rounded-lg border border-dashed border-gray-600/50 hover:border-cyan-500/50 bg-gradient-to-br from-gray-900/40 to-gray-800/40 backdrop-blur-sm transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/10 flex flex-col items-center justify-center"
                       >
-                        <Plus className="w-12 h-12 text-gray-600 group-hover:text-cyan-400 transition mb-3" />
-                        <p className="text-gray-500 group-hover:text-cyan-400 font-medium transition">Add a dream...</p>
+                        <Plus className="w-7 h-7 text-gray-600 group-hover:text-cyan-400 transition mb-1.5" />
+                        <p className="text-xs text-gray-500 group-hover:text-cyan-400 font-medium transition">Add a dream...</p>
                       </button>
                     ) : (
-                      <div className="aspect-[3/4] rounded-lg border border-gray-700/50 bg-gradient-to-br from-blue-950/40 via-gray-900/60 to-gray-950/40 backdrop-blur-sm p-4 flex flex-col shadow-lg shadow-blue-500/10">
+                      <div className="flex-shrink-0 w-[180px] md:w-[190px] h-[240px] md:h-[250px] snap-start rounded-lg border border-cyan-500/30 bg-gradient-to-br from-blue-950/60 via-gray-900/80 to-gray-950/60 backdrop-blur-sm p-2.5 flex flex-col shadow-lg shadow-cyan-500/20">
                         <input
                           type="text"
                           value={newItemTitle}
                           onChange={(e) => setNewItemTitle(e.target.value)}
                           placeholder="Dream title..."
                           autoFocus
-                          className="w-full px-3 py-2 bg-gray-800/80 border border-gray-600/50 rounded-lg text-white text-lg font-semibold placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 mb-3"
+                          className="w-full px-2 py-1.5 bg-gray-800/80 border border-gray-600/50 rounded text-white text-xs font-semibold placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 mb-1.5"
                         />
                         <textarea
                           value={newItemContent}
                           onChange={(e) => setNewItemContent(e.target.value)}
                           placeholder="Describe your dream..."
-                          className="flex-1 w-full px-3 py-2 bg-gray-800/80 border border-gray-600/50 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 resize-none mb-3"
+                          className="flex-1 w-full px-2 py-1.5 bg-gray-800/80 border border-gray-600/50 rounded text-white text-[11px] placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 resize-none mb-1.5"
                         />
-                        <div className="flex gap-2">
+                        <div className="flex gap-1.5">
                           <button
                             onClick={() => {
                               handleAddItem();
                               setIsCreatingNewWish(false);
                             }}
-                            className="flex-1 px-3 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-cyan-700 transition text-sm"
+                            className="flex-1 px-2 py-1.5 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded text-[11px] font-medium hover:from-blue-700 hover:to-cyan-700 transition"
                           >
                             Save
                           </button>
@@ -787,7 +788,7 @@ export default function Vision() {
                               setIsCreatingNewWish(false);
                               resetForm();
                             }}
-                            className="px-3 py-2 bg-gray-700/80 hover:bg-gray-600/80 text-white rounded-lg transition text-sm"
+                            className="px-2 py-1.5 bg-gray-700/80 hover:bg-gray-600/80 text-white rounded text-[11px] transition"
                           >
                             Cancel
                           </button>
@@ -795,58 +796,53 @@ export default function Vision() {
                       </div>
                     )}
 
-                    {/* Active Wishes - Polaroid Cards */}
-                    {workingTowards.map((item) => (
+                    {/* Active Wishes - Micro-Polaroids */}
+                    {workingTowards.map((item, index) => (
                       <div
                         key={item.id}
-                        className={`group aspect-[3/4] rounded-lg border border-gray-700/50 bg-gradient-to-br from-gray-900/90 via-gray-800/90 to-gray-900/90 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 hover:border-cyan-500/30 relative overflow-hidden ${
+                        style={{ marginRight: index === workingTowards.length - 1 ? '0.5rem' : '0' }}
+                        className={`group flex-shrink-0 w-[180px] md:w-[190px] h-[240px] md:h-[250px] snap-start rounded-lg border border-gray-700/50 bg-gradient-to-br from-gray-950/95 via-gray-900/95 to-gray-950/95 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all duration-300 hover:border-cyan-500/30 relative overflow-hidden ${
                           completingItemId === item.id ? 'animate-pulse' : ''
                         }`}
                       >
-                        {/* Metallic border effect */}
+                        {/* 1px Brushed metal border */}
                         <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-black/20 pointer-events-none rounded-lg" />
 
                         {/* Content */}
-                        <div className="relative h-full p-5 flex flex-col">
-                          {/* Title */}
-                          <h4 className="text-white font-bold text-xl mb-3 line-clamp-2">{item.title}</h4>
-
-                          {/* Description */}
+                        <div className="relative h-full p-2.5 flex flex-col">
+                          <h4 className="text-white font-bold text-xs mb-1.5 line-clamp-2">{item.title}</h4>
                           {item.content && (
-                            <p className="text-gray-300 text-sm mb-auto line-clamp-6 leading-relaxed">{item.content}</p>
+                            <p className="text-gray-300 text-[11px] mb-auto line-clamp-5 leading-relaxed">{item.content}</p>
                           )}
 
-                          {/* Action Buttons */}
-                          <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-700/30">
-                            {/* Nudge Heart - Pulsing */}
+                          {/* Action Buttons - Icons Only (Thumb-Friendly) */}
+                          <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-gray-700/30">
                             <button
                               onClick={() => handleNudge(item.id)}
-                              className="p-2 hover:bg-pink-600/20 rounded-full transition group/heart"
+                              className="p-1 hover:bg-pink-600/20 rounded-full transition"
                               title="Nudge partner"
                             >
-                              <Heart className="w-5 h-5 text-pink-400/70 hover:text-pink-400 group-hover/heart:animate-pulse transition" />
+                              <Heart className="w-3.5 h-3.5 text-pink-400/70 hover:text-pink-400 transition" />
                             </button>
 
-                            {/* Complete Checkmark */}
                             <button
                               onClick={async () => {
                                 setCompletingItemId(item.id);
                                 await handleToggleGoal(item.id, item.goal_completed);
                                 setTimeout(() => setCompletingItemId(null), 600);
                               }}
-                              className="p-2 bg-green-600/20 hover:bg-green-600/30 border border-green-500/30 rounded-full transition"
-                              title="Mark as complete"
+                              className="p-1 bg-green-600/20 hover:bg-green-600/30 border border-green-500/30 rounded-full transition"
+                              title="Complete"
                             >
-                              <Check className="w-5 h-5 text-green-400" />
+                              <Check className="w-3.5 h-3.5 text-green-400" />
                             </button>
 
-                            {/* Delete (hidden, shows on hover) */}
                             <button
                               onClick={() => handleDeleteItem(item.id, null)}
-                              className="p-2 opacity-0 group-hover:opacity-100 hover:bg-red-600/20 rounded-full transition"
-                              title="Delete dream"
+                              className="p-1 opacity-0 md:group-hover:opacity-100 hover:bg-red-600/20 rounded-full transition"
+                              title="Delete"
                             >
-                              <X className="w-5 h-5 text-red-400" />
+                              <X className="w-3.5 h-3.5 text-red-400" />
                             </button>
                           </div>
                         </div>
@@ -855,46 +851,40 @@ export default function Vision() {
                   </div>
                 </div>
 
-                {/* Accomplished Section - Grayscale Polaroids */}
+                {/* Accomplished Section - Horizontal Scroll */}
                 <div>
-                  <h3 className="text-xl font-bold text-white mb-4 flex items-center">
-                    <Check className="w-5 h-5 mr-2 text-green-400" />
+                  <h3 className="text-xs md:text-sm font-bold text-white mb-2 flex items-center">
+                    <Check className="w-3 h-3 mr-1 text-green-400" />
                     Shared Victories
                   </h3>
                   {accomplished.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {accomplished.map((item) => (
+                    <div className="flex overflow-x-auto snap-x snap-mandatory gap-2 pb-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
+                      {accomplished.map((item, index) => (
                         <div
                           key={item.id}
-                          className="group aspect-[3/4] rounded-lg border border-gray-700/30 bg-gradient-to-br from-gray-900/60 via-gray-800/60 to-gray-900/60 backdrop-blur-sm shadow-lg grayscale opacity-70 hover:opacity-100 hover:grayscale-0 transition-all duration-500 relative overflow-hidden"
+                          style={{ marginRight: index === accomplished.length - 1 ? '0.5rem' : '0' }}
+                          className="group flex-shrink-0 w-[180px] md:w-[190px] h-[240px] md:h-[250px] snap-start rounded-lg border border-gray-700/30 bg-gradient-to-br from-gray-900/60 via-gray-800/60 to-gray-900/60 backdrop-blur-sm shadow-lg grayscale opacity-70 hover:opacity-100 hover:grayscale-0 transition-all duration-500 relative overflow-hidden"
                         >
-                          {/* Metallic border effect */}
+                          {/* 1px Brushed metal border */}
                           <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-black/20 pointer-events-none rounded-lg" />
 
-                          {/* Content */}
-                          <div className="relative h-full p-5 flex flex-col">
-                            {/* Title with strikethrough */}
-                            <h4 className="text-white font-bold text-xl mb-3 line-clamp-2 line-through decoration-green-500/50">{item.title}</h4>
-
-                            {/* Description */}
+                          <div className="relative h-full p-2.5 flex flex-col">
+                            <h4 className="text-white font-bold text-xs mb-1.5 line-clamp-2 line-through decoration-green-500/50">{item.title}</h4>
                             {item.content && (
-                              <p className="text-gray-300 text-sm mb-auto line-clamp-6 leading-relaxed line-through decoration-green-500/30">{item.content}</p>
+                              <p className="text-gray-300 text-[11px] mb-auto line-clamp-5 leading-relaxed line-through decoration-green-500/30">{item.content}</p>
                             )}
 
-                            {/* Completion Date */}
-                            <div className="mt-4 pt-4 border-t border-gray-700/30 flex items-center justify-between">
-                              <div className="flex items-center space-x-2 text-xs text-green-400/80">
-                                <Check className="w-4 h-4" />
-                                <span>Achieved {new Date(item.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                            <div className="mt-2 pt-1.5 border-t border-gray-700/30 flex items-center justify-between">
+                              <div className="text-[9px] text-green-400/80">
+                                <span>Completed: {new Date(item.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                               </div>
 
-                              {/* Delete (hidden, shows on hover) */}
                               <button
                                 onClick={() => handleDeleteItem(item.id, null)}
-                                className="p-2 opacity-0 group-hover:opacity-100 hover:bg-red-600/20 rounded-full transition"
-                                title="Remove from history"
+                                className="p-0.5 opacity-0 md:group-hover:opacity-100 hover:bg-red-600/20 rounded-full transition"
+                                title="Remove"
                               >
-                                <X className="w-4 h-4 text-red-400" />
+                                <X className="w-3 h-3 text-red-400" />
                               </button>
                             </div>
                           </div>
@@ -902,7 +892,7 @@ export default function Vision() {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-gray-400 text-center py-12 italic text-sm">No shared victories yet. Complete a dream to celebrate together!</p>
+                    <p className="text-gray-400 text-center py-6 italic text-[11px]">No shared victories yet. Complete a dream to celebrate together!</p>
                   )}
                 </div>
               </div>
