@@ -190,6 +190,43 @@ export default function Mixtape() {
     }
   };
 
+  // Debounced auto-save for editing playlist
+  useEffect(() => {
+    if (!editingPlaylist || !playlistTitle.trim()) return;
+
+    const timer = setTimeout(async () => {
+      try {
+        const { error: updateError } = await supabase
+          .from('playlists')
+          .update({
+            title: playlistTitle,
+            description: playlistDescription,
+            cover: selectedCover,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', editingPlaylist.id);
+
+        if (!updateError) {
+          // Show save indicator briefly
+          const indicator = document.getElementById('playlist-save-indicator');
+          if (indicator) {
+            indicator.style.opacity = '1';
+            setTimeout(() => {
+              indicator.style.opacity = '0';
+            }, 1500);
+          }
+
+          // Refresh playlists in background
+          await fetchPlaylists();
+        }
+      } catch (err) {
+        console.error('Error auto-saving playlist:', err);
+      }
+    }, 800); // 800ms debounce
+
+    return () => clearTimeout(timer);
+  }, [editingPlaylist, playlistTitle, playlistDescription, selectedCover]);
+
   // Debounced search effect for inline search
   useEffect(() => {
     if (!showSpotifySearch || !spotifyConnected.connected) return;
