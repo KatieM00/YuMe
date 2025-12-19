@@ -791,31 +791,29 @@ export default function Vision() {
 
               <div className="flex-1 overflow-y-auto px-3 md:px-4 py-3 space-y-4">
                 {/* Working Towards Section - Horizontal Scroll */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-xs md:text-sm font-bold text-white flex items-center">
-                      <Sparkles className="w-3 h-3 mr-1 text-cyan-400" />
-                      Working Towards
-                    </h3>
-                    {/* Navigation Arrows */}
-                    <div className="hidden md:flex items-center gap-1">
-                      <button
-                        onClick={() => scrollCards(workingTowardsScrollRef, 'left')}
-                        className="p-1.5 bg-gray-800/80 hover:bg-gray-700/80 border border-gray-700/50 rounded-lg transition text-gray-400 hover:text-white"
-                        aria-label="Scroll left"
-                      >
-                        <ChevronLeft className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => scrollCards(workingTowardsScrollRef, 'right')}
-                        className="p-1.5 bg-gray-800/80 hover:bg-gray-700/80 border border-gray-700/50 rounded-lg transition text-gray-400 hover:text-white"
-                        aria-label="Scroll right"
-                      >
-                        <ChevronRight className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                  <div ref={workingTowardsScrollRef} className="flex overflow-x-auto snap-x snap-mandatory gap-2 pb-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
+                <div className="relative">
+                  <h3 className="text-xs md:text-sm font-bold text-white mb-2 flex items-center">
+                    <Sparkles className="w-3 h-3 mr-1 text-cyan-400" />
+                    Working Towards
+                  </h3>
+
+                  {/* Netflix-style Navigation Arrows - Overlay on scroll container */}
+                  <button
+                    onClick={() => scrollCards(workingTowardsScrollRef, 'left')}
+                    className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-full items-center justify-center bg-gradient-to-r from-black/60 to-transparent hover:from-black/80 transition-all opacity-0 hover:opacity-100 group-hover:opacity-100"
+                    aria-label="Scroll left"
+                  >
+                    <ChevronLeft className="w-8 h-8 text-white drop-shadow-lg" />
+                  </button>
+                  <button
+                    onClick={() => scrollCards(workingTowardsScrollRef, 'right')}
+                    className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-full items-center justify-center bg-gradient-to-l from-black/60 to-transparent hover:from-black/80 transition-all opacity-0 hover:opacity-100 group-hover:opacity-100"
+                    aria-label="Scroll right"
+                  >
+                    <ChevronRight className="w-8 h-8 text-white drop-shadow-lg" />
+                  </button>
+
+                  <div ref={workingTowardsScrollRef} className="group flex overflow-x-auto snap-x snap-mandatory gap-2 pb-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
                     {/* Ghost Card - Add New Wish */}
                     {!isCreatingNewWish ? (
                       <button
@@ -1009,34 +1007,34 @@ export default function Vision() {
                 </div>
 
                 {/* Accomplished Section - Horizontal Scroll */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-xs md:text-sm font-bold text-white flex items-center">
-                      <Check className="w-3 h-3 mr-1 text-green-400" />
-                      Shared Victories
-                    </h3>
-                    {/* Navigation Arrows */}
-                    {accomplished.length > 0 && (
-                      <div className="hidden md:flex items-center gap-1">
-                        <button
-                          onClick={() => scrollCards(accomplishedScrollRef, 'left')}
-                          className="p-1.5 bg-gray-800/80 hover:bg-gray-700/80 border border-gray-700/50 rounded-lg transition text-gray-400 hover:text-white"
-                          aria-label="Scroll left"
-                        >
-                          <ChevronLeft className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => scrollCards(accomplishedScrollRef, 'right')}
-                          className="p-1.5 bg-gray-800/80 hover:bg-gray-700/80 border border-gray-700/50 rounded-lg transition text-gray-400 hover:text-white"
-                          aria-label="Scroll right"
-                        >
-                          <ChevronRight className="w-4 h-4" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
+                <div className="relative">
+                  <h3 className="text-xs md:text-sm font-bold text-white mb-2 flex items-center">
+                    <Check className="w-3 h-3 mr-1 text-green-400" />
+                    Shared Victories
+                  </h3>
+
+                  {/* Netflix-style Navigation Arrows - Overlay on scroll container */}
+                  {accomplished.length > 0 && (
+                    <>
+                      <button
+                        onClick={() => scrollCards(accomplishedScrollRef, 'left')}
+                        className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-full items-center justify-center bg-gradient-to-r from-black/60 to-transparent hover:from-black/80 transition-all opacity-0 hover:opacity-100 group-hover:opacity-100"
+                        aria-label="Scroll left"
+                      >
+                        <ChevronLeft className="w-8 h-8 text-white drop-shadow-lg" />
+                      </button>
+                      <button
+                        onClick={() => scrollCards(accomplishedScrollRef, 'right')}
+                        className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-full items-center justify-center bg-gradient-to-l from-black/60 to-transparent hover:from-black/80 transition-all opacity-0 hover:opacity-100 group-hover:opacity-100"
+                        aria-label="Scroll right"
+                      >
+                        <ChevronRight className="w-8 h-8 text-white drop-shadow-lg" />
+                      </button>
+                    </>
+                  )}
+
                   {accomplished.length > 0 ? (
-                    <div ref={accomplishedScrollRef} className="flex overflow-x-auto snap-x snap-mandatory gap-2 pb-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
+                    <div ref={accomplishedScrollRef} className="group flex overflow-x-auto snap-x snap-mandatory gap-2 pb-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
                       {accomplished.map((item, index) => (
                         <div
                           key={item.id}
