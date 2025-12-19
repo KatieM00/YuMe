@@ -18,6 +18,8 @@ export interface UserProfile {
   city: string | null;
   latitude: number | null;
   longitude: number | null;
+  anniversary_date: string | null;
+  birthday_date: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -261,6 +263,27 @@ export async function updateLocation(location: {
 
   if (error) {
     console.error('Error updating location:', error);
+    return false;
+  }
+
+  return true;
+}
+
+// =========================================================================
+// UPDATE IMPORTANT DATES
+// =========================================================================
+
+export async function updateImportantDates(dates: {
+  anniversary_date?: string | null;
+  birthday_date?: string | null;
+}): Promise<boolean> {
+  const { error } = await supabase
+    .from('user_profiles')
+    .update(dates)
+    .eq('id', (await supabase.auth.getUser()).data.user?.id);
+
+  if (error) {
+    console.error('Error updating important dates:', error);
     return false;
   }
 
