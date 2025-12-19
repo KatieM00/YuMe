@@ -388,9 +388,15 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
         const daysUntil = getDaysUntil(eventDate);
 
         return (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 overflow-y-auto">
+          <div
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 overflow-y-auto"
+            onClick={() => setSelectedEvent(null)}
+          >
             <div className="min-h-screen px-4 flex items-center justify-center">
-              <div className="bg-gray-900 rounded-2xl max-w-md w-full p-6 border border-gray-700 my-8">
+              <div
+                className="bg-gray-900 rounded-2xl max-w-md w-full p-6 border border-gray-700 my-8"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-2xl font-bold text-white">Event Details</h2>
                   <button
@@ -487,9 +493,15 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
 
       {/* Message Detail Modal */}
       {selectedMessageForModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 overflow-y-auto">
+        <div
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 overflow-y-auto"
+          onClick={() => setSelectedMessageForModal(null)}
+        >
           <div className="min-h-screen px-4 flex items-center justify-center">
-            <div className="bg-gray-900 rounded-2xl max-w-md w-full p-6 border border-gray-700 my-8">
+            <div
+              className="bg-gray-900 rounded-2xl max-w-md w-full p-6 border border-gray-700 my-8"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-2xl font-bold text-white">Message</h2>
                 <button

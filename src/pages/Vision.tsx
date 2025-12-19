@@ -769,9 +769,19 @@ export default function Vision() {
 
         {/* Make a Wish Modal - Netflix-Style Horizontal Scrolling */}
         {showWishModal && (
-          <div className="fixed inset-0 bg-black/90 backdrop-blur-2xl z-50 flex items-end md:items-center justify-center p-0 md:p-4">
+          <div
+            className="fixed inset-0 bg-black/90 backdrop-blur-2xl z-50 flex items-end md:items-center justify-center p-0 md:p-4"
+            onClick={() => {
+              setShowWishModal(false);
+              setIsCreatingNewWish(false);
+              resetForm();
+            }}
+          >
             {/* Mobile: Bottom Sheet (85vh) | Desktop: Centered Modal (max-w-4xl, max-h-75vh) */}
-            <div className="bg-gradient-to-br from-gray-950/98 to-gray-900/98 backdrop-blur-md rounded-t-2xl md:rounded-xl w-full md:max-w-4xl border-t md:border border-gray-700/50 shadow-2xl h-[85vh] md:h-auto md:max-h-[75vh] overflow-hidden flex flex-col">
+            <div
+              className="bg-gradient-to-br from-gray-950/98 to-gray-900/98 backdrop-blur-md rounded-t-2xl md:rounded-xl w-full md:max-w-4xl border-t md:border border-gray-700/50 shadow-2xl h-[85vh] md:h-auto md:max-h-[75vh] overflow-hidden flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
               {/* Compact Header */}
               <div className="flex items-center justify-between px-4 py-2.5 border-b border-gray-700/30 flex-shrink-0">
                 <h2 className="text-base md:text-lg font-bold text-white flex items-center">
@@ -1114,8 +1124,17 @@ export default function Vision() {
 
         {/* Detail Modal */}
         {showDetailModal && selectedItem && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-            <div className="bg-gray-900 rounded-2xl max-w-2xl w-full p-6 border border-gray-700 my-8">
+          <div
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto"
+            onClick={() => {
+              setShowDetailModal(false);
+              setSelectedItem(null);
+            }}
+          >
+            <div
+              className="bg-gray-900 rounded-2xl max-w-2xl w-full p-6 border border-gray-700 my-8"
+              onClick={(e) => e.stopPropagation()}
+            >
               {/* Header */}
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">

@@ -833,8 +833,19 @@ export default function Messages() {
 
         {/* New Message Modal */}
         {showNewMessage && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-gray-800 border-2 border-gray-600 rounded-lg shadow-2xl max-w-md w-full">
+          <div
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => {
+              setShowNewMessage(false);
+              // Clean up camera and recording when closing modal
+              cancelRecording();
+              cancelPhoto();
+            }}
+          >
+            <div
+              className="bg-gray-800 border-2 border-gray-600 rounded-lg shadow-2xl max-w-md w-full"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="bg-gradient-to-r from-blue-600 to-cyan-600 px-4 py-3 rounded-t-md flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 rounded-full bg-red-500"></div>
@@ -1294,8 +1305,14 @@ export default function Messages() {
 
         {/* Inbox Modal */}
         {showInbox && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-gray-800 border-2 border-gray-600 rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+          <div
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setShowInbox(false)}
+          >
+            <div
+              className="bg-gray-800 border-2 border-gray-600 rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-4 py-3 rounded-t-md flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <div className="w-3 h-3 rounded-full bg-red-500"></div>

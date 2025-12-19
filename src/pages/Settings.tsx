@@ -987,8 +987,17 @@ export default function Settings() {
 
         {/* Delete Account Modal */}
         {showDeleteModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[10000] p-4">
-            <div className="bg-gray-800 rounded-xl p-6 max-w-md w-full border border-red-500/50">
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-[10000] p-4"
+            onClick={() => {
+              setShowDeleteModal(false);
+              setDeleteConfirmText('');
+            }}
+          >
+            <div
+              className="bg-gray-800 rounded-xl p-6 max-w-md w-full border border-red-500/50"
+              onClick={(e) => e.stopPropagation()}
+            >
               <h3 className="text-xl font-bold text-red-400 mb-4">Delete Account</h3>
 
               <div className="space-y-4">
@@ -1038,8 +1047,18 @@ export default function Settings() {
 
         {/* Password Change Modal */}
         {showPasswordModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[10000] p-4">
-            <div className="bg-gray-800 rounded-xl p-6 max-w-md w-full border border-gray-700">
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-[10000] p-4"
+            onClick={() => {
+              setShowPasswordModal(false);
+              setNewPassword('');
+              setConfirmPassword('');
+            }}
+          >
+            <div
+              className="bg-gray-800 rounded-xl p-6 max-w-md w-full border border-gray-700"
+              onClick={(e) => e.stopPropagation()}
+            >
               <h3 className="text-xl font-bold text-white mb-4">Change Password</h3>
 
               <div className="space-y-4">

@@ -322,8 +322,19 @@ export default function Watching() {
 
         {/* Add Modal */}
         {showAddModal && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-gray-800 rounded-lg shadow-2xl max-w-2xl w-full border border-gray-700">
+          <div
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => {
+              setShowAddModal(false);
+              setSearchQuery('');
+              setSearchResults([]);
+              setShowSearchResults(false);
+            }}
+          >
+            <div
+              className="bg-gray-800 rounded-lg shadow-2xl max-w-2xl w-full border border-gray-700"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="p-4 border-b border-gray-700">
                 <div className="flex items-center justify-between mb-3">
                   <h2 className="text-lg font-bold text-white">Add Movie or Series</h2>
@@ -622,8 +633,14 @@ function DetailModal({
   const displayRating = getDisplayRating(item);
 
   return (
-    <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-gray-900 rounded-lg max-w-4xl w-full border border-gray-700 overflow-hidden my-8">
+    <div
+      className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto"
+      onClick={onClose}
+    >
+      <div
+        className="bg-gray-900 rounded-lg max-w-4xl w-full border border-gray-700 overflow-hidden my-8"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="grid md:grid-cols-5">
           {/* Poster */}
           <div className="md:col-span-2 aspect-[2/3] md:aspect-auto bg-gray-800">

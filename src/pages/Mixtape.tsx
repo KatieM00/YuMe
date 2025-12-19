@@ -1097,8 +1097,17 @@ export default function Mixtape() {
 
         {/* Playlist Detail Modal */}
         {selectedPlaylist && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-gray-900 rounded-xl max-w-3xl w-full max-h-[90vh] overflow-hidden border border-gray-700">
+          <div
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => {
+              setSelectedPlaylist(null);
+              setShowAddSong(false);
+            }}
+          >
+            <div
+              className="bg-gray-900 rounded-xl max-w-3xl w-full max-h-[90vh] overflow-hidden border border-gray-700"
+              onClick={(e) => e.stopPropagation()}
+            >
               {/* Simple compact header */}
               <div className={`${selectedPlaylist.cover.startsWith('http') ? 'bg-gradient-to-br from-gray-800 to-gray-900' : selectedPlaylist.cover} relative`}>
                 {selectedPlaylist.cover.startsWith('http') && (

@@ -313,8 +313,19 @@ export default function Images() {
         )}
 
         {selectedImage && (
-          <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-gray-900 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden border border-gray-700 flex flex-col">
+          <div
+            className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => {
+              setSelectedImage(null);
+              setIsEditMode(false);
+              setCarouselItems([]);
+              setCurrentCarouselIndex(0);
+            }}
+          >
+            <div
+              className="bg-gray-900 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden border border-gray-700 flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="grid md:grid-cols-2 flex-1 min-h-0">
                 <div className="flex items-center justify-center relative bg-black min-h-0">
                   {selectedImage.file_type === 'image' ? (
