@@ -32,9 +32,11 @@ import {
   uploadVisionImage,
   deleteVisionImage,
 } from '../lib/visionService';
+import { getCurrentUserProfile, type UserProfile } from '../lib/partnerService';
 
 export default function Vision() {
   const [items, setItems] = useState<VisionItem[]>([]);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [showWishModal, setShowWishModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showEventModal, setShowEventModal] = useState(false);
@@ -72,9 +74,10 @@ export default function Vision() {
   const [eventStartTime, setEventStartTime] = useState('09:00');
   const [eventEndTime, setEventEndTime] = useState('10:00');
 
-  // Load vision items on mount
+  // Load vision items and profile on mount
   useEffect(() => {
     loadItems();
+    loadProfile();
   }, []);
 
   const loadItems = async () => {
@@ -83,6 +86,15 @@ export default function Vision() {
       setItems(data);
     } catch (error) {
       console.error('Error loading vision items:', error);
+    }
+  };
+
+  const loadProfile = async () => {
+    try {
+      const userProfile = await getCurrentUserProfile();
+      setProfile(userProfile);
+    } catch (error) {
+      console.error('Error loading profile:', error);
     }
   };
 
@@ -109,32 +121,53 @@ export default function Vision() {
   const countdowns = useMemo(() => {
     const eventsWithDates = items.filter(item => item.event_date);
 
-    // Find next "travel" event (event_type === 'event' with keyword 'travel' or 'trip')
-    const travelEvents = eventsWithDates.filter(item =>
-      item.event_type === 'event' &&
-      (item.title.toLowerCase().includes('travel') ||
-       item.title.toLowerCase().includes('trip') ||
-       item.title.toLowerCase().includes('reunion'))
+    // Find next "reunion" event (event_type === 'reunion')
+    const reunionEvents = eventsWithDates.filter(item =>
+      item.event_type === 'reunion'
     );
-    const nextTravel = travelEvents
+    const nextReunion = reunionEvents
       .map(item => ({ item, days: getDaysUntil(new Date(item.event_date!)) }))
       .filter(({ days }) => days >= 0)
       .sort((a, b) => a.days - b.days)[0];
 
-    // Placeholder for anniversary (can be configured later)
-    const anniversaryDate = new Date(new Date().getFullYear(), 5, 15); // June 15th placeholder
-    const anniversaryDays = getDaysUntil(anniversaryDate);
+    // Anniversary from profile (calculate next occurrence)
+    let anniversaryDays: number | null = null;
+    if (profile?.anniversary_date) {
+      const anniversaryDateParsed = new Date(profile.anniversary_date);
+      const currentYear = new Date().getFullYear();
+      let nextAnniversary = new Date(currentYear, anniversaryDateParsed.getMonth(), anniversaryDateParsed.getDate());
+      let days = getDaysUntil(nextAnniversary);
 
-    // Placeholder for birthday (can be configured later)
-    const birthdayDate = new Date(new Date().getFullYear(), 8, 20); // Sept 20th placeholder
-    const birthdayDays = getDaysUntil(birthdayDate);
+      // If this year's anniversary has passed, use next year's
+      if (days < 0) {
+        nextAnniversary = new Date(currentYear + 1, anniversaryDateParsed.getMonth(), anniversaryDateParsed.getDate());
+        days = getDaysUntil(nextAnniversary);
+      }
+      anniversaryDays = days;
+    }
+
+    // Birthday from profile (calculate next occurrence)
+    let birthdayDays: number | null = null;
+    if (profile?.birthday_date) {
+      const birthdayDateParsed = new Date(profile.birthday_date);
+      const currentYear = new Date().getFullYear();
+      let nextBirthday = new Date(currentYear, birthdayDateParsed.getMonth(), birthdayDateParsed.getDate());
+      let days = getDaysUntil(nextBirthday);
+
+      // If this year's birthday has passed, use next year's
+      if (days < 0) {
+        nextBirthday = new Date(currentYear + 1, birthdayDateParsed.getMonth(), birthdayDateParsed.getDate());
+        days = getDaysUntil(nextBirthday);
+      }
+      birthdayDays = days;
+    }
 
     return {
-      reunion: nextTravel ? { days: nextTravel.days, item: nextTravel.item } : null,
-      anniversary: anniversaryDays >= 0 ? anniversaryDays : anniversaryDays + 365,
-      birthday: birthdayDays >= 0 ? birthdayDays : birthdayDays + 365,
+      reunion: nextReunion ? { days: nextReunion.days, item: nextReunion.item } : null,
+      anniversary: anniversaryDays,
+      birthday: birthdayDays,
     };
-  }, [items]);
+  }, [items, profile]);
 
   // Calendar helper functions
   const getDaysInMonth = (date: Date) => {
@@ -437,7 +470,7 @@ export default function Vision() {
                 Anniversary
               </div>
               <div className="text-2xl font-bold text-white mb-1">
-                {countdowns.anniversary}
+                {countdowns.anniversary !== null ? countdowns.anniversary : '--'}
               </div>
               <div className="text-gray-400 text-xs">days</div>
             </div>
@@ -449,7 +482,7 @@ export default function Vision() {
                 Birthday
               </div>
               <div className="text-2xl font-bold text-white mb-1">
-                {countdowns.birthday}
+                {countdowns.birthday !== null ? countdowns.birthday : '--'}
               </div>
               <div className="text-gray-400 text-xs">days</div>
             </div>

@@ -14,6 +14,7 @@ import {
   updateProfileEmoji,
   updateLocation,
   updatePassword,
+  updateImportantDates,
   type UserProfile,
   type PartnerInfo,
 } from '../lib/partnerService';
@@ -66,6 +67,8 @@ export default function Settings() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [anniversaryDate, setAnniversaryDate] = useState('');
+  const [birthdayDate, setBirthdayDate] = useState('');
 
   // Toast notification helper
   const showToast = (message: string, type: 'success' | 'error' | 'info') => {
@@ -191,6 +194,8 @@ export default function Settings() {
       setSelectedEmoji(userProfile?.profile_emoji || null);
       setCity(userProfile?.city || '');
       setCountryCode(userProfile?.country_code || '');
+      setAnniversaryDate(userProfile?.anniversary_date || '');
+      setBirthdayDate(userProfile?.birthday_date || '');
 
       // Set location search display if location exists
       if (userProfile?.city && userProfile?.country_name) {
@@ -556,6 +561,14 @@ export default function Settings() {
         promises.push(updateTimezone(timezone));
       }
 
+      // Update important dates if changed
+      if (anniversaryDate !== (profile?.anniversary_date || '') || birthdayDate !== (profile?.birthday_date || '')) {
+        promises.push(updateImportantDates({
+          anniversary_date: anniversaryDate || null,
+          birthday_date: birthdayDate || null,
+        }));
+      }
+
       // Update password if entered
       if (password.trim()) {
         if (password.length < 6) {
@@ -816,6 +829,39 @@ export default function Settings() {
                       </button>
                     </div>
                   </div>
+                </div>
+
+                {/* Important Dates Section */}
+                <div className="mt-6 pt-6 border-t border-gray-700">
+                  <h3 className="text-base font-semibold text-white mb-4">Important Dates</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Anniversary Date */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1.5">
+                        Anniversary
+                      </label>
+                      <input
+                        type="date"
+                        value={anniversaryDate}
+                        onChange={(e) => setAnniversaryDate(e.target.value)}
+                        className="w-full px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+
+                    {/* Birthday Date */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1.5">
+                        Birthday
+                      </label>
+                      <input
+                        type="date"
+                        value={birthdayDate}
+                        onChange={(e) => setBirthdayDate(e.target.value)}
+                        className="w-full px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-md text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-2">These dates will appear on the Vision page countdown cards.</p>
                 </div>
               </div>
             </div>
