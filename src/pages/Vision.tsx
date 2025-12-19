@@ -601,167 +601,195 @@ export default function Vision() {
           </div>
         </div>
 
-        {/* Add Event Modal */}
+        {/* Add/Edit Event Modal - Glass Tray */}
         {showEventModal && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 overflow-y-auto">
-            <div className="min-h-screen px-4 flex items-center justify-center">
-              <div className="bg-gray-900 rounded-2xl max-w-md w-full p-6 border border-gray-700 my-8">
-              <h2 className="text-2xl font-bold text-white mb-4">
-                {editingEvent ? 'Edit Event' : 'Add Event'}
-              </h2>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Event Title *
-                  </label>
-                  <input
-                    type="text"
-                    value={eventTitle}
-                    onChange={(e) => setEventTitle(e.target.value)}
-                    placeholder="e.g., Anniversary Dinner"
-                    className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Event Type *
-                  </label>
-                  <div className="grid grid-cols-3 gap-2">
+          <div
+            className="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-end md:items-center justify-center p-0 md:p-4"
+            onClick={() => {
+              setShowEventModal(false);
+              resetEventForm();
+            }}
+          >
+            {/* Mobile: Bottom Sheet | Desktop: Compact Glass Tray */}
+            <div
+              className="bg-slate-900/80 backdrop-blur-2xl rounded-t-2xl md:rounded-xl w-full md:max-w-xl border-t md:border border-white/10 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)] h-[70vh] md:h-auto md:max-h-[60vh] overflow-hidden flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Compact Header with Delete Icon */}
+              <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/5 flex-shrink-0">
+                <h2 className="text-sm md:text-base font-bold text-white">
+                  {editingEvent ? 'Edit Event' : 'New Event'}
+                </h2>
+                <div className="flex items-center gap-2">
+                  {/* Auto-save indicator (shown briefly after save) */}
+                  <Check className="w-3.5 h-3.5 text-cyan-400 opacity-0" id="save-indicator" />
+                  {/* Delete button (top-right, low opacity) */}
+                  {editingEvent && editingEvent.id && (
                     <button
-                      type="button"
-                      onClick={() => setEventType('goal')}
-                      className={`px-4 py-2 rounded-lg font-medium transition ${
-                        eventType === 'goal'
-                          ? 'bg-purple-600 text-white'
-                          : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-                      }`}
+                      onClick={() => {
+                        if (confirm('Delete this event?')) {
+                          handleDeleteItem(editingEvent.id, null);
+                          setShowEventModal(false);
+                          setEditingEvent(null);
+                        }
+                      }}
+                      className="p-1 hover:bg-red-500/10 rounded transition opacity-40 hover:opacity-100"
+                      title="Delete event"
                     >
-                      Goal
+                      <Trash2 className="w-3.5 h-3.5 text-red-400" />
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => setEventType('event')}
-                      className={`px-4 py-2 rounded-lg font-medium transition ${
-                        eventType === 'event'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-                      }`}
-                    >
-                      Event
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setEventType('task')}
-                      className={`px-4 py-2 rounded-lg font-medium transition ${
-                        eventType === 'task'
-                          ? 'bg-green-600 text-white'
-                          : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
-                      }`}
-                    >
-                      Task
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Description
-                  </label>
-                  <textarea
-                    value={eventDescription}
-                    onChange={(e) => setEventDescription(e.target.value)}
-                    placeholder="Add details about this event..."
-                    rows={3}
-                    className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Date *
-                  </label>
-                  <input
-                    type="date"
-                    value={eventDate}
-                    onChange={(e) => setEventDate(e.target.value)}
-                    className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="flex items-center space-x-2 mb-3">
-                    <input
-                      type="checkbox"
-                      checked={isAllDay}
-                      onChange={(e) => setIsAllDay(e.target.checked)}
-                      className="w-4 h-4 rounded border-gray-600 bg-gray-800 text-blue-600 focus:ring-2 focus:ring-blue-500"
-                    />
-                    <span className="text-sm font-medium text-gray-300">All Day Event</span>
-                  </label>
-
-                  {!isAllDay && (
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-2">
-                          From
-                        </label>
-                        <input
-                          type="time"
-                          value={eventStartTime}
-                          onChange={(e) => setEventStartTime(e.target.value)}
-                          className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-2">
-                          To
-                        </label>
-                        <input
-                          type="time"
-                          value={eventEndTime}
-                          onChange={(e) => setEventEndTime(e.target.value)}
-                          className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </div>
-                    </div>
                   )}
-                </div>
-              </div>
-
-              <div className="flex space-x-2 mt-6">
-                <button
-                  onClick={handleAddEvent}
-                  className="flex-1 px-4 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg font-medium hover:from-blue-700 hover:to-cyan-700 transition"
-                >
-                  {editingEvent ? 'Update Event' : 'Add Event'}
-                </button>
-                {editingEvent && editingEvent.id && (
                   <button
                     onClick={() => {
-                      if (confirm('Are you sure you want to delete this event?')) {
-                        handleDeleteItem(editingEvent.id, null);
-                        setShowEventModal(false);
-                        setEditingEvent(null);
-                      }
+                      setShowEventModal(false);
+                      resetEventForm();
                     }}
-                    className="px-4 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition flex items-center space-x-2"
+                    className="p-1 hover:bg-white/5 rounded transition text-gray-400 hover:text-white"
                   >
-                    <Trash2 className="w-4 h-4" />
-                    <span>Delete</span>
+                    <X className="w-4 h-4" />
                   </button>
-                )}
-                <button
-                  onClick={() => {
-                    setShowEventModal(false);
-                    resetEventForm();
-                  }}
-                  className="px-4 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-lg transition"
-                >
-                  Cancel
-                </button>
+                </div>
               </div>
+
+              {/* Two-Column Grid Form */}
+              <div className="flex-1 overflow-y-auto px-4 py-3">
+                <div className="grid md:grid-cols-2 gap-3">
+                  {/* Left Column: Title & Description */}
+                  <div className="space-y-3">
+                    {/* Title with Floating Label */}
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={eventTitle}
+                        onChange={(e) => setEventTitle(e.target.value)}
+                        placeholder=" "
+                        className="peer w-full px-3 py-2 bg-black/20 border border-white/10 rounded-lg text-white text-sm placeholder-transparent focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30"
+                      />
+                      <label className="absolute left-3 -top-2 bg-slate-900 px-1 text-[10px] text-gray-400 peer-placeholder-shown:text-sm peer-placeholder-shown:top-2 peer-placeholder-shown:bg-transparent peer-focus:-top-2 peer-focus:text-[10px] peer-focus:text-cyan-400 peer-focus:bg-slate-900 transition-all">
+                        Event Title *
+                      </label>
+                    </div>
+
+                    {/* Description with Floating Label */}
+                    <div className="relative">
+                      <textarea
+                        value={eventDescription}
+                        onChange={(e) => setEventDescription(e.target.value)}
+                        placeholder=" "
+                        rows={4}
+                        className="peer w-full px-3 py-2 bg-black/20 border border-white/10 rounded-lg text-white text-sm placeholder-transparent focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30 resize-none"
+                      />
+                      <label className="absolute left-3 -top-2 bg-slate-900 px-1 text-[10px] text-gray-400 peer-placeholder-shown:text-sm peer-placeholder-shown:top-2 peer-placeholder-shown:bg-transparent peer-focus:-top-2 peer-focus:text-[10px] peer-focus:text-cyan-400 peer-focus:bg-slate-900 transition-all">
+                        Description
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Right Column: Date, Type, Time */}
+                  <div className="space-y-3">
+                    {/* Date with Floating Label */}
+                    <div className="relative">
+                      <input
+                        type="date"
+                        value={eventDate}
+                        onChange={(e) => setEventDate(e.target.value)}
+                        className="peer w-full px-3 py-2 bg-black/20 border border-white/10 rounded-lg text-white text-sm focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30"
+                      />
+                      <label className="absolute left-3 -top-2 bg-slate-900 px-1 text-[10px] text-cyan-400">
+                        Date *
+                      </label>
+                    </div>
+
+                    {/* Type Selector - Compact Pills */}
+                    <div>
+                      <label className="block text-[10px] text-gray-400 mb-1.5">Type</label>
+                      <div className="flex gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setEventType('goal')}
+                          className={`flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition ${
+                            eventType === 'goal'
+                              ? 'bg-purple-600/80 text-white border border-purple-400/30'
+                              : 'bg-black/20 text-gray-400 border border-white/5 hover:bg-black/30'
+                          }`}
+                        >
+                          Goal
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEventType('event')}
+                          className={`flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition ${
+                            eventType === 'event'
+                              ? 'bg-blue-600/80 text-white border border-blue-400/30'
+                              : 'bg-black/20 text-gray-400 border border-white/5 hover:bg-black/30'
+                          }`}
+                        >
+                          Event
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEventType('task')}
+                          className={`flex-1 px-2 py-1.5 rounded-md text-xs font-medium transition ${
+                            eventType === 'task'
+                              ? 'bg-green-600/80 text-white border border-green-400/30'
+                              : 'bg-black/20 text-gray-400 border border-white/5 hover:bg-black/30'
+                          }`}
+                        >
+                          Task
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* All Day Toggle - Compact */}
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={isAllDay}
+                        onChange={(e) => setIsAllDay(e.target.checked)}
+                        className="w-3.5 h-3.5 rounded border-white/10 bg-black/20 text-cyan-600 focus:ring-1 focus:ring-cyan-500/30"
+                      />
+                      <span className="text-xs text-gray-400">All Day</span>
+                    </label>
+
+                    {/* Time Inputs - Compact Side by Side */}
+                    {!isAllDay && (
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="relative">
+                          <input
+                            type="time"
+                            value={eventStartTime}
+                            onChange={(e) => setEventStartTime(e.target.value)}
+                            className="w-full px-2 py-1.5 bg-black/20 border border-white/10 rounded-md text-white text-xs focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30"
+                          />
+                          <label className="absolute left-2 -top-2 bg-slate-900 px-1 text-[9px] text-gray-400">
+                            From
+                          </label>
+                        </div>
+                        <div className="relative">
+                          <input
+                            type="time"
+                            value={eventEndTime}
+                            onChange={(e) => setEventEndTime(e.target.value)}
+                            className="w-full px-2 py-1.5 bg-black/20 border border-white/10 rounded-md text-white text-xs focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30"
+                          />
+                          <label className="absolute left-2 -top-2 bg-slate-900 px-1 text-[9px] text-gray-400">
+                            To
+                          </label>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Minimal Footer - Single Save Button */}
+              <div className="px-4 py-2.5 border-t border-white/5 flex-shrink-0">
+                <button
+                  onClick={handleAddEvent}
+                  className="w-full px-3 py-2 bg-gradient-to-r from-blue-600/90 to-cyan-600/90 hover:from-blue-600 hover:to-cyan-600 text-white text-sm font-medium rounded-lg transition shadow-lg shadow-cyan-500/10"
+                >
+                  {editingEvent ? 'Save Changes' : 'Create Event'}
+                </button>
               </div>
             </div>
           </div>
@@ -1122,121 +1150,144 @@ export default function Vision() {
           </div>
         )}
 
-        {/* Detail Modal */}
+        {/* Detail Modal - Glass Tray */}
         {showDetailModal && selectedItem && (
           <div
-            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto"
+            className="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-end md:items-center justify-center p-0 md:p-4"
             onClick={() => {
               setShowDetailModal(false);
               setSelectedItem(null);
             }}
           >
+            {/* Mobile: Bottom Sheet | Desktop: Compact Glass Tray */}
             <div
-              className="bg-gray-900 rounded-2xl max-w-2xl w-full p-6 border border-gray-700 my-8"
+              className="bg-slate-900/80 backdrop-blur-2xl rounded-t-2xl md:rounded-xl w-full md:max-w-xl border-t md:border border-white/10 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.1)] h-[70vh] md:max-h-[70vh] overflow-hidden flex flex-col"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Header */}
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex-1">
-                  <h2 className="text-2xl font-bold text-white mb-2">{selectedItem.title}</h2>
-                  <div className="flex items-center space-x-2 flex-wrap">
-                    <span className="inline-block px-3 py-1 bg-blue-600 text-white text-xs rounded-full">
+              {/* Compact Header with Delete Icon */}
+              <div className="flex items-start justify-between px-4 py-2.5 border-b border-white/5 flex-shrink-0">
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-base md:text-lg font-bold text-white mb-1.5 truncate">{selectedItem.title}</h2>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="inline-block px-2 py-0.5 bg-blue-600/90 text-white text-[10px] font-medium rounded-full">
                       {selectedItem.type.toUpperCase()}
                     </span>
                     {selectedItem.event_date && (
-                      <span className="inline-block px-3 py-1 bg-green-600 text-white text-xs rounded-full flex items-center">
-                        <CalendarIcon className="w-3 h-3 mr-1" />
+                      <span className="inline-flex items-center px-2 py-0.5 bg-green-600/90 text-white text-[10px] font-medium rounded-full">
+                        <CalendarIcon className="w-2.5 h-2.5 mr-1" />
                         {new Date(selectedItem.event_date).toLocaleDateString()}
                       </span>
                     )}
-                    <div className="flex items-center space-x-2 px-3 py-1 bg-gray-800 rounded-full">
-                      <UserBadge userId={selectedItem.user_id} size={18} />
-                      <span className="text-gray-300 text-xs">Created by</span>
+                    <div className="inline-flex items-center gap-1.5 px-2 py-0.5 bg-black/20 rounded-full border border-white/10">
+                      <UserBadge userId={selectedItem.user_id} size={14} />
+                      <span className="text-gray-400 text-[10px]">Created by</span>
                     </div>
                   </div>
                 </div>
-                <button
-                  onClick={() => setShowDetailModal(false)}
-                  className="text-gray-400 hover:text-white transition"
-                >
-                  <X className="w-6 h-6" />
-                </button>
+                <div className="flex items-center gap-1 ml-2 flex-shrink-0">
+                  {/* Delete button (low opacity) */}
+                  {selectedItem.id && (
+                    <button
+                      onClick={() => {
+                        if (confirm(`Delete this ${selectedItem.type}?`)) {
+                          handleDeleteItem(selectedItem.id, selectedItem.image_url || null);
+                          setShowDetailModal(false);
+                          setSelectedItem(null);
+                        }
+                      }}
+                      className="p-1 hover:bg-red-500/10 rounded transition opacity-40 hover:opacity-100"
+                      title={`Delete ${selectedItem.type}`}
+                    >
+                      <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                    </button>
+                  )}
+                  <button
+                    onClick={() => {
+                      setShowDetailModal(false);
+                      setSelectedItem(null);
+                    }}
+                    className="p-1 hover:bg-white/5 rounded transition text-gray-400 hover:text-white"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
 
               {/* Content */}
-              <div className="mb-6">
+              <div className="flex-1 overflow-y-auto px-4 py-3">
                 {selectedItem.type === 'image' && selectedItem.image_url && (
                   <img
                     src={selectedItem.image_url}
                     alt={selectedItem.title}
-                    className="w-full h-auto rounded-lg mb-4"
+                    className="w-full h-40 object-cover rounded-lg mb-3"
                   />
                 )}
                 {selectedItem.content && (
-                  <p className="text-gray-300 leading-relaxed">{selectedItem.content}</p>
+                  <p className="text-gray-300 text-sm mb-4 leading-relaxed">{selectedItem.content}</p>
                 )}
                 {selectedItem.type === 'goal' && (
-                  <div className="mt-4">
+                  <button
+                    onClick={() => handleToggleGoal(selectedItem.id, selectedItem.goal_completed)}
+                    className={`w-full px-3 py-2 rounded-lg text-sm font-medium transition mb-4 flex items-center justify-center gap-2 ${
+                      selectedItem.goal_completed
+                        ? 'bg-black/20 text-gray-300 hover:bg-black/30 border border-white/10'
+                        : 'bg-gradient-to-r from-green-600/90 to-emerald-600/90 hover:from-green-600 hover:to-emerald-600 text-white shadow-lg shadow-green-500/10'
+                    }`}
+                  >
+                    <Check className="w-4 h-4" />
+                    <span>{selectedItem.goal_completed ? 'Completed' : 'Mark as Complete'}</span>
+                  </button>
+                )}
+
+                {/* Comments Section */}
+                <div className="border-t border-white/5 pt-3">
+                  <h3 className="text-sm font-semibold text-white mb-3 flex items-center gap-1.5">
+                    <MessageSquare className="w-3.5 h-3.5" />
+                    Comments ({comments.length})
+                  </h3>
+
+                  {/* Comments List */}
+                  <div className="space-y-2 mb-3 max-h-48 overflow-y-auto">
+                    {comments.map((comment) => (
+                      <div key={comment.id} className="bg-black/20 rounded-lg p-3 border border-white/5 group">
+                        <div className="flex items-start justify-between gap-2">
+                          <p className="text-gray-300 text-xs leading-relaxed flex-1">{comment.comment_text}</p>
+                          <button
+                            onClick={() => handleDeleteComment(comment.id)}
+                            className="opacity-0 group-hover:opacity-100 transition flex-shrink-0"
+                          >
+                            <X className="w-3 h-3 text-red-400" />
+                          </button>
+                        </div>
+                        <p className="text-gray-500 text-[10px] mt-1.5">
+                          {new Date(comment.created_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Add Comment */}
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={newCommentText}
+                      onChange={(e) => setNewCommentText(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          handleAddComment();
+                        }
+                      }}
+                      placeholder="Add a comment..."
+                      className="flex-1 px-3 py-2 bg-black/20 border border-white/10 rounded-lg text-white text-sm placeholder-gray-500 focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/30"
+                    />
                     <button
-                      onClick={() => handleToggleGoal(selectedItem.id, selectedItem.goal_completed)}
-                      className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition ${
-                        selectedItem.goal_completed
-                          ? 'bg-green-600 hover:bg-green-700'
-                          : 'bg-gray-700 hover:bg-gray-600'
-                      }`}
+                      onClick={handleAddComment}
+                      className="px-3 py-2 bg-gradient-to-r from-blue-600/90 to-cyan-600/90 hover:from-blue-600 hover:to-cyan-600 text-white rounded-lg transition text-sm font-medium shadow-lg shadow-cyan-500/10"
                     >
-                      <Check className="w-5 h-5 text-white" />
-                      <span className="text-white">
-                        {selectedItem.goal_completed ? 'Completed' : 'Mark as Complete'}
-                      </span>
+                      Send
                     </button>
                   </div>
-                )}
-              </div>
-
-              {/* Comments Section */}
-              <div className="border-t border-gray-700 pt-6">
-                <h3 className="text-xl font-bold text-white mb-4 flex items-center">
-                  <MessageSquare className="w-5 h-5 mr-2" />
-                  Comments ({comments.length})
-                </h3>
-
-                {/* Comments List */}
-                <div className="space-y-3 mb-4 max-h-60 overflow-y-auto">
-                  {comments.map((comment) => (
-                    <div key={comment.id} className="bg-gray-800 rounded-lg p-3 group">
-                      <div className="flex items-start justify-between">
-                        <p className="text-gray-300 text-sm flex-1">{comment.comment_text}</p>
-                        <button
-                          onClick={() => handleDeleteComment(comment.id)}
-                          className="opacity-0 group-hover:opacity-100 transition"
-                        >
-                          <X className="w-4 h-4 text-red-400" />
-                        </button>
-                      </div>
-                      <p className="text-gray-500 text-xs mt-1">
-                        {new Date(comment.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Add Comment */}
-                <div className="flex space-x-2">
-                  <input
-                    type="text"
-                    value={newCommentText}
-                    onChange={(e) => setNewCommentText(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleAddComment()}
-                    placeholder="Add a comment..."
-                    className="flex-1 px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <button
-                    onClick={handleAddComment}
-                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition"
-                  >
-                    Send
-                  </button>
                 </div>
               </div>
             </div>
