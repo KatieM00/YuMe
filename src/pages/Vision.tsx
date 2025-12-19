@@ -57,6 +57,10 @@ export default function Vision() {
   const [editingWishTitle, setEditingWishTitle] = useState('');
   const [editingWishContent, setEditingWishContent] = useState('');
 
+  // Refs for horizontal scroll navigation
+  const workingTowardsScrollRef = useRef<HTMLDivElement>(null);
+  const accomplishedScrollRef = useRef<HTMLDivElement>(null);
+
   // Calendar states
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [eventTitle, setEventTitle] = useState('');
@@ -384,6 +388,17 @@ export default function Vision() {
     setEditingWishId(null);
     setEditingWishTitle('');
     setEditingWishContent('');
+  };
+
+  // Scroll navigation handlers
+  const scrollCards = (ref: React.RefObject<HTMLDivElement>, direction: 'left' | 'right') => {
+    if (ref.current) {
+      const scrollAmount = 200; // Approximately one card width (190px) + gap
+      ref.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
   };
 
   const { daysInMonth, startingDayOfWeek } = getDaysInMonth(currentMonth);
@@ -777,11 +792,30 @@ export default function Vision() {
               <div className="flex-1 overflow-y-auto px-3 md:px-4 py-3 space-y-4">
                 {/* Working Towards Section - Horizontal Scroll */}
                 <div>
-                  <h3 className="text-xs md:text-sm font-bold text-white mb-2 flex items-center">
-                    <Sparkles className="w-3 h-3 mr-1 text-cyan-400" />
-                    Working Towards
-                  </h3>
-                  <div className="flex overflow-x-auto snap-x snap-mandatory gap-2 pb-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-xs md:text-sm font-bold text-white flex items-center">
+                      <Sparkles className="w-3 h-3 mr-1 text-cyan-400" />
+                      Working Towards
+                    </h3>
+                    {/* Navigation Arrows */}
+                    <div className="hidden md:flex items-center gap-1">
+                      <button
+                        onClick={() => scrollCards(workingTowardsScrollRef, 'left')}
+                        className="p-1.5 bg-gray-800/80 hover:bg-gray-700/80 border border-gray-700/50 rounded-lg transition text-gray-400 hover:text-white"
+                        aria-label="Scroll left"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => scrollCards(workingTowardsScrollRef, 'right')}
+                        className="p-1.5 bg-gray-800/80 hover:bg-gray-700/80 border border-gray-700/50 rounded-lg transition text-gray-400 hover:text-white"
+                        aria-label="Scroll right"
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                  <div ref={workingTowardsScrollRef} className="flex overflow-x-auto snap-x snap-mandatory gap-2 pb-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
                     {/* Ghost Card - Add New Wish */}
                     {!isCreatingNewWish ? (
                       <button
@@ -976,12 +1010,33 @@ export default function Vision() {
 
                 {/* Accomplished Section - Horizontal Scroll */}
                 <div>
-                  <h3 className="text-xs md:text-sm font-bold text-white mb-2 flex items-center">
-                    <Check className="w-3 h-3 mr-1 text-green-400" />
-                    Shared Victories
-                  </h3>
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-xs md:text-sm font-bold text-white flex items-center">
+                      <Check className="w-3 h-3 mr-1 text-green-400" />
+                      Shared Victories
+                    </h3>
+                    {/* Navigation Arrows */}
+                    {accomplished.length > 0 && (
+                      <div className="hidden md:flex items-center gap-1">
+                        <button
+                          onClick={() => scrollCards(accomplishedScrollRef, 'left')}
+                          className="p-1.5 bg-gray-800/80 hover:bg-gray-700/80 border border-gray-700/50 rounded-lg transition text-gray-400 hover:text-white"
+                          aria-label="Scroll left"
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => scrollCards(accomplishedScrollRef, 'right')}
+                          className="p-1.5 bg-gray-800/80 hover:bg-gray-700/80 border border-gray-700/50 rounded-lg transition text-gray-400 hover:text-white"
+                          aria-label="Scroll right"
+                        >
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
                   {accomplished.length > 0 ? (
-                    <div className="flex overflow-x-auto snap-x snap-mandatory gap-2 pb-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
+                    <div ref={accomplishedScrollRef} className="flex overflow-x-auto snap-x snap-mandatory gap-2 pb-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent">
                       {accomplished.map((item, index) => (
                         <div
                           key={item.id}
