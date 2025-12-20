@@ -122,10 +122,12 @@ export default function Settings() {
       fullName !== (profile.full_name || '') ||
       displayName !== (profile.display_name || '') ||
       timezone !== (profile.timezone || 'Europe/London') ||
+      anniversaryDate !== (profile.anniversary_date || '') ||
+      birthdayDate !== (profile.birthday_date || '') ||
       password !== '';
 
     setHasUnsavedChanges(hasChanges);
-  }, [fullName, displayName, timezone, password, profile]);
+  }, [fullName, displayName, timezone, anniversaryDate, birthdayDate, password, profile]);
 
   useEffect(() => {
     // Click outside detection for emoji picker
