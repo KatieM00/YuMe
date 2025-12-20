@@ -284,17 +284,17 @@ export default function Watching() {
               {/* Netflix-style Navigation Arrows */}
               <button
                 onClick={() => scrollCards(watchingScrollRef, 'left')}
-                className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-full items-center justify-center bg-gradient-to-r from-black/60 to-transparent hover:from-black/80 transition-all opacity-0 group-hover:opacity-100"
+                className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 w-12 h-12 items-center justify-center bg-black/60 hover:bg-black/80 rounded-full transition-all opacity-0 group-hover:opacity-100"
                 aria-label="Scroll left"
               >
-                <ChevronLeft className="w-8 h-8 text-white drop-shadow-lg" />
+                <ChevronLeft className="w-6 h-6 text-white drop-shadow-lg" />
               </button>
               <button
                 onClick={() => scrollCards(watchingScrollRef, 'right')}
-                className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-full items-center justify-center bg-gradient-to-l from-black/60 to-transparent hover:from-black/80 transition-all opacity-0 group-hover:opacity-100"
+                className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 w-12 h-12 items-center justify-center bg-black/60 hover:bg-black/80 rounded-full transition-all opacity-0 group-hover:opacity-100"
                 aria-label="Scroll right"
               >
-                <ChevronRight className="w-8 h-8 text-white drop-shadow-lg" />
+                <ChevronRight className="w-6 h-6 text-white drop-shadow-lg" />
               </button>
 
               <div
@@ -321,17 +321,17 @@ export default function Watching() {
               {/* Netflix-style Navigation Arrows */}
               <button
                 onClick={() => scrollCards(wantToWatchScrollRef, 'left')}
-                className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-full items-center justify-center bg-gradient-to-r from-black/60 to-transparent hover:from-black/80 transition-all opacity-0 group-hover:opacity-100"
+                className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 w-12 h-12 items-center justify-center bg-black/60 hover:bg-black/80 rounded-full transition-all opacity-0 group-hover:opacity-100"
                 aria-label="Scroll left"
               >
-                <ChevronLeft className="w-8 h-8 text-white drop-shadow-lg" />
+                <ChevronLeft className="w-6 h-6 text-white drop-shadow-lg" />
               </button>
               <button
                 onClick={() => scrollCards(wantToWatchScrollRef, 'right')}
-                className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-full items-center justify-center bg-gradient-to-l from-black/60 to-transparent hover:from-black/80 transition-all opacity-0 group-hover:opacity-100"
+                className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 w-12 h-12 items-center justify-center bg-black/60 hover:bg-black/80 rounded-full transition-all opacity-0 group-hover:opacity-100"
                 aria-label="Scroll right"
               >
-                <ChevronRight className="w-8 h-8 text-white drop-shadow-lg" />
+                <ChevronRight className="w-6 h-6 text-white drop-shadow-lg" />
               </button>
 
               <div
@@ -358,17 +358,17 @@ export default function Watching() {
               {/* Netflix-style Navigation Arrows */}
               <button
                 onClick={() => scrollCards(watchedScrollRef, 'left')}
-                className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-full items-center justify-center bg-gradient-to-r from-black/60 to-transparent hover:from-black/80 transition-all opacity-0 group-hover:opacity-100"
+                className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 w-12 h-12 items-center justify-center bg-black/60 hover:bg-black/80 rounded-full transition-all opacity-0 group-hover:opacity-100"
                 aria-label="Scroll left"
               >
-                <ChevronLeft className="w-8 h-8 text-white drop-shadow-lg" />
+                <ChevronLeft className="w-6 h-6 text-white drop-shadow-lg" />
               </button>
               <button
                 onClick={() => scrollCards(watchedScrollRef, 'right')}
-                className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-full items-center justify-center bg-gradient-to-l from-black/60 to-transparent hover:from-black/80 transition-all opacity-0 group-hover:opacity-100"
+                className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 w-12 h-12 items-center justify-center bg-black/60 hover:bg-black/80 rounded-full transition-all opacity-0 group-hover:opacity-100"
                 aria-label="Scroll right"
               >
-                <ChevronRight className="w-8 h-8 text-white drop-shadow-lg" />
+                <ChevronRight className="w-6 h-6 text-white drop-shadow-lg" />
               </button>
 
               <div
