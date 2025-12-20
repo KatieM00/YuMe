@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Heart, Loader, Eye, EyeOff } from 'lucide-react';
 import { signIn, signUp } from '../lib/authService';
+import { updateDisplayName, updateProfileEmoji, updateImportantDates, linkPartnerAccount } from '../lib/partnerService';
 
 interface LoginPageProps {
   onLogin: () => void;
@@ -11,6 +12,10 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [displayName, setDisplayName] = useState('');
+  const [birthday, setBirthday] = useState('');
+  const [profileEmoji, setProfileEmoji] = useState('');
+  const [partnerCode, setPartnerCode] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
@@ -37,12 +42,38 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
 
     try {
       if (isSignUp) {
+        // Create the auth account
         await signUp(email, password);
+
+        // Update profile with additional fields
+        if (displayName) {
+          await updateDisplayName(displayName);
+        }
+
+        if (profileEmoji) {
+          await updateProfileEmoji(profileEmoji);
+        }
+
+        if (birthday) {
+          await updateImportantDates({ birthday_date: birthday });
+        }
+
+        if (partnerCode) {
+          const result = await linkPartnerAccount(partnerCode);
+          if (!result.success) {
+            console.warn('Partner link failed:', result.message);
+          }
+        }
+
         setSuccessMessage('Account created! Please check your email to verify your account, then sign in.');
         setIsSignUp(false);
         setEmail('');
         setPassword('');
         setConfirmPassword('');
+        setDisplayName('');
+        setBirthday('');
+        setProfileEmoji('');
+        setPartnerCode('');
       } else {
         await signIn(email, password);
         onLogin();
@@ -148,35 +179,97 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             </div>
 
             {isSignUp && (
-              <div>
-                <label htmlFor="confirmPassword" className="block text-xs font-medium text-gray-300 mb-1.5">
-                  Confirm Password
-                </label>
-                <div className="relative">
+              <>
+                <div>
+                  <label htmlFor="confirmPassword" className="block text-xs font-medium text-gray-300 mb-1.5">
+                    Confirm Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="confirmPassword"
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="w-full px-3 py-2 pr-10 bg-gray-900/50 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                      placeholder="Confirm password"
+                      required
+                      disabled={isLoading}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-300 transition"
+                      tabIndex={-1}
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff className="w-4 h-4" />
+                      ) : (
+                        <Eye className="w-4 h-4" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="displayName" className="block text-xs font-medium text-gray-300 mb-1.5">
+                    Display Name
+                  </label>
                   <input
-                    id="confirmPassword"
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full px-3 py-2 pr-10 bg-gray-900/50 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-                    placeholder="Confirm password"
-                    required
+                    id="displayName"
+                    type="text"
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    className="w-full px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                    placeholder="How you want to be called"
                     disabled={isLoading}
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-300 transition"
-                    tabIndex={-1}
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff className="w-4 h-4" />
-                    ) : (
-                      <Eye className="w-4 h-4" />
-                    )}
-                  </button>
                 </div>
-              </div>
+
+                <div>
+                  <label htmlFor="birthday" className="block text-xs font-medium text-gray-300 mb-1.5">
+                    Birthday
+                  </label>
+                  <input
+                    id="birthday"
+                    type="date"
+                    value={birthday}
+                    onChange={(e) => setBirthday(e.target.value)}
+                    className="w-full px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                    disabled={isLoading}
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="profileEmoji" className="block text-xs font-medium text-gray-300 mb-1.5">
+                    Profile Emoji
+                  </label>
+                  <input
+                    id="profileEmoji"
+                    type="text"
+                    value={profileEmoji}
+                    onChange={(e) => setProfileEmoji(e.target.value)}
+                    className="w-full px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                    placeholder="Pick your emoji (e.g., 🎉)"
+                    maxLength={2}
+                    disabled={isLoading}
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="partnerCode" className="block text-xs font-medium text-gray-300 mb-1.5">
+                    Partner Link Code <span className="text-gray-500">(Optional)</span>
+                  </label>
+                  <input
+                    id="partnerCode"
+                    type="text"
+                    value={partnerCode}
+                    onChange={(e) => setPartnerCode(e.target.value)}
+                    className="w-full px-3 py-2 bg-gray-900/50 border border-gray-600 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                    placeholder="Enter partner's invite code"
+                    disabled={isLoading}
+                  />
+                </div>
+              </>
             )}
 
             {error && (

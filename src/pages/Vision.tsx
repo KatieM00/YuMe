@@ -183,7 +183,66 @@ export default function Vision() {
 
   const getEventsForDate = (date: Date) => {
     const dateStr = date.toISOString().split('T')[0];
-    return items.filter(item => item.event_date === dateStr);
+    const regularEvents = items.filter(item => item.event_date === dateStr);
+
+    // Check if this date matches Birthday or Anniversary
+    const specialEvents: Array<VisionItem & { specialType?: 'birthday' | 'anniversary' }> = [];
+
+    // Check Birthday
+    if (profile?.birthday_date) {
+      const birthdayDate = new Date(profile.birthday_date);
+      const currentYear = date.getFullYear();
+      const nextBirthday = new Date(currentYear, birthdayDate.getMonth(), birthdayDate.getDate());
+
+      if (nextBirthday.toISOString().split('T')[0] === dateStr) {
+        specialEvents.push({
+          id: 'birthday-' + dateStr,
+          user_id: profile.id,
+          type: 'goal',
+          title: 'Birthday',
+          content: null,
+          image_url: null,
+          goal_completed: false,
+          event_date: dateStr,
+          event_type: 'event',
+          is_all_day: true,
+          event_start_time: null,
+          event_end_time: null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          specialType: 'birthday'
+        });
+      }
+    }
+
+    // Check Anniversary
+    if (profile?.anniversary_date) {
+      const anniversaryDate = new Date(profile.anniversary_date);
+      const currentYear = date.getFullYear();
+      const nextAnniversary = new Date(currentYear, anniversaryDate.getMonth(), anniversaryDate.getDate());
+
+      if (nextAnniversary.toISOString().split('T')[0] === dateStr) {
+        specialEvents.push({
+          id: 'anniversary-' + dateStr,
+          user_id: profile.id,
+          type: 'goal',
+          title: 'Anniversary',
+          content: null,
+          image_url: null,
+          goal_completed: false,
+          event_date: dateStr,
+          event_type: 'event',
+          is_all_day: true,
+          event_start_time: null,
+          event_end_time: null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          specialType: 'anniversary'
+        });
+      }
+    }
+
+    return [...specialEvents, ...regularEvents];
   };
 
   const handlePreviousMonth = () => {
@@ -565,15 +624,32 @@ export default function Vision() {
                         </span>
                         {events.length > 0 && (
                           <div className="mt-0.5 flex-1 overflow-hidden">
-                            {events.slice(0, 1).map((event) => (
-                              <div
-                                key={event.id}
-                                className="text-[8px] text-white bg-cyan-600/80 hover:bg-cyan-500 rounded px-0.5 py-0.5 truncate cursor-pointer transition border border-cyan-400/30"
-                                onClick={(e) => handleEditEvent(event, e)}
-                              >
-                                {event.title}
-                              </div>
-                            ))}
+                            {events.slice(0, 1).map((event) => {
+                              const specialEvent = event as VisionItem & { specialType?: 'birthday' | 'anniversary' };
+                              const isBirthday = specialEvent.specialType === 'birthday';
+                              const isAnniversary = specialEvent.specialType === 'anniversary';
+
+                              return (
+                                <div
+                                  key={event.id}
+                                  className={`text-[8px] text-white rounded px-0.5 py-0.5 truncate cursor-pointer transition ${
+                                    isBirthday
+                                      ? 'bg-purple-600/80 hover:bg-purple-500 border border-purple-400/30'
+                                      : isAnniversary
+                                      ? 'bg-pink-600/80 hover:bg-pink-500 border border-pink-400/30'
+                                      : 'bg-cyan-600/80 hover:bg-cyan-500 border border-cyan-400/30'
+                                  }`}
+                                  onClick={(e) => {
+                                    // Don't allow editing special events (Birthday/Anniversary)
+                                    if (!isBirthday && !isAnniversary) {
+                                      handleEditEvent(event, e);
+                                    }
+                                  }}
+                                >
+                                  {event.title}
+                                </div>
+                              );
+                            })}
                             {events.length > 1 && (
                               <div className="text-[7px] text-cyan-400 font-medium mt-0.5">
                                 +{events.length - 1}
@@ -595,36 +671,62 @@ export default function Vision() {
                   Events on {selectedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })}
                 </h3>
                 <div className="space-y-1 max-h-24 overflow-y-auto">
-                  {getEventsForDate(selectedDate).map(event => (
-                    <div
-                      key={event.id}
-                      className="bg-gray-800/70 rounded-lg p-2 group flex items-center justify-between border border-gray-700/50"
-                    >
+                  {getEventsForDate(selectedDate).map(event => {
+                    const specialEvent = event as VisionItem & { specialType?: 'birthday' | 'anniversary' };
+                    const isBirthday = specialEvent.specialType === 'birthday';
+                    const isAnniversary = specialEvent.specialType === 'anniversary';
+                    const isSpecialEvent = isBirthday || isAnniversary;
+
+                    return (
                       <div
-                        className="flex-1 cursor-pointer"
-                        onClick={() => openDetailModal(event)}
+                        key={event.id}
+                        className={`bg-gray-800/70 rounded-lg p-2 group flex items-center justify-between border ${
+                          isBirthday
+                            ? 'border-purple-500/50'
+                            : isAnniversary
+                            ? 'border-pink-500/50'
+                            : 'border-gray-700/50'
+                        }`}
                       >
-                        <h4 className="text-white text-xs font-semibold">{event.title}</h4>
-                        {event.content && (
-                          <p className="text-gray-400 text-[10px] mt-0.5 line-clamp-1">{event.content}</p>
+                        <div
+                          className="flex-1 cursor-pointer"
+                          onClick={() => {
+                            // Don't open detail modal for special events
+                            if (!isSpecialEvent) {
+                              openDetailModal(event);
+                            }
+                          }}
+                        >
+                          <h4 className={`text-xs font-semibold ${
+                            isBirthday
+                              ? 'text-purple-400'
+                              : isAnniversary
+                              ? 'text-pink-400'
+                              : 'text-white'
+                          }`}>{event.title}</h4>
+                          {event.content && (
+                            <p className="text-gray-400 text-[10px] mt-0.5 line-clamp-1">{event.content}</p>
+                          )}
+                        </div>
+                        {!isSpecialEvent && (
+                          <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition">
+                            <button
+                              onClick={(e) => handleEditEvent(event, e)}
+                              className="p-1 bg-blue-600 hover:bg-blue-700 rounded border border-blue-500/50"
+                            >
+                              <Edit2 className="w-3 h-3 text-white" />
+                            </button>
+                            <button
+                              onClick={(e) => handleDeleteEvent(event, e)}
+                              className="p-1 bg-red-600 hover:bg-red-700 rounded border border-red-500/50"
+                            >
+                              <Trash2 className="w-3 h-3 text-white" />
+                            </button>
+                          </div>
                         )}
                       </div>
-                      <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition">
-                        <button
-                          onClick={(e) => handleEditEvent(event, e)}
-                          className="p-1 bg-blue-600 hover:bg-blue-700 rounded border border-blue-500/50"
-                        >
-                          <Edit2 className="w-3 h-3 text-white" />
-                        </button>
-                        <button
-                          onClick={(e) => handleDeleteEvent(event, e)}
-                          className="p-1 bg-red-600 hover:bg-red-700 rounded border border-red-500/50"
-                        >
-                          <Trash2 className="w-3 h-3 text-white" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                   {getEventsForDate(selectedDate).length === 0 && (
                     <p className="text-gray-400 text-xs italic text-center py-2">No events on this day</p>
                   )}
