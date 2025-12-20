@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Plus, Search, X, Star, Clock, Calendar, Film, Tv, Loader } from 'lucide-react';
+import { Plus, Search, X, Star, Clock, Calendar, Film, Tv, Loader, ChevronLeft, ChevronRight } from 'lucide-react';
 import UserBadge from '../components/UserBadge';
 import {
   searchMulti,
@@ -35,6 +35,22 @@ export default function Watching() {
 
   // Detail modal states
   const [selectedItem, setSelectedItem] = useState<WatchingItem | null>(null);
+
+  // Scroll refs for horizontal scrolling
+  const watchingScrollRef = useRef<HTMLDivElement>(null);
+  const wantToWatchScrollRef = useRef<HTMLDivElement>(null);
+  const watchedScrollRef = useRef<HTMLDivElement>(null);
+
+  // Scroll function for Netflix-style navigation
+  const scrollCards = (ref: React.RefObject<HTMLDivElement>, direction: 'left' | 'right') => {
+    if (ref.current) {
+      const scrollAmount = 400; // Scroll by ~2 cards worth
+      ref.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
 
   // Load watching items
   const loadWatchingItems = async () => {
@@ -262,16 +278,37 @@ export default function Watching() {
         <div className="space-y-6">
           {/* Currently Watching */}
           {watchingItems.length > 0 && (
-            <section>
+            <section className="relative group">
               <h2 className="text-lg font-bold text-white mb-3">Currently Watching</h2>
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+
+              {/* Netflix-style Navigation Arrows */}
+              <button
+                onClick={() => scrollCards(watchingScrollRef, 'left')}
+                className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-full items-center justify-center bg-gradient-to-r from-black/60 to-transparent hover:from-black/80 transition-all opacity-0 group-hover:opacity-100"
+                aria-label="Scroll left"
+              >
+                <ChevronLeft className="w-8 h-8 text-white drop-shadow-lg" />
+              </button>
+              <button
+                onClick={() => scrollCards(watchingScrollRef, 'right')}
+                className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-full items-center justify-center bg-gradient-to-l from-black/60 to-transparent hover:from-black/80 transition-all opacity-0 group-hover:opacity-100"
+                aria-label="Scroll right"
+              >
+                <ChevronRight className="w-8 h-8 text-white drop-shadow-lg" />
+              </button>
+
+              <div
+                ref={watchingScrollRef}
+                className="flex overflow-x-auto gap-3 pb-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent snap-x snap-mandatory"
+              >
                 {watchingItems.map((item) => (
-                  <WatchingCard
-                    key={item.id}
-                    item={item}
-                    onSelect={setSelectedItem}
-                    getDisplayRating={getDisplayRating}
-                  />
+                  <div key={item.id} className="flex-shrink-0 w-[150px] sm:w-[180px] snap-start">
+                    <WatchingCard
+                      item={item}
+                      onSelect={setSelectedItem}
+                      getDisplayRating={getDisplayRating}
+                    />
+                  </div>
                 ))}
               </div>
             </section>
@@ -279,16 +316,37 @@ export default function Watching() {
 
           {/* Want to Watch */}
           {wantToWatchItems.length > 0 && (
-            <section>
+            <section className="relative group">
               <h2 className="text-lg font-bold text-white mb-3">Want to Watch</h2>
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+
+              {/* Netflix-style Navigation Arrows */}
+              <button
+                onClick={() => scrollCards(wantToWatchScrollRef, 'left')}
+                className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-full items-center justify-center bg-gradient-to-r from-black/60 to-transparent hover:from-black/80 transition-all opacity-0 group-hover:opacity-100"
+                aria-label="Scroll left"
+              >
+                <ChevronLeft className="w-8 h-8 text-white drop-shadow-lg" />
+              </button>
+              <button
+                onClick={() => scrollCards(wantToWatchScrollRef, 'right')}
+                className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-full items-center justify-center bg-gradient-to-l from-black/60 to-transparent hover:from-black/80 transition-all opacity-0 group-hover:opacity-100"
+                aria-label="Scroll right"
+              >
+                <ChevronRight className="w-8 h-8 text-white drop-shadow-lg" />
+              </button>
+
+              <div
+                ref={wantToWatchScrollRef}
+                className="flex overflow-x-auto gap-3 pb-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent snap-x snap-mandatory"
+              >
                 {wantToWatchItems.map((item) => (
-                  <WatchingCard
-                    key={item.id}
-                    item={item}
-                    onSelect={setSelectedItem}
-                    getDisplayRating={getDisplayRating}
-                  />
+                  <div key={item.id} className="flex-shrink-0 w-[150px] sm:w-[180px] snap-start">
+                    <WatchingCard
+                      item={item}
+                      onSelect={setSelectedItem}
+                      getDisplayRating={getDisplayRating}
+                    />
+                  </div>
                 ))}
               </div>
             </section>
@@ -296,16 +354,37 @@ export default function Watching() {
 
           {/* Have Watched */}
           {watchedItems.length > 0 && (
-            <section>
+            <section className="relative group">
               <h2 className="text-lg font-bold text-white mb-3">Have Watched</h2>
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+
+              {/* Netflix-style Navigation Arrows */}
+              <button
+                onClick={() => scrollCards(watchedScrollRef, 'left')}
+                className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-full items-center justify-center bg-gradient-to-r from-black/60 to-transparent hover:from-black/80 transition-all opacity-0 group-hover:opacity-100"
+                aria-label="Scroll left"
+              >
+                <ChevronLeft className="w-8 h-8 text-white drop-shadow-lg" />
+              </button>
+              <button
+                onClick={() => scrollCards(watchedScrollRef, 'right')}
+                className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-full items-center justify-center bg-gradient-to-l from-black/60 to-transparent hover:from-black/80 transition-all opacity-0 group-hover:opacity-100"
+                aria-label="Scroll right"
+              >
+                <ChevronRight className="w-8 h-8 text-white drop-shadow-lg" />
+              </button>
+
+              <div
+                ref={watchedScrollRef}
+                className="flex overflow-x-auto gap-3 pb-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent snap-x snap-mandatory"
+              >
                 {watchedItems.map((item) => (
-                  <WatchingCard
-                    key={item.id}
-                    item={item}
-                    onSelect={setSelectedItem}
-                    getDisplayRating={getDisplayRating}
-                  />
+                  <div key={item.id} className="flex-shrink-0 w-[150px] sm:w-[180px] snap-start">
+                    <WatchingCard
+                      item={item}
+                      onSelect={setSelectedItem}
+                      getDisplayRating={getDisplayRating}
+                    />
+                  </div>
                 ))}
               </div>
             </section>
