@@ -522,10 +522,10 @@ function WatchingCard({
 
   return (
     <div
-      className="group cursor-pointer relative flex-shrink-0 w-[150px] sm:w-[180px] snap-start"
+      className="cursor-pointer relative flex-shrink-0 w-[150px] sm:w-[180px] snap-start hover:scale-105 transition-transform duration-200"
       onClick={() => onSelect(item)}
     >
-      <div className="aspect-[2/3] rounded overflow-hidden relative shadow-lg group-hover:shadow-2xl transition-all duration-300">
+      <div className="aspect-[2/3] rounded overflow-hidden relative shadow-lg hover:shadow-2xl transition-shadow">
         {item.poster_path ? (
           <img
             src={getPosterUrl(item.poster_path, 'w342')}
@@ -573,42 +573,6 @@ function WatchingCard({
         {/* User Badge - Bottom Right */}
         <div className="absolute bottom-1.5 right-1.5">
           <UserBadge userId={item.user_id} size={16} />
-        </div>
-
-        {/* Hover Overlay - Similar to Album page */}
-        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition flex items-center justify-center">
-          <div className="opacity-0 group-hover:opacity-100 transition text-white text-center p-3">
-            <p className="text-xs font-bold mb-1.5">{item.title}</p>
-            <p className="text-[10px] text-gray-300 mb-0.5">
-              {item.media_type === 'movie' ? 'Movie' : 'Series'}
-            </p>
-            {item.runtime && (
-              <div className="flex items-center justify-center space-x-0.5 mb-0.5">
-                <Clock className="w-2.5 h-2.5" />
-                <p className="text-[10px]">
-                  {item.media_type === 'tv'
-                    ? `${item.runtime}m/ep`
-                    : (() => {
-                        const hours = Math.floor(item.runtime / 60);
-                        const mins = item.runtime % 60;
-                        return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
-                      })()
-                  }
-                </p>
-              </div>
-            )}
-            {item.genres.length > 0 && (
-              <p className="text-[10px] text-gray-300 mb-0.5">{item.genres.slice(0, 2).join(', ')}</p>
-            )}
-            {item.release_date && (
-              <div className="flex items-center justify-center space-x-0.5">
-                <Calendar className="w-2.5 h-2.5" />
-                <p className="text-[10px] text-gray-300">
-                  {new Date(item.release_date).getFullYear()}
-                </p>
-              </div>
-            )}
-          </div>
         </div>
       </div>
     </div>
