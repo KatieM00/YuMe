@@ -278,111 +278,117 @@ export default function Watching() {
         <div className="space-y-6">
           {/* Currently Watching */}
           {watchingItems.length > 0 && (
-            <section className="relative group">
+            <section className="relative">
               <h2 className="text-lg font-bold text-white mb-3">Currently Watching</h2>
 
-              {/* Netflix-style Navigation Arrows */}
-              <button
-                onClick={() => scrollCards(watchingScrollRef, 'left')}
-                className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 w-12 h-12 items-center justify-center bg-black/60 hover:bg-black/80 rounded-full transition-all opacity-0 group-hover:opacity-100"
-                aria-label="Scroll left"
-              >
-                <ChevronLeft className="w-6 h-6 text-white drop-shadow-lg" />
-              </button>
-              <button
-                onClick={() => scrollCards(watchingScrollRef, 'right')}
-                className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 w-12 h-12 items-center justify-center bg-black/60 hover:bg-black/80 rounded-full transition-all opacity-0 group-hover:opacity-100"
-                aria-label="Scroll right"
-              >
-                <ChevronRight className="w-6 h-6 text-white drop-shadow-lg" />
-              </button>
+              <div className="relative group">
+                {/* Netflix-style Navigation Arrows */}
+                <button
+                  onClick={() => scrollCards(watchingScrollRef, 'left')}
+                  className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 items-center justify-center bg-black/70 hover:bg-black/90 rounded-full transition-all opacity-0 group-hover:opacity-100"
+                  aria-label="Scroll left"
+                >
+                  <ChevronLeft className="w-5 h-5 text-white drop-shadow-lg" />
+                </button>
+                <button
+                  onClick={() => scrollCards(watchingScrollRef, 'right')}
+                  className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 items-center justify-center bg-black/70 hover:bg-black/90 rounded-full transition-all opacity-0 group-hover:opacity-100"
+                  aria-label="Scroll right"
+                >
+                  <ChevronRight className="w-5 h-5 text-white drop-shadow-lg" />
+                </button>
 
-              <div
-                ref={watchingScrollRef}
-                className="flex overflow-x-auto gap-3 pb-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent snap-x snap-mandatory"
-              >
-                {watchingItems.map((item) => (
-                  <WatchingCard
-                    key={item.id}
-                    item={item}
-                    onSelect={setSelectedItem}
-                    getDisplayRating={getDisplayRating}
-                  />
-                ))}
+                <div
+                  ref={watchingScrollRef}
+                  className="flex overflow-x-auto gap-3 pb-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent snap-x snap-mandatory"
+                >
+                  {watchingItems.map((item) => (
+                    <WatchingCard
+                      key={item.id}
+                      item={item}
+                      onSelect={setSelectedItem}
+                      getDisplayRating={getDisplayRating}
+                    />
+                  ))}
+                </div>
               </div>
             </section>
           )}
 
           {/* Want to Watch */}
           {wantToWatchItems.length > 0 && (
-            <section className="relative group">
+            <section className="relative">
               <h2 className="text-lg font-bold text-white mb-3">Want to Watch</h2>
 
-              {/* Netflix-style Navigation Arrows */}
-              <button
-                onClick={() => scrollCards(wantToWatchScrollRef, 'left')}
-                className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 w-12 h-12 items-center justify-center bg-black/60 hover:bg-black/80 rounded-full transition-all opacity-0 group-hover:opacity-100"
-                aria-label="Scroll left"
-              >
-                <ChevronLeft className="w-6 h-6 text-white drop-shadow-lg" />
-              </button>
-              <button
-                onClick={() => scrollCards(wantToWatchScrollRef, 'right')}
-                className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 w-12 h-12 items-center justify-center bg-black/60 hover:bg-black/80 rounded-full transition-all opacity-0 group-hover:opacity-100"
-                aria-label="Scroll right"
-              >
-                <ChevronRight className="w-6 h-6 text-white drop-shadow-lg" />
-              </button>
+              <div className="relative group">
+                {/* Netflix-style Navigation Arrows */}
+                <button
+                  onClick={() => scrollCards(wantToWatchScrollRef, 'left')}
+                  className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 items-center justify-center bg-black/70 hover:bg-black/90 rounded-full transition-all opacity-0 group-hover:opacity-100"
+                  aria-label="Scroll left"
+                >
+                  <ChevronLeft className="w-5 h-5 text-white drop-shadow-lg" />
+                </button>
+                <button
+                  onClick={() => scrollCards(wantToWatchScrollRef, 'right')}
+                  className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 items-center justify-center bg-black/70 hover:bg-black/90 rounded-full transition-all opacity-0 group-hover:opacity-100"
+                  aria-label="Scroll right"
+                >
+                  <ChevronRight className="w-5 h-5 text-white drop-shadow-lg" />
+                </button>
 
-              <div
-                ref={wantToWatchScrollRef}
-                className="flex overflow-x-auto gap-3 pb-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent snap-x snap-mandatory"
-              >
-                {wantToWatchItems.map((item) => (
-                  <WatchingCard
-                    key={item.id}
-                    item={item}
-                    onSelect={setSelectedItem}
-                    getDisplayRating={getDisplayRating}
-                  />
-                ))}
+                <div
+                  ref={wantToWatchScrollRef}
+                  className="flex overflow-x-auto gap-3 pb-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent snap-x snap-mandatory"
+                >
+                  {wantToWatchItems.map((item) => (
+                    <WatchingCard
+                      key={item.id}
+                      item={item}
+                      onSelect={setSelectedItem}
+                      getDisplayRating={getDisplayRating}
+                    />
+                  ))}
+                </div>
               </div>
             </section>
           )}
 
           {/* Have Watched */}
           {watchedItems.length > 0 && (
-            <section className="relative group">
+            <section className="relative">
               <h2 className="text-lg font-bold text-white mb-3">Have Watched</h2>
 
-              {/* Netflix-style Navigation Arrows */}
-              <button
-                onClick={() => scrollCards(watchedScrollRef, 'left')}
-                className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 w-12 h-12 items-center justify-center bg-black/60 hover:bg-black/80 rounded-full transition-all opacity-0 group-hover:opacity-100"
-                aria-label="Scroll left"
-              >
-                <ChevronLeft className="w-6 h-6 text-white drop-shadow-lg" />
-              </button>
-              <button
-                onClick={() => scrollCards(watchedScrollRef, 'right')}
-                className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 w-12 h-12 items-center justify-center bg-black/60 hover:bg-black/80 rounded-full transition-all opacity-0 group-hover:opacity-100"
-                aria-label="Scroll right"
-              >
-                <ChevronRight className="w-6 h-6 text-white drop-shadow-lg" />
-              </button>
+              <div className="relative group">
+                {/* Netflix-style Navigation Arrows */}
+                <button
+                  onClick={() => scrollCards(watchedScrollRef, 'left')}
+                  className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 items-center justify-center bg-black/70 hover:bg-black/90 rounded-full transition-all opacity-0 group-hover:opacity-100"
+                  aria-label="Scroll left"
+                >
+                  <ChevronLeft className="w-5 h-5 text-white drop-shadow-lg" />
+                </button>
+                <button
+                  onClick={() => scrollCards(watchedScrollRef, 'right')}
+                  className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 items-center justify-center bg-black/70 hover:bg-black/90 rounded-full transition-all opacity-0 group-hover:opacity-100"
+                  aria-label="Scroll right"
+                >
+                  <ChevronRight className="w-5 h-5 text-white drop-shadow-lg" />
+                </button>
 
-              <div
-                ref={watchedScrollRef}
-                className="flex overflow-x-auto gap-3 pb-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent snap-x snap-mandatory"
-              >
-                {watchedItems.map((item) => (
-                  <WatchingCard
-                    key={item.id}
-                    item={item}
-                    onSelect={setSelectedItem}
-                    getDisplayRating={getDisplayRating}
-                  />
-                ))}
+                <div
+                  ref={watchedScrollRef}
+                  className="flex overflow-x-auto gap-3 pb-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent snap-x snap-mandatory"
+                >
+                  {watchedItems.map((item) => (
+                    <WatchingCard
+                      key={item.id}
+                      item={item}
+                      onSelect={setSelectedItem}
+                      getDisplayRating={getDisplayRating}
+                    />
+                  ))}
+                </div>
               </div>
             </section>
           )}
