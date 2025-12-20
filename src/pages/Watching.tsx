@@ -302,13 +302,12 @@ export default function Watching() {
                 className="flex overflow-x-auto gap-3 pb-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent snap-x snap-mandatory"
               >
                 {watchingItems.map((item) => (
-                  <div key={item.id} className="flex-shrink-0 w-[150px] sm:w-[180px] snap-start">
-                    <WatchingCard
-                      item={item}
-                      onSelect={setSelectedItem}
-                      getDisplayRating={getDisplayRating}
-                    />
-                  </div>
+                  <WatchingCard
+                    key={item.id}
+                    item={item}
+                    onSelect={setSelectedItem}
+                    getDisplayRating={getDisplayRating}
+                  />
                 ))}
               </div>
             </section>
@@ -340,13 +339,12 @@ export default function Watching() {
                 className="flex overflow-x-auto gap-3 pb-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent snap-x snap-mandatory"
               >
                 {wantToWatchItems.map((item) => (
-                  <div key={item.id} className="flex-shrink-0 w-[150px] sm:w-[180px] snap-start">
-                    <WatchingCard
-                      item={item}
-                      onSelect={setSelectedItem}
-                      getDisplayRating={getDisplayRating}
-                    />
-                  </div>
+                  <WatchingCard
+                    key={item.id}
+                    item={item}
+                    onSelect={setSelectedItem}
+                    getDisplayRating={getDisplayRating}
+                  />
                 ))}
               </div>
             </section>
@@ -378,13 +376,12 @@ export default function Watching() {
                 className="flex overflow-x-auto gap-3 pb-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent snap-x snap-mandatory"
               >
                 {watchedItems.map((item) => (
-                  <div key={item.id} className="flex-shrink-0 w-[150px] sm:w-[180px] snap-start">
-                    <WatchingCard
-                      item={item}
-                      onSelect={setSelectedItem}
-                      getDisplayRating={getDisplayRating}
-                    />
-                  </div>
+                  <WatchingCard
+                    key={item.id}
+                    item={item}
+                    onSelect={setSelectedItem}
+                    getDisplayRating={getDisplayRating}
+                  />
                 ))}
               </div>
             </section>
@@ -519,7 +516,7 @@ function WatchingCard({
 
   return (
     <div
-      className="group cursor-pointer relative"
+      className="group cursor-pointer relative flex-shrink-0 w-[150px] sm:w-[180px] snap-start"
       onClick={() => onSelect(item)}
     >
       <div className="aspect-[2/3] rounded overflow-hidden relative shadow-lg group-hover:shadow-2xl transition-all duration-300">
