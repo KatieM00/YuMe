@@ -41,10 +41,13 @@ export default function Watching() {
   const wantToWatchScrollRef = useRef<HTMLDivElement>(null);
   const watchedScrollRef = useRef<HTMLDivElement>(null);
 
+  // State to track which row is being hovered
+  const [hoveredRow, setHoveredRow] = useState<'watching' | 'wantToWatch' | 'watched' | null>(null);
+
   // Scroll function for Netflix-style navigation
   const scrollCards = (ref: React.RefObject<HTMLDivElement>, direction: 'left' | 'right') => {
     if (ref.current) {
-      const scrollAmount = 400; // Scroll by ~2 cards worth
+      const scrollAmount = 400;
       ref.current.scrollBy({
         left: direction === 'left' ? -scrollAmount : scrollAmount,
         behavior: 'smooth'
@@ -278,117 +281,171 @@ export default function Watching() {
         <div className="space-y-6">
           {/* Currently Watching */}
           {watchingItems.length > 0 && (
-            <section className="relative">
+            <section
+              className="relative"
+              onMouseEnter={() => setHoveredRow('watching')}
+              onMouseLeave={() => setHoveredRow(null)}
+            >
               <h2 className="text-lg font-bold text-white mb-3">Currently Watching</h2>
 
-              <div className="relative group">
-                {/* Netflix-style Navigation Arrows */}
+              {/* Left Arrow - Only visible when hovering on left edge */}
+              {hoveredRow === 'watching' && (
                 <button
-                  onClick={() => scrollCards(watchingScrollRef, 'left')}
-                  className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 items-center justify-center bg-black/70 hover:bg-black/90 rounded-full transition-all opacity-0 group-hover:opacity-100"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    scrollCards(watchingScrollRef, 'left');
+                  }}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-20 w-12 h-12 items-center justify-center bg-black/80 hover:bg-black/95 rounded-full transition-all shadow-xl"
                   aria-label="Scroll left"
+                  style={{ pointerEvents: 'auto' }}
                 >
-                  <ChevronLeft className="w-5 h-5 text-white drop-shadow-lg" />
+                  <ChevronLeft className="w-6 h-6 text-white" />
                 </button>
-                <button
-                  onClick={() => scrollCards(watchingScrollRef, 'right')}
-                  className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 items-center justify-center bg-black/70 hover:bg-black/90 rounded-full transition-all opacity-0 group-hover:opacity-100"
-                  aria-label="Scroll right"
-                >
-                  <ChevronRight className="w-5 h-5 text-white drop-shadow-lg" />
-                </button>
+              )}
 
-                <div
-                  ref={watchingScrollRef}
-                  className="flex overflow-x-auto gap-3 pb-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent snap-x snap-mandatory"
+              {/* Right Arrow - Only visible when hovering on right edge */}
+              {hoveredRow === 'watching' && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    scrollCards(watchingScrollRef, 'right');
+                  }}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-20 w-12 h-12 items-center justify-center bg-black/80 hover:bg-black/95 rounded-full transition-all shadow-xl"
+                  aria-label="Scroll right"
+                  style={{ pointerEvents: 'auto' }}
                 >
-                  {watchingItems.map((item) => (
-                    <WatchingCard
-                      key={item.id}
-                      item={item}
-                      onSelect={setSelectedItem}
-                      getDisplayRating={getDisplayRating}
-                    />
-                  ))}
-                </div>
+                  <ChevronRight className="w-6 h-6 text-white" />
+                </button>
+              )}
+
+              <div
+                ref={watchingScrollRef}
+                className="flex overflow-x-auto gap-3 pb-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent snap-x snap-mandatory scroll-smooth"
+              >
+                {watchingItems.map((item) => (
+                  <WatchingCard
+                    key={item.id}
+                    item={item}
+                    onSelect={setSelectedItem}
+                    getDisplayRating={getDisplayRating}
+                  />
+                ))}
               </div>
             </section>
           )}
 
           {/* Want to Watch */}
           {wantToWatchItems.length > 0 && (
-            <section className="relative">
+            <section
+              className="relative"
+              onMouseEnter={() => setHoveredRow('wantToWatch')}
+              onMouseLeave={() => setHoveredRow(null)}
+            >
               <h2 className="text-lg font-bold text-white mb-3">Want to Watch</h2>
 
-              <div className="relative group">
-                {/* Netflix-style Navigation Arrows */}
+              {/* Left Arrow */}
+              {hoveredRow === 'wantToWatch' && (
                 <button
-                  onClick={() => scrollCards(wantToWatchScrollRef, 'left')}
-                  className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 items-center justify-center bg-black/70 hover:bg-black/90 rounded-full transition-all opacity-0 group-hover:opacity-100"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    scrollCards(wantToWatchScrollRef, 'left');
+                  }}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-20 w-12 h-12 items-center justify-center bg-black/80 hover:bg-black/95 rounded-full transition-all shadow-xl"
                   aria-label="Scroll left"
+                  style={{ pointerEvents: 'auto' }}
                 >
-                  <ChevronLeft className="w-5 h-5 text-white drop-shadow-lg" />
+                  <ChevronLeft className="w-6 h-6 text-white" />
                 </button>
-                <button
-                  onClick={() => scrollCards(wantToWatchScrollRef, 'right')}
-                  className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 items-center justify-center bg-black/70 hover:bg-black/90 rounded-full transition-all opacity-0 group-hover:opacity-100"
-                  aria-label="Scroll right"
-                >
-                  <ChevronRight className="w-5 h-5 text-white drop-shadow-lg" />
-                </button>
+              )}
 
-                <div
-                  ref={wantToWatchScrollRef}
-                  className="flex overflow-x-auto gap-3 pb-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent snap-x snap-mandatory"
+              {/* Right Arrow */}
+              {hoveredRow === 'wantToWatch' && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    scrollCards(wantToWatchScrollRef, 'right');
+                  }}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-20 w-12 h-12 items-center justify-center bg-black/80 hover:bg-black/95 rounded-full transition-all shadow-xl"
+                  aria-label="Scroll right"
+                  style={{ pointerEvents: 'auto' }}
                 >
-                  {wantToWatchItems.map((item) => (
-                    <WatchingCard
-                      key={item.id}
-                      item={item}
-                      onSelect={setSelectedItem}
-                      getDisplayRating={getDisplayRating}
-                    />
-                  ))}
-                </div>
+                  <ChevronRight className="w-6 h-6 text-white" />
+                </button>
+              )}
+
+              <div
+                ref={wantToWatchScrollRef}
+                className="flex overflow-x-auto gap-3 pb-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent snap-x snap-mandatory scroll-smooth"
+              >
+                {wantToWatchItems.map((item) => (
+                  <WatchingCard
+                    key={item.id}
+                    item={item}
+                    onSelect={setSelectedItem}
+                    getDisplayRating={getDisplayRating}
+                  />
+                ))}
               </div>
             </section>
           )}
 
           {/* Have Watched */}
           {watchedItems.length > 0 && (
-            <section className="relative">
+            <section
+              className="relative"
+              onMouseEnter={() => setHoveredRow('watched')}
+              onMouseLeave={() => setHoveredRow(null)}
+            >
               <h2 className="text-lg font-bold text-white mb-3">Have Watched</h2>
 
-              <div className="relative group">
-                {/* Netflix-style Navigation Arrows */}
+              {/* Left Arrow */}
+              {hoveredRow === 'watched' && (
                 <button
-                  onClick={() => scrollCards(watchedScrollRef, 'left')}
-                  className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 items-center justify-center bg-black/70 hover:bg-black/90 rounded-full transition-all opacity-0 group-hover:opacity-100"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    scrollCards(watchedScrollRef, 'left');
+                  }}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 z-20 w-12 h-12 items-center justify-center bg-black/80 hover:bg-black/95 rounded-full transition-all shadow-xl"
                   aria-label="Scroll left"
+                  style={{ pointerEvents: 'auto' }}
                 >
-                  <ChevronLeft className="w-5 h-5 text-white drop-shadow-lg" />
+                  <ChevronLeft className="w-6 h-6 text-white" />
                 </button>
-                <button
-                  onClick={() => scrollCards(watchedScrollRef, 'right')}
-                  className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-10 w-10 h-10 items-center justify-center bg-black/70 hover:bg-black/90 rounded-full transition-all opacity-0 group-hover:opacity-100"
-                  aria-label="Scroll right"
-                >
-                  <ChevronRight className="w-5 h-5 text-white drop-shadow-lg" />
-                </button>
+              )}
 
-                <div
-                  ref={watchedScrollRef}
-                  className="flex overflow-x-auto gap-3 pb-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent snap-x snap-mandatory"
+              {/* Right Arrow */}
+              {hoveredRow === 'watched' && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    scrollCards(watchedScrollRef, 'right');
+                  }}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-20 w-12 h-12 items-center justify-center bg-black/80 hover:bg-black/95 rounded-full transition-all shadow-xl"
+                  aria-label="Scroll right"
+                  style={{ pointerEvents: 'auto' }}
                 >
-                  {watchedItems.map((item) => (
-                    <WatchingCard
-                      key={item.id}
-                      item={item}
-                      onSelect={setSelectedItem}
-                      getDisplayRating={getDisplayRating}
-                    />
-                  ))}
-                </div>
+                  <ChevronRight className="w-6 h-6 text-white" />
+                </button>
+              )}
+
+              <div
+                ref={watchedScrollRef}
+                className="flex overflow-x-auto gap-3 pb-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent snap-x snap-mandatory scroll-smooth"
+              >
+                {watchedItems.map((item) => (
+                  <WatchingCard
+                    key={item.id}
+                    item={item}
+                    onSelect={setSelectedItem}
+                    getDisplayRating={getDisplayRating}
+                  />
+                ))}
               </div>
             </section>
           )}
@@ -522,10 +579,10 @@ function WatchingCard({
 
   return (
     <div
-      className="cursor-pointer relative flex-shrink-0 w-[150px] sm:w-[180px] snap-start hover:scale-105 transition-transform duration-200"
+      className="group cursor-pointer flex-shrink-0 w-[150px] sm:w-[180px] snap-start"
       onClick={() => onSelect(item)}
     >
-      <div className="aspect-[2/3] rounded overflow-hidden relative shadow-lg hover:shadow-2xl transition-shadow">
+      <div className="aspect-[2/3] rounded overflow-hidden relative shadow-lg group-hover:shadow-2xl transition-all duration-300">
         {item.poster_path ? (
           <img
             src={getPosterUrl(item.poster_path, 'w342')}
@@ -573,6 +630,42 @@ function WatchingCard({
         {/* User Badge - Bottom Right */}
         <div className="absolute bottom-1.5 right-1.5">
           <UserBadge userId={item.user_id} size={16} />
+        </div>
+
+        {/* Hover Overlay - Similar to Album page */}
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition flex items-center justify-center">
+          <div className="opacity-0 group-hover:opacity-100 transition text-white text-center p-3">
+            <p className="text-xs font-bold mb-1.5">{item.title}</p>
+            <p className="text-[10px] text-gray-300 mb-0.5">
+              {item.media_type === 'movie' ? 'Movie' : 'Series'}
+            </p>
+            {item.runtime && (
+              <div className="flex items-center justify-center space-x-0.5 mb-0.5">
+                <Clock className="w-2.5 h-2.5" />
+                <p className="text-[10px]">
+                  {item.media_type === 'tv'
+                    ? `${item.runtime}m/ep`
+                    : (() => {
+                        const hours = Math.floor(item.runtime / 60);
+                        const mins = item.runtime % 60;
+                        return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+                      })()
+                  }
+                </p>
+              </div>
+            )}
+            {item.genres.length > 0 && (
+              <p className="text-[10px] text-gray-300 mb-0.5">{item.genres.slice(0, 2).join(', ')}</p>
+            )}
+            {item.release_date && (
+              <div className="flex items-center justify-center space-x-0.5">
+                <Calendar className="w-2.5 h-2.5" />
+                <p className="text-[10px] text-gray-300">
+                  {new Date(item.release_date).getFullYear()}
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
