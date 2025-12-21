@@ -261,6 +261,31 @@ export async function deleteMediaItem(id: string, storagePath: string): Promise<
 }
 
 /**
+ * Delete all media items in a carousel
+ */
+export async function deleteCarousel(carouselId: string, items: MediaItem[]): Promise<void> {
+  // Delete all files from storage
+  const storagePaths = items.map(item => item.storage_path);
+  const { error: storageError } = await supabase.storage
+    .from('media')
+    .remove(storagePaths);
+
+  if (storageError) {
+    console.error('Failed to delete carousel from storage:', storageError);
+  }
+
+  // Delete all items from database (comments will be cascade deleted)
+  const { error: dbError } = await supabase
+    .from('media_items')
+    .delete()
+    .eq('carousel_id', carouselId);
+
+  if (dbError) {
+    throw new Error(`Failed to delete carousel: ${dbError.message}`);
+  }
+}
+
+/**
  * Add a comment to a media item
  */
 export async function addComment(mediaId: string, comment: string): Promise<MediaComment> {

@@ -6,6 +6,7 @@ import {
   MediaItem,
   getAllMedia,
   deleteMediaItem,
+  deleteCarousel,
   addComment,
   deleteComment,
   updateMediaItem,
@@ -173,10 +174,32 @@ export default function Images() {
 
       if (selectedImage?.id === mediaId) {
         setSelectedImage(null);
+        setCarouselItems([]);
+        setCurrentCarouselIndex(0);
       }
     } catch (err) {
       console.error('Failed to delete media:', err);
       alert('Failed to delete media. Please try again.');
+    }
+  };
+
+  const handleDeleteCarousel = async (carouselId: string, items: MediaItem[]) => {
+    if (!confirm(`Are you sure you want to delete all ${items.length} photos in this carousel?`)) return;
+
+    try {
+      await deleteCarousel(carouselId, items);
+
+      // Update local state - remove all items with this carousel_id
+      const updatedImages = images.filter((img) => img.carousel_id !== carouselId);
+      setImages(updatedImages);
+
+      // Close the modal
+      setSelectedImage(null);
+      setCarouselItems([]);
+      setCurrentCarouselIndex(0);
+    } catch (err) {
+      console.error('Failed to delete carousel:', err);
+      alert('Failed to delete carousel. Please try again.');
     }
   };
 
@@ -404,7 +427,7 @@ export default function Images() {
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-1.5 flex-shrink-0">
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
                       <button
                         onClick={() => setIsEditMode(!isEditMode)}
                         className="w-8 h-8 bg-blue-500/20 hover:bg-blue-500/30 rounded-full flex items-center justify-center transition"
@@ -412,12 +435,25 @@ export default function Images() {
                       >
                         <Pencil className="w-4 h-4 text-blue-400" />
                       </button>
+                      {carouselItems.length > 0 && selectedImage.carousel_id && (
+                        <button
+                          onClick={() => handleDeleteCarousel(selectedImage.carousel_id!, carouselItems)}
+                          className="px-2.5 py-1.5 bg-red-500/20 hover:bg-red-500/30 rounded-lg flex items-center gap-1 transition"
+                          title="Delete all photos in carousel"
+                        >
+                          <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                          <span className="text-red-400 text-xs font-medium">All</span>
+                        </button>
+                      )}
                       <button
                         onClick={() => handleDeleteMedia(selectedImage.id, selectedImage.storage_path)}
-                        className="w-8 h-8 bg-red-500/20 hover:bg-red-500/30 rounded-full flex items-center justify-center transition"
-                        title="Delete media"
+                        className={`${carouselItems.length > 0 ? 'px-2.5 py-1.5 rounded-lg gap-1' : 'w-8 h-8 rounded-full'} bg-red-500/20 hover:bg-red-500/30 flex items-center justify-center transition`}
+                        title={carouselItems.length > 0 ? "Delete current photo" : "Delete media"}
                       >
-                        <Trash2 className="w-4 h-4 text-red-400" />
+                        <Trash2 className={`${carouselItems.length > 0 ? 'w-3.5 h-3.5' : 'w-4 h-4'} text-red-400`} />
+                        {carouselItems.length > 0 && (
+                          <span className="text-red-400 text-xs font-medium">Current</span>
+                        )}
                       </button>
                       <button
                         onClick={() => {

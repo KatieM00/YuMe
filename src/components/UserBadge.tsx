@@ -11,7 +11,6 @@ export default function UserBadge({ userId, size = 24, className = '' }: UserBad
   const { currentUser, partner } = useUser();
   const [initial, setInitial] = useState('');
   const [emoji, setEmoji] = useState<string | null>(null);
-  const [fullName, setFullName] = useState('');
   const [isCurrentUser, setIsCurrentUser] = useState(false);
 
   useEffect(() => {
@@ -19,18 +18,15 @@ export default function UserBadge({ userId, size = 24, className = '' }: UserBad
     if (currentUser?.id === userId) {
       setIsCurrentUser(true);
       const name = currentUser.display_name || 'You';
-      setFullName(name);
       setInitial(name.charAt(0).toUpperCase());
       setEmoji(currentUser.profile_emoji || null);
     } else if (partner?.id === userId) {
       setIsCurrentUser(false);
       const name = partner.display_name || partner.email;
-      setFullName(name);
       setInitial(name.charAt(0).toUpperCase());
       setEmoji(partner.profile_emoji || null);
     } else {
       // Unknown user (shouldn't happen, but handle gracefully)
-      setFullName('Unknown');
       setInitial('?');
       setEmoji(null);
     }
@@ -45,7 +41,7 @@ export default function UserBadge({ userId, size = 24, className = '' }: UserBad
 
   return (
     <div
-      className={`relative group ${className}`}
+      className={`relative ${className}`}
       style={{ width: size, height: size }}
     >
       {/* Badge circle */}
@@ -54,16 +50,6 @@ export default function UserBadge({ userId, size = 24, className = '' }: UserBad
         style={{ fontSize: emoji ? size * 0.6 : size * 0.5 }}
       >
         {emoji || initial}
-      </div>
-
-      {/* Tooltip on hover */}
-      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
-        <div className="bg-gray-900 text-white text-xs px-3 py-1.5 rounded-lg shadow-xl whitespace-nowrap">
-          {fullName}
-          <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-1">
-            <div className="border-4 border-transparent border-t-gray-900"></div>
-          </div>
-        </div>
       </div>
     </div>
   );

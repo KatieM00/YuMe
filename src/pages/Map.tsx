@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { MapPin, Plus, Trash2, Loader, Check, Search } from 'lucide-react';
+import { MapPin, Plus, Trash2, Loader, Check, Search, ChevronDown } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import UserBadge from '../components/UserBadge';
 import { getCurrentUserProfile, getPartnerInfo, type UserProfile, type PartnerInfo } from '../lib/partnerService';
@@ -58,6 +58,10 @@ export default function Map() {
   const [suggestions, setSuggestions] = useState<GeocodingSuggestion[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+
+  // Collapse/expand state for location lists
+  const [visitedExpanded, setVisitedExpanded] = useState(true);
+  const [wishlistExpanded, setWishlistExpanded] = useState(true);
 
   // Check if Mapbox token is available
   const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN;
@@ -597,69 +601,81 @@ export default function Map() {
                 {/* Visited Locations */}
                 {visitedLocations.length > 0 && (
                   <div>
-                    <h3 className="text-xs font-semibold text-green-400 mb-1.5 flex items-center">
+                    <h3
+                      onClick={() => setVisitedExpanded(!visitedExpanded)}
+                      className="text-xs font-semibold text-green-400 mb-1.5 flex items-center cursor-pointer select-none hover:text-green-300 transition"
+                    >
                       <Check className="w-3.5 h-3.5 mr-1" />
                       Visited ({visitedLocations.length})
+                      <ChevronDown className={`w-3.5 h-3.5 ml-auto transition-transform ${visitedExpanded ? '' : '-rotate-90'}`} />
                     </h3>
-                    <div className="space-y-1.5">
-                      {visitedLocations.map((location) => (
-                        <div
-                          key={location.id}
-                          className="group bg-green-500/10 border border-green-500/30 rounded-md p-2 hover:bg-green-500/20 transition"
-                        >
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1 min-w-0">
-                              <p className="text-white font-medium text-xs truncate">{location.name}</p>
-                              {location.visit_date && (
-                                <p className="text-gray-400 text-xs mt-0.5">{location.visit_date}</p>
-                              )}
-                              {location.notes && (
-                                <p className="text-gray-500 text-xs mt-0.5 line-clamp-2">{location.notes}</p>
-                              )}
+                    {visitedExpanded && (
+                      <div className="space-y-1.5">
+                        {visitedLocations.map((location) => (
+                          <div
+                            key={location.id}
+                            className="group bg-green-500/10 border border-green-500/30 rounded-md p-2 hover:bg-green-500/20 transition"
+                          >
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1 min-w-0">
+                                <p className="text-white font-medium text-xs truncate">{location.name}</p>
+                                {location.visit_date && (
+                                  <p className="text-gray-400 text-xs mt-0.5">{location.visit_date}</p>
+                                )}
+                                {location.notes && (
+                                  <p className="text-gray-500 text-xs mt-0.5 line-clamp-2">{location.notes}</p>
+                                )}
+                              </div>
+                              <button
+                                onClick={() => location.id && deleteLocation(location.id)}
+                                className="ml-2 p-1 text-gray-400 hover:text-red-400 transition flex-shrink-0"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
                             </div>
-                            <button
-                              onClick={() => location.id && deleteLocation(location.id)}
-                              className="ml-2 p-1 text-gray-400 hover:text-red-400 transition flex-shrink-0"
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </button>
                           </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
 
                 {/* Wishlist Locations */}
                 {wishlistLocations.length > 0 && (
                   <div>
-                    <h3 className="text-xs font-semibold text-red-400 mb-1.5 flex items-center">
+                    <h3
+                      onClick={() => setWishlistExpanded(!wishlistExpanded)}
+                      className="text-xs font-semibold text-red-400 mb-1.5 flex items-center cursor-pointer select-none hover:text-red-300 transition"
+                    >
                       <MapPin className="w-3.5 h-3.5 mr-1" />
                       Want to Visit ({wishlistLocations.length})
+                      <ChevronDown className={`w-3.5 h-3.5 ml-auto transition-transform ${wishlistExpanded ? '' : '-rotate-90'}`} />
                     </h3>
-                    <div className="space-y-1.5">
-                      {wishlistLocations.map((location) => (
-                        <div
-                          key={location.id}
-                          className="group bg-red-500/10 border border-red-500/30 rounded-md p-2 hover:bg-red-500/20 transition"
-                        >
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1 min-w-0">
-                              <p className="text-white font-medium text-xs truncate">{location.name}</p>
-                              {location.notes && (
-                                <p className="text-gray-500 text-xs mt-0.5 line-clamp-2">{location.notes}</p>
-                              )}
+                    {wishlistExpanded && (
+                      <div className="space-y-1.5">
+                        {wishlistLocations.map((location) => (
+                          <div
+                            key={location.id}
+                            className="group bg-red-500/10 border border-red-500/30 rounded-md p-2 hover:bg-red-500/20 transition"
+                          >
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1 min-w-0">
+                                <p className="text-white font-medium text-xs truncate">{location.name}</p>
+                                {location.notes && (
+                                  <p className="text-gray-500 text-xs mt-0.5 line-clamp-2">{location.notes}</p>
+                                )}
+                              </div>
+                              <button
+                                onClick={() => location.id && deleteLocation(location.id)}
+                                className="ml-2 p-1 text-gray-400 hover:text-red-400 transition flex-shrink-0"
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </button>
                             </div>
-                            <button
-                              onClick={() => location.id && deleteLocation(location.id)}
-                              className="ml-2 p-1 text-gray-400 hover:text-red-400 transition flex-shrink-0"
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </button>
                           </div>
-                        </div>
-                      ))}
-                    </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -862,99 +878,111 @@ export default function Map() {
                 {/* Visited Locations */}
                 {visitedLocations.length > 0 && (
                   <div>
-                    <h3 className="text-xs font-semibold text-green-400 mb-2 flex items-center">
+                    <h3
+                      onClick={() => setVisitedExpanded(!visitedExpanded)}
+                      className="text-xs font-semibold text-green-400 mb-2 flex items-center cursor-pointer select-none hover:text-green-300 transition"
+                    >
                       <Check className="w-3.5 h-3.5 mr-1" />
                       Visited ({visitedLocations.length})
+                      <ChevronDown className={`w-3.5 h-3.5 ml-2 transition-transform ${visitedExpanded ? '' : '-rotate-90'}`} />
                     </h3>
-                    <div className="grid grid-cols-4 lg:grid-cols-6 gap-2">
-                      {visitedLocations.map((location) => (
-                        <div
-                          key={location.id}
-                          onClick={() => zoomToLocation(location.lat, location.lng)}
-                          className="group relative bg-green-500/10 border border-green-500/30 rounded-md p-2 hover:bg-green-500/20 transition cursor-pointer"
-                        >
-                          <p className="text-white font-medium text-xs text-center truncate">{location.name}</p>
-
-                          {/* Hover overlay with date/notes */}
-                          {(location.visit_date || location.notes) && (
-                            <div className="absolute inset-0 bg-black/90 rounded-md opacity-0 group-hover:opacity-100 transition flex flex-col items-center justify-center p-2 text-center pointer-events-none">
-                              {location.visit_date && (
-                                <p className="text-gray-300 text-xs mb-0.5">{location.visit_date}</p>
-                              )}
-                              {location.notes && (
-                                <p className="text-gray-400 text-xs line-clamp-3">{location.notes}</p>
-                              )}
-                            </div>
-                          )}
-
-                          {/* User Badge - bottom left */}
-                          {location.user_id && (
-                            <div className="absolute bottom-0.5 left-0.5">
-                              <UserBadge userId={location.user_id} size={14} />
-                            </div>
-                          )}
-
-                          {/* Delete button - always top right */}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              location.id && deleteLocation(location.id);
-                            }}
-                            className="absolute top-0.5 right-0.5 opacity-0 group-hover:opacity-100 p-0.5 text-gray-400 hover:text-red-400 transition bg-black/50 rounded"
-                            title="Delete"
+                    {visitedExpanded && (
+                      <div className="grid grid-cols-4 lg:grid-cols-6 gap-2">
+                        {visitedLocations.map((location) => (
+                          <div
+                            key={location.id}
+                            onClick={() => zoomToLocation(location.lat, location.lng)}
+                            className="group relative bg-green-500/10 border border-green-500/30 rounded-md p-2 hover:bg-green-500/20 transition cursor-pointer"
                           >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
+                            <p className="text-white font-medium text-xs text-center truncate">{location.name}</p>
+
+                            {/* Hover overlay with date/notes */}
+                            {(location.visit_date || location.notes) && (
+                              <div className="absolute inset-0 bg-black/90 rounded-md opacity-0 group-hover:opacity-100 transition flex flex-col items-center justify-center p-2 text-center pointer-events-none">
+                                {location.visit_date && (
+                                  <p className="text-gray-300 text-xs mb-0.5">{location.visit_date}</p>
+                                )}
+                                {location.notes && (
+                                  <p className="text-gray-400 text-xs line-clamp-3">{location.notes}</p>
+                                )}
+                              </div>
+                            )}
+
+                            {/* User Badge - bottom left */}
+                            {location.user_id && (
+                              <div className="absolute bottom-0.5 left-0.5">
+                                <UserBadge userId={location.user_id} size={14} />
+                              </div>
+                            )}
+
+                            {/* Delete button - always top right */}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                location.id && deleteLocation(location.id);
+                              }}
+                              className="absolute top-0.5 right-0.5 opacity-0 group-hover:opacity-100 p-0.5 text-gray-400 hover:text-red-400 transition bg-black/50 rounded"
+                              title="Delete"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
 
                 {/* Wishlist Locations */}
                 {wishlistLocations.length > 0 && (
                   <div>
-                    <h3 className="text-xs font-semibold text-red-400 mb-2 flex items-center">
+                    <h3
+                      onClick={() => setWishlistExpanded(!wishlistExpanded)}
+                      className="text-xs font-semibold text-red-400 mb-2 flex items-center cursor-pointer select-none hover:text-red-300 transition"
+                    >
                       <MapPin className="w-3.5 h-3.5 mr-1" />
                       Want to Visit ({wishlistLocations.length})
+                      <ChevronDown className={`w-3.5 h-3.5 ml-2 transition-transform ${wishlistExpanded ? '' : '-rotate-90'}`} />
                     </h3>
-                    <div className="grid grid-cols-4 lg:grid-cols-6 gap-2">
-                      {wishlistLocations.map((location) => (
-                        <div
-                          key={location.id}
-                          onClick={() => zoomToLocation(location.lat, location.lng)}
-                          className="group relative bg-red-500/10 border border-red-500/30 rounded-md p-2 hover:bg-red-500/20 transition cursor-pointer"
-                        >
-                          <p className="text-white font-medium text-xs text-center truncate">{location.name}</p>
-
-                          {/* Hover overlay with notes if available */}
-                          {location.notes && (
-                            <div className="absolute inset-0 bg-black/90 rounded-md opacity-0 group-hover:opacity-100 transition flex flex-col items-center justify-center p-2 text-center pointer-events-none">
-                              <p className="text-gray-400 text-xs line-clamp-3">{location.notes}</p>
-                            </div>
-                          )}
-
-                          {/* User Badge - bottom left */}
-                          {location.user_id && (
-                            <div className="absolute bottom-0.5 left-0.5">
-                              <UserBadge userId={location.user_id} size={14} />
-                            </div>
-                          )}
-
-                          {/* Delete button - always top right */}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              location.id && deleteLocation(location.id);
-                            }}
-                            className="absolute top-0.5 right-0.5 opacity-0 group-hover:opacity-100 p-0.5 text-gray-400 hover:text-red-400 transition bg-black/50 rounded"
-                            title="Delete"
+                    {wishlistExpanded && (
+                      <div className="grid grid-cols-4 lg:grid-cols-6 gap-2">
+                        {wishlistLocations.map((location) => (
+                          <div
+                            key={location.id}
+                            onClick={() => zoomToLocation(location.lat, location.lng)}
+                            className="group relative bg-red-500/10 border border-red-500/30 rounded-md p-2 hover:bg-red-500/20 transition cursor-pointer"
                           >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
+                            <p className="text-white font-medium text-xs text-center truncate">{location.name}</p>
+
+                            {/* Hover overlay with notes if available */}
+                            {location.notes && (
+                              <div className="absolute inset-0 bg-black/90 rounded-md opacity-0 group-hover:opacity-100 transition flex flex-col items-center justify-center p-2 text-center pointer-events-none">
+                                <p className="text-gray-400 text-xs line-clamp-3">{location.notes}</p>
+                              </div>
+                            )}
+
+                            {/* User Badge - bottom left */}
+                            {location.user_id && (
+                              <div className="absolute bottom-0.5 left-0.5">
+                                <UserBadge userId={location.user_id} size={14} />
+                              </div>
+                            )}
+
+                            {/* Delete button - always top right */}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                location.id && deleteLocation(location.id);
+                              }}
+                              className="absolute top-0.5 right-0.5 opacity-0 group-hover:opacity-100 p-0.5 text-gray-400 hover:text-red-400 transition bg-black/50 rounded"
+                              title="Delete"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
