@@ -322,7 +322,7 @@ export default function Watching() {
 
               <div
                 ref={watchingScrollRef}
-                className="flex overflow-x-auto gap-3 pb-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent snap-x snap-mandatory scroll-smooth"
+                className="flex overflow-x-auto gap-3 pb-2 snap-x snap-mandatory scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
               >
                 {watchingItems.map((item) => (
                   <WatchingCard
@@ -379,7 +379,7 @@ export default function Watching() {
 
               <div
                 ref={wantToWatchScrollRef}
-                className="flex overflow-x-auto gap-3 pb-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent snap-x snap-mandatory scroll-smooth"
+                className="flex overflow-x-auto gap-3 pb-2 snap-x snap-mandatory scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
               >
                 {wantToWatchItems.map((item) => (
                   <WatchingCard
@@ -436,7 +436,7 @@ export default function Watching() {
 
               <div
                 ref={watchedScrollRef}
-                className="flex overflow-x-auto gap-3 pb-2 scrollbar-thin scrollbar-thumb-gray-700 scrollbar-track-transparent snap-x snap-mandatory scroll-smooth"
+                className="flex overflow-x-auto gap-3 pb-2 snap-x snap-mandatory scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
               >
                 {watchedItems.map((item) => (
                   <WatchingCard

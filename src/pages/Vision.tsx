@@ -60,6 +60,10 @@ export default function Vision() {
   const [editingWishContent, setEditingWishContent] = useState('');
   const [expandedWishId, setExpandedWishId] = useState<string | null>(null);
 
+  // Delete confirmation modal state
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<{ id: string; imageUrl: string | null } | null>(null);
+
   // Refs for horizontal scroll navigation
   const workingTowardsScrollRef = useRef<HTMLDivElement>(null);
   const accomplishedScrollRef = useRef<HTMLDivElement>(null);
@@ -319,14 +323,8 @@ export default function Vision() {
 
   const handleDeleteEvent = async (event: VisionItem, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!confirm('Are you sure you want to delete this event?')) return;
-
-    try {
-      await deleteVisionItem(event.id);
-      setItems(items.filter(item => item.id !== event.id));
-    } catch (error) {
-      console.error('Error deleting event:', error);
-    }
+    setShowDeleteConfirm(true);
+    setItemToDelete({ id: event.id, imageUrl: null });
   };
 
   const resetEventForm = () => {
@@ -384,20 +382,29 @@ export default function Vision() {
   };
 
   const handleDeleteItem = async (id: string, imageUrl: string | null) => {
-    if (!confirm('Are you sure you want to delete this item?')) return;
+    setShowDeleteConfirm(true);
+    setItemToDelete({ id, imageUrl });
+  };
+
+  const confirmDelete = async () => {
+    if (!itemToDelete) return;
 
     try {
-      if (imageUrl) {
-        await deleteVisionImage(imageUrl);
+      if (itemToDelete.imageUrl) {
+        await deleteVisionImage(itemToDelete.imageUrl);
       }
-      await deleteVisionItem(id);
-      setItems(items.filter((item) => item.id !== id));
-      if (selectedItem?.id === id) {
+      await deleteVisionItem(itemToDelete.id);
+      setItems(items.filter((item) => item.id !== itemToDelete.id));
+      if (selectedItem?.id === itemToDelete.id) {
         setShowDetailModal(false);
         setSelectedItem(null);
       }
+      setShowDeleteConfirm(false);
+      setItemToDelete(null);
     } catch (error) {
       console.error('Error deleting vision item:', error);
+      setShowDeleteConfirm(false);
+      setItemToDelete(null);
     }
   };
 
@@ -762,11 +769,9 @@ export default function Vision() {
                   {editingEvent && editingEvent.id && (
                     <button
                       onClick={() => {
-                        if (confirm('Delete this event?')) {
-                          handleDeleteItem(editingEvent.id, null);
-                          setShowEventModal(false);
-                          setEditingEvent(null);
-                        }
+                        handleDeleteItem(editingEvent.id, null);
+                        setShowEventModal(false);
+                        setEditingEvent(null);
                       }}
                       className="p-1 hover:bg-red-500/10 rounded transition opacity-40 hover:opacity-100"
                       title="Delete event"
@@ -1296,6 +1301,49 @@ export default function Vision() {
           </div>
         )}
 
+        {/* Delete Confirmation Modal */}
+        {showDeleteConfirm && (
+          <div
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4"
+            onClick={() => {
+              setShowDeleteConfirm(false);
+              setItemToDelete(null);
+            }}
+          >
+            <div
+              className="bg-gradient-to-br from-gray-900/95 to-gray-800/95 backdrop-blur-md rounded-xl max-w-sm w-full border border-red-500/30 shadow-2xl shadow-red-500/10"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-6">
+                <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 bg-red-500/20 rounded-full">
+                  <Trash2 className="w-6 h-6 text-red-400" />
+                </div>
+                <h3 className="text-lg font-bold text-white text-center mb-2">Delete Item?</h3>
+                <p className="text-sm text-gray-300 text-center mb-6">
+                  This action cannot be undone. Are you sure you want to delete this item?
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => {
+                      setShowDeleteConfirm(false);
+                      setItemToDelete(null);
+                    }}
+                    className="flex-1 px-4 py-2.5 bg-gray-700/80 hover:bg-gray-600/80 text-white rounded-lg transition font-medium text-sm"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={confirmDelete}
+                    className="flex-1 px-4 py-2.5 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white rounded-lg transition font-medium text-sm shadow-lg shadow-red-500/20"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Detail Modal - Glass Tray */}
         {showDetailModal && selectedItem && (
           <div
@@ -1335,11 +1383,7 @@ export default function Vision() {
                   {selectedItem.id && (
                     <button
                       onClick={() => {
-                        if (confirm(`Delete this ${selectedItem.type}?`)) {
-                          handleDeleteItem(selectedItem.id, selectedItem.image_url || null);
-                          setShowDetailModal(false);
-                          setSelectedItem(null);
-                        }
+                        handleDeleteItem(selectedItem.id, selectedItem.image_url || null);
                       }}
                       className="p-1 hover:bg-red-500/10 rounded transition opacity-40 hover:opacity-100"
                       title={`Delete ${selectedItem.type}`}
