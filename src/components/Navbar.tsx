@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Settings, LogOut, Menu, X } from 'lucide-react';
+import NotificationBell from './NotificationBell';
 
 interface NavbarProps {
   currentPage: string;
@@ -75,9 +76,12 @@ export default function Navbar({ currentPage, setCurrentPage, onLogout }: Navbar
               })}
             </div>
 
-            {/* Settings and Logout on far right */}
+            {/* Notifications, Settings and Logout on far right */}
             <div className="flex items-center space-x-2 pointer-events-auto">
-              {/* Desktop: Settings and Logout */}
+              {/* Desktop: Notifications, Settings and Logout */}
+              <div className="hidden md:flex items-center justify-center bg-gray-800/80 backdrop-blur-sm rounded-lg border border-gray-700">
+                <NotificationBell />
+              </div>
               <button
                 onClick={() => setCurrentPage('settings')}
                 className="hidden md:flex items-center justify-center p-2 bg-gray-800/80 backdrop-blur-sm hover:bg-gray-700 rounded-lg text-gray-400 hover:text-white transition border border-gray-700"
@@ -139,8 +143,12 @@ export default function Navbar({ currentPage, setCurrentPage, onLogout }: Navbar
                 })}
               </nav>
 
-              {/* Settings and Logout */}
+              {/* Notifications, Settings and Logout */}
               <div className="space-y-2 pt-4 border-t border-gray-800">
+                <div className="px-4 py-2">
+                  <p className="text-xs font-semibold text-gray-500 mb-2">Notifications</p>
+                  <NotificationBell />
+                </div>
                 <button
                   onClick={() => {
                     setCurrentPage('settings');

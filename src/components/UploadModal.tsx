@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { X, Upload, Loader, ChevronLeft, ChevronRight, Grid, Layers } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Upload, Loader, ChevronLeft, ChevronRight, Grid, Layers, MapPin } from 'lucide-react';
 import { uploadFile, uploadFromUrl, createMediaItem, getFileType, MediaMetadata } from '../lib/mediaService';
 
 interface UploadModalProps {
@@ -33,7 +33,63 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
   const [error, setError] = useState<string | null>(null);
   const [carouselMetadata, setCarouselMetadata] = useState<MediaMetadata>({});
 
+  // Location search state
+  const [locationQuery, setLocationQuery] = useState('');
+  const [locationSuggestions, setLocationSuggestions] = useState<any[]>([]);
+  const [isSearchingLocation, setIsSearchingLocation] = useState(false);
+  const [showLocationSuggestions, setShowLocationSuggestions] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState('');
+
   const MAX_CAROUSEL_ITEMS = 10;
+  const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN;
+  const hasMapboxToken = mapboxToken && mapboxToken !== '';
+
+  // Location search function
+  const searchLocation = async (query: string) => {
+    if (!query.trim() || !hasMapboxToken) {
+      setLocationSuggestions([]);
+      return;
+    }
+
+    setIsSearchingLocation(true);
+    try {
+      const response = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
+          query
+        )}.json?access_token=${mapboxToken}&limit=5&types=place,locality,region,country`
+      );
+      const data = await response.json();
+
+      if (data.features) {
+        setLocationSuggestions(data.features);
+        setShowLocationSuggestions(true);
+      }
+    } catch (err) {
+      console.error('Geocoding error:', err);
+    } finally {
+      setIsSearchingLocation(false);
+    }
+  };
+
+  // Debounce location search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (locationQuery) {
+        searchLocation(locationQuery);
+      } else {
+        setLocationSuggestions([]);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [locationQuery]);
+
+  const selectLocationSuggestion = (placeName: string) => {
+    setSelectedLocation(placeName);
+    setLocationQuery(placeName);
+    setLocationSuggestions([]);
+    setShowLocationSuggestions(false);
+  };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -134,7 +190,7 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
       // Save carousel metadata
       const metadata: MediaMetadata = {
         description: formData.get('description') as string || undefined,
-        location: formData.get('location') as string || undefined,
+        location: locationQuery || undefined,
         taken_date: formData.get('taken_date') as string || undefined,
       };
       setCarouselMetadata(metadata);
@@ -143,7 +199,7 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
       // Individual upload - save current file's metadata
       const metadata: MediaMetadata = {
         description: formData.get('description') as string || undefined,
-        location: formData.get('location') as string || undefined,
+        location: locationQuery || undefined,
         taken_date: formData.get('taken_date') as string || undefined,
       };
 
@@ -153,7 +209,10 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
 
       // Move to next file or complete
       if (currentMetadataIndex < uploadedFiles.length - 1) {
-        setCurrentMetadataIndex(currentMetadataIndex + 1);
+        const newIndex = currentMetadataIndex + 1;
+        setCurrentMetadataIndex(newIndex);
+        // Load location for next file
+        setLocationQuery(updatedFiles[newIndex].metadata.location || '');
       } else {
         await saveIndividualMedia();
       }
@@ -162,7 +221,12 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
 
   const handlePrevious = () => {
     if (currentMetadataIndex > 0) {
-      setCurrentMetadataIndex(currentMetadataIndex - 1);
+      const newIndex = currentMetadataIndex - 1;
+      setCurrentMetadataIndex(newIndex);
+      // Load location for previous file
+      if (uploadType === 'individual') {
+        setLocationQuery(uploadedFiles[newIndex].metadata.location || '');
+      }
     }
   };
 
@@ -170,11 +234,25 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
     if (uploadType === 'carousel') {
       saveCarousel({});
     } else if (currentMetadataIndex < uploadedFiles.length - 1) {
-      setCurrentMetadataIndex(currentMetadataIndex + 1);
+      const newIndex = currentMetadataIndex + 1;
+      setCurrentMetadataIndex(newIndex);
+      // Load location for next file
+      setLocationQuery(uploadedFiles[newIndex].metadata.location || '');
     } else {
       saveIndividualMedia();
     }
   };
+
+  // Load location when step changes to metadata
+  useEffect(() => {
+    if (step === 'metadata') {
+      if (uploadType === 'carousel') {
+        setLocationQuery(carouselMetadata.location || '');
+      } else if (currentFile) {
+        setLocationQuery(currentFile.metadata.location || '');
+      }
+    }
+  }, [step, uploadType, currentMetadataIndex]);
 
   const saveCarousel = async (metadata: MediaMetadata) => {
     setIsUploading(true);
@@ -249,6 +327,10 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
     setCurrentMetadataIndex(0);
     setCarouselMetadata({});
     setError(null);
+    setLocationQuery('');
+    setLocationSuggestions([]);
+    setSelectedLocation('');
+    setShowLocationSuggestions(false);
     onClose();
   };
 
@@ -441,17 +523,47 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
                   />
                 </div>
 
-                <div>
+                <div className="relative">
                   <label className="block mb-1.5 text-xs font-medium text-gray-300">
-                    Location (optional)
+                    Where was this taken? (optional)
                   </label>
-                  <input
-                    type="text"
-                    name="location"
-                    defaultValue={uploadType === 'carousel' ? carouselMetadata.location : currentFile.metadata.location}
-                    placeholder="Where was this taken?"
-                    className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                    <input
+                      type="text"
+                      name="location"
+                      value={locationQuery}
+                      onChange={(e) => {
+                        setLocationQuery(e.target.value);
+                        setSelectedLocation('');
+                      }}
+                      onFocus={() => {
+                        if (locationSuggestions.length > 0) setShowLocationSuggestions(true);
+                      }}
+                      placeholder="Search for a location..."
+                      className="w-full pl-10 pr-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    {isSearchingLocation && (
+                      <Loader className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 animate-spin" />
+                    )}
+                  </div>
+
+                  {/* Location suggestions dropdown */}
+                  {showLocationSuggestions && locationSuggestions.length > 0 && (
+                    <div className="absolute z-10 w-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-xl max-h-48 overflow-y-auto">
+                      {locationSuggestions.map((suggestion: any, index: number) => (
+                        <button
+                          key={index}
+                          type="button"
+                          onClick={() => selectLocationSuggestion(suggestion.place_name)}
+                          className="w-full text-left px-3 py-2 hover:bg-gray-700 text-white text-sm border-b border-gray-700 last:border-b-0"
+                        >
+                          <MapPin className="inline w-3 h-3 mr-2 text-gray-500" />
+                          {suggestion.place_name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div>
