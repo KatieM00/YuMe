@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Plus, MapPin, Calendar, MessageSquare, X, Trash2, Loader, Pencil, Layers, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, MapPin, Calendar, MessageSquare, X, Trash2, Loader, Pencil, Layers, ChevronLeft, ChevronRight, Download } from 'lucide-react';
 import { UploadModal } from '../components/UploadModal';
+import GooglePhotosImportModal from '../components/GooglePhotosImportModal';
 import UserBadge from '../components/UserBadge';
+import { checkGooglePhotosConnection } from '../lib/googlePhotosService';
 import {
   MediaItem,
   getAllMedia,
@@ -27,6 +29,8 @@ export default function Images() {
   const [currentCarouselIndex, setCurrentCarouselIndex] = useState(0);
   const [newComment, setNewComment] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showGooglePhotosModal, setShowGooglePhotosModal] = useState(false);
+  const [googlePhotosConnected, setGooglePhotosConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -47,7 +51,17 @@ export default function Images() {
 
   useEffect(() => {
     loadMedia();
+    checkGooglePhotosStatus();
   }, []);
+
+  const checkGooglePhotosStatus = async () => {
+    try {
+      const connection = await checkGooglePhotosConnection();
+      setGooglePhotosConnected(connection.connected);
+    } catch (err) {
+      console.error('Error checking Google Photos connection:', err);
+    }
+  };
 
   // Group media items by carousel
   const groupedMedia = (): MediaGroup[] => {
@@ -250,14 +264,25 @@ export default function Images() {
     <div className="min-h-screen p-4 md:p-8 pt-20 md:pt-24">
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-6">
-
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="flex items-center space-x-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg text-sm font-medium hover:from-blue-600 hover:to-cyan-600 transition"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Add Media</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="flex items-center space-x-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg text-sm font-medium hover:from-blue-600 hover:to-cyan-600 transition"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Media</span>
+            </button>
+            {googlePhotosConnected && (
+              <button
+                onClick={() => setShowGooglePhotosModal(true)}
+                className="flex items-center space-x-1.5 px-3 py-1.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg text-sm font-medium hover:from-purple-600 hover:to-pink-600 transition"
+                title="Import from Google Photos"
+              >
+                <Download className="w-4 h-4" />
+                <span className="hidden sm:inline">Google Photos</span>
+              </button>
+            )}
+          </div>
         </div>
 
         {error && (
@@ -578,6 +603,12 @@ export default function Images() {
           isOpen={showAddModal}
           onClose={() => setShowAddModal(false)}
           onUploadComplete={handleUploadComplete}
+        />
+
+        <GooglePhotosImportModal
+          isOpen={showGooglePhotosModal}
+          onClose={() => setShowGooglePhotosModal(false)}
+          onImportComplete={handleUploadComplete}
         />
       </div>
     </div>

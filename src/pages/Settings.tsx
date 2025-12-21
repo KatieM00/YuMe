@@ -24,11 +24,18 @@ import {
   disconnectSpotify,
   type SpotifyConnectionStatus,
 } from '../lib/spotifyService';
+import {
+  checkGooglePhotosConnection,
+  getGooglePhotosAuthUrl,
+  disconnectGooglePhotos,
+  type GooglePhotosConnectionStatus,
+} from '../lib/googlePhotosService';
 
 export default function Settings() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [partner, setPartner] = useState<PartnerInfo | null>(null);
   const [spotifyConnection, setSpotifyConnection] = useState<SpotifyConnectionStatus>({ connected: false });
+  const [googlePhotosConnection, setGooglePhotosConnection] = useState<GooglePhotosConnectionStatus>({ connected: false });
   const [isLoading, setIsLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [inviteCode, setInviteCode] = useState('');
@@ -41,6 +48,7 @@ export default function Settings() {
   const [isUpdatingName, setIsUpdatingName] = useState(false);
   const [isUpdatingTimezone, setIsUpdatingTimezone] = useState(false);
   const [isDisconnectingSpotify, setIsDisconnectingSpotify] = useState(false);
+  const [isDisconnectingGooglePhotos, setIsDisconnectingGooglePhotos] = useState(false);
   const [selectedEmoji, setSelectedEmoji] = useState<string | null>(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [isUpdatingEmoji, setIsUpdatingEmoji] = useState(false);
@@ -83,6 +91,7 @@ export default function Settings() {
   useEffect(() => {
     loadProfile();
     loadSpotifyConnection();
+    loadGooglePhotosConnection();
   }, []);
 
   useEffect(() => {
@@ -109,6 +118,18 @@ export default function Settings() {
       window.history.replaceState({}, '', window.location.pathname);
     } else if (params.get('spotify_error')) {
       showToast(`Failed to connect Spotify: ${params.get('spotify_error')}`, 'error');
+      // Clean up URL
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+
+    // Check for Google Photos connection status from URL params
+    if (params.get('google_photos_connected') === 'true') {
+      showToast('Google Photos account connected successfully!', 'success');
+      loadGooglePhotosConnection();
+      // Clean up URL
+      window.history.replaceState({}, '', window.location.pathname);
+    } else if (params.get('google_photos_error')) {
+      showToast(`Failed to connect Google Photos: ${params.get('google_photos_error')}`, 'error');
       // Clean up URL
       window.history.replaceState({}, '', window.location.pathname);
     }
@@ -221,6 +242,15 @@ export default function Settings() {
       setSpotifyConnection(connection);
     } catch (err) {
       console.error('Error checking Spotify connection:', err);
+    }
+  };
+
+  const loadGooglePhotosConnection = async () => {
+    try {
+      const connection = await checkGooglePhotosConnection();
+      setGooglePhotosConnection(connection);
+    } catch (err) {
+      console.error('Error checking Google Photos connection:', err);
     }
   };
 
@@ -499,6 +529,39 @@ export default function Settings() {
       showToast('Failed to disconnect Spotify account', 'error');
     } finally {
       setIsDisconnectingSpotify(false);
+    }
+  };
+
+  const handleConnectGooglePhotos = async () => {
+    if (!profile?.id) {
+      showToast('User profile not loaded', 'error');
+      return;
+    }
+
+    try {
+      const authUrl = await getGooglePhotosAuthUrl(profile.id);
+      window.location.href = authUrl;
+    } catch (err) {
+      console.error('Error getting Google Photos auth URL:', err);
+      showToast('Failed to connect to Google Photos. Please try again.', 'error');
+    }
+  };
+
+  const handleDisconnectGooglePhotos = async () => {
+    if (!confirm('Are you sure you want to disconnect your Google Photos account? You will lose access to photo import features.')) {
+      return;
+    }
+
+    setIsDisconnectingGooglePhotos(true);
+
+    try {
+      await disconnectGooglePhotos();
+      showToast('Google Photos account disconnected successfully', 'success');
+      await loadGooglePhotosConnection();
+    } catch (err) {
+      showToast('Failed to disconnect Google Photos account', 'error');
+    } finally {
+      setIsDisconnectingGooglePhotos(false);
     }
   };
 
@@ -1016,15 +1079,36 @@ export default function Settings() {
                 <h3 className="text-sm font-semibold text-gray-300 mb-3">
                   Google Photos
                 </h3>
-                <div className="space-y-3">
-                  <p className="text-gray-400 text-xs">Upload photos from Google</p>
-                  <button
-                    onClick={() => showToast('Google Photos integration coming soon!', 'error')}
-                    className="w-full px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs font-medium transition"
-                  >
-                    Connect Google
-                  </button>
-                </div>
+                {googlePhotosConnection.connected ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <span className="text-green-400 text-xs font-medium">Connected</span>
+                    </div>
+                    {googlePhotosConnection.display_name && (
+                      <p className="text-gray-400 text-xs">
+                        {googlePhotosConnection.display_name}
+                      </p>
+                    )}
+                    <button
+                      onClick={handleDisconnectGooglePhotos}
+                      disabled={isDisconnectingGooglePhotos}
+                      className="w-full px-3 py-2 bg-red-600/20 hover:bg-red-600/30 text-red-400 rounded-md text-xs font-medium transition disabled:opacity-50"
+                    >
+                      {isDisconnectingGooglePhotos ? 'Disconnecting...' : 'Disconnect'}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <p className="text-gray-400 text-xs">Import photos from Google Photos</p>
+                    <button
+                      onClick={handleConnectGooglePhotos}
+                      className="w-full px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-xs font-medium transition"
+                    >
+                      Connect Google Photos
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
