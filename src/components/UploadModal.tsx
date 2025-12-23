@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { X, Upload, Loader, ChevronLeft, ChevronRight, Grid, Layers, MapPin } from 'lucide-react';
+import { X, Upload, Loader, ChevronLeft, ChevronRight, Grid, Layers, MapPin, Image as ImageIcon, CheckCircle } from 'lucide-react';
 import { uploadFile, uploadFromUrl, createMediaItem, getFileType, MediaMetadata } from '../lib/mediaService';
+import {
+  checkGooglePhotosConnection,
+  getAllGooglePhotosAlbums,
+  getAllAlbumMediaItems,
+  getDownloadUrl,
+  extractMetadata,
+  type GooglePhotosAlbum,
+  type GooglePhotosMediaItem,
+} from '../lib/googlePhotosService';
 
 interface UploadModalProps {
   isOpen: boolean;
@@ -22,6 +31,7 @@ interface UploadedFile {
 
 type UploadStep = 'select' | 'upload-type' | 'upload' | 'metadata' | 'complete';
 type UploadType = 'individual' | 'carousel';
+type ImportSource = 'local' | 'google-photos';
 
 export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalProps) {
   const [step, setStep] = useState<UploadStep>('select');
@@ -32,6 +42,17 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [carouselMetadata, setCarouselMetadata] = useState<MediaMetadata>({});
+
+  // Import source state
+  const [importSource, setImportSource] = useState<ImportSource>('local');
+  const [googlePhotosConnected, setGooglePhotosConnected] = useState(false);
+
+  // Google Photos state
+  const [albums, setAlbums] = useState<GooglePhotosAlbum[]>([]);
+  const [selectedAlbum, setSelectedAlbum] = useState<GooglePhotosAlbum | null>(null);
+  const [googlePhotosItems, setGooglePhotosItems] = useState<GooglePhotosMediaItem[]>([]);
+  const [selectedGooglePhotosItems, setSelectedGooglePhotosItems] = useState<Set<string>>(new Set());
+  const [isLoadingAlbums, setIsLoadingAlbums] = useState(false);
 
   // Location search state
   const [locationQuery, setLocationQuery] = useState('');
@@ -89,6 +110,109 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
     setLocationQuery(placeName);
     setLocationSuggestions([]);
     setShowLocationSuggestions(false);
+  };
+
+  // Check Google Photos connection when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      checkGooglePhotosStatus();
+    }
+  }, [isOpen]);
+
+  const checkGooglePhotosStatus = async () => {
+    try {
+      const connection = await checkGooglePhotosConnection();
+      setGooglePhotosConnected(connection.connected);
+    } catch (err) {
+      console.error('Error checking Google Photos connection:', err);
+      setGooglePhotosConnected(false);
+    }
+  };
+
+  // Load Google Photos albums when switching to Google Photos tab
+  const loadGooglePhotosAlbums = async () => {
+    setIsLoadingAlbums(true);
+    setError(null);
+    try {
+      const allAlbums = await getAllGooglePhotosAlbums();
+      setAlbums(allAlbums);
+    } catch (err) {
+      console.error('Error loading albums:', err);
+      setError('Failed to load Google Photos albums. Please try again.');
+    } finally {
+      setIsLoadingAlbums(false);
+    }
+  };
+
+  // Load media items from selected album
+  const loadAlbumMedia = async (album: GooglePhotosAlbum) => {
+    setSelectedAlbum(album);
+    setIsLoadingAlbums(true);
+    setError(null);
+    try {
+      const items = await getAllAlbumMediaItems(album.id);
+      setGooglePhotosItems(items);
+    } catch (err) {
+      console.error('Error loading album media:', err);
+      setError('Failed to load photos from album.');
+    } finally {
+      setIsLoadingAlbums(false);
+    }
+  };
+
+  // Toggle selection of Google Photos item
+  const toggleGooglePhotoSelection = (itemId: string) => {
+    setSelectedGooglePhotosItems((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(itemId)) {
+        newSet.delete(itemId);
+      } else {
+        newSet.add(itemId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleGooglePhotosUpload = async () => {
+    setIsUploading(true);
+    setError(null);
+
+    try {
+      const itemsToUpload = googlePhotosItems.filter(item =>
+        selectedGooglePhotosItems.has(item.id)
+      );
+
+      const uploaded: UploadedFile[] = [];
+
+      for (const item of itemsToUpload) {
+        const downloadUrl = getDownloadUrl(item);
+        const uploadedFile = await uploadFromUrl(downloadUrl, item.filename);
+        const metadata = extractMetadata(item);
+
+        uploaded.push({
+          storagePath: uploadedFile.path,
+          publicUrl: uploadedFile.url,
+          fileName: item.filename,
+          fileType: item.mimeType.startsWith('video/') ? 'video' : 'image',
+          mimeType: item.mimeType,
+          fileSize: 0,
+          metadata: {
+            description: metadata.description || '',
+            location: metadata.location || '',
+            taken_date: metadata.takenDate || undefined,
+          },
+        });
+      }
+
+      setUploadedFiles(uploaded);
+      setStep('metadata');
+    } catch (err) {
+      console.error('Error uploading from Google Photos:', err);
+      setError('Failed to import photos. Please try again.');
+      setStep('select');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -322,6 +446,7 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
   const handleClose = () => {
     setStep('select');
     setUploadType('individual');
+    setImportSource('local');
     setSelectedFiles([]);
     setUploadedFiles([]);
     setCurrentMetadataIndex(0);
@@ -331,6 +456,11 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
     setLocationSuggestions([]);
     setSelectedLocation('');
     setShowLocationSuggestions(false);
+    // Reset Google Photos state
+    setAlbums([]);
+    setSelectedAlbum(null);
+    setGooglePhotosItems([]);
+    setSelectedGooglePhotosItems(new Set());
     onClose();
   };
 
@@ -360,6 +490,37 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
               </button>
             </div>
 
+            {/* Tabs */}
+            <div className="flex border-b border-gray-700">
+              <button
+                onClick={() => setImportSource('local')}
+                className={`flex-1 px-4 py-3 text-sm font-medium transition ${
+                  importSource === 'local'
+                    ? 'text-blue-400 border-b-2 border-blue-400 bg-blue-500/10'
+                    : 'text-gray-400 hover:text-gray-300'
+                }`}
+              >
+                From Computer
+              </button>
+              {googlePhotosConnected && (
+                <button
+                  onClick={() => {
+                    setImportSource('google-photos');
+                    if (albums.length === 0) {
+                      loadGooglePhotosAlbums();
+                    }
+                  }}
+                  className={`flex-1 px-4 py-3 text-sm font-medium transition ${
+                    importSource === 'google-photos'
+                      ? 'text-purple-400 border-b-2 border-purple-400 bg-purple-500/10'
+                      : 'text-gray-400 hover:text-gray-300'
+                  }`}
+                >
+                  From Google Photos
+                </button>
+              )}
+            </div>
+
             <div className="p-6 space-y-4">
               {error && (
                 <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm whitespace-pre-line">
@@ -367,45 +528,156 @@ export function UploadModal({ isOpen, onClose, onUploadComplete }: UploadModalPr
                 </div>
               )}
 
-              <label className="block p-8 border-2 border-dashed border-gray-700 rounded-lg hover:border-blue-500 transition-colors cursor-pointer bg-gray-800/30">
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*,video/*"
-                  onChange={handleFileSelect}
-                  className="hidden"
-                />
-                <Upload className="w-10 h-10 mx-auto mb-3 text-gray-500" />
-                <p className="text-center text-sm text-gray-300 font-medium">
-                  Click to select files
-                </p>
-                <p className="text-center text-xs text-gray-500 mt-1">
-                  Images and videos supported
-                </p>
-              </label>
+              {/* Local File Upload */}
+              {importSource === 'local' && (
+                <>
+                  <label className="block p-8 border-2 border-dashed border-gray-700 rounded-lg hover:border-blue-500 transition-colors cursor-pointer bg-gray-800/30">
+                    <input
+                      type="file"
+                      multiple
+                      accept="image/*,video/*"
+                      onChange={handleFileSelect}
+                      className="hidden"
+                    />
+                    <Upload className="w-10 h-10 mx-auto mb-3 text-gray-500" />
+                    <p className="text-center text-sm text-gray-300 font-medium">
+                      Click to select files
+                    </p>
+                    <p className="text-center text-xs text-gray-500 mt-1">
+                      Images and videos supported
+                    </p>
+                  </label>
 
-              {selectedFiles.length > 0 && (
-                <div>
-                  <p className="text-sm font-medium text-gray-300 mb-2">
-                    Selected {selectedFiles.length} file(s):
-                  </p>
-                  <div className="max-h-32 overflow-y-auto space-y-1">
-                    {selectedFiles.map((file, index) => (
-                      <div key={index} className="text-sm text-gray-400 truncate bg-gray-800/50 px-3 py-1.5 rounded">
-                        {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                  {selectedFiles.length > 0 && (
+                    <div>
+                      <p className="text-sm font-medium text-gray-300 mb-2">
+                        Selected {selectedFiles.length} file(s):
+                      </p>
+                      <div className="max-h-32 overflow-y-auto space-y-1">
+                        {selectedFiles.map((file, index) => (
+                          <div key={index} className="text-sm text-gray-400 truncate bg-gray-800/50 px-3 py-1.5 rounded">
+                            {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                </div>
+                    </div>
+                  )}
+
+                  <button
+                    onClick={handleUploadTypeSelection}
+                    disabled={isUploading || selectedFiles.length === 0}
+                    className="w-full px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed font-medium text-sm"
+                  >
+                    Continue
+                  </button>
+                </>
               )}
 
-              <button
-                onClick={handleUploadTypeSelection}
-                disabled={isUploading || selectedFiles.length === 0}
-                className="w-full px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed font-medium text-sm"
-              >
-                Continue
-              </button>
+              {/* Google Photos Import */}
+              {importSource === 'google-photos' && (
+                <>
+                  {!googlePhotosConnected && (
+                    <div className="text-center py-12">
+                      <p className="text-gray-400 mb-2">Connect Google Photos to import photos</p>
+                      <p className="text-gray-500 text-sm">Go to Settings to connect your account</p>
+                    </div>
+                  )}
+
+                  {googlePhotosConnected && isLoadingAlbums && (
+                    <div className="flex flex-col items-center justify-center py-12">
+                      <Loader className="w-8 h-8 text-purple-500 animate-spin mb-3" />
+                      <p className="text-gray-400">Loading albums...</p>
+                    </div>
+                  )}
+
+                  {googlePhotosConnected && !isLoadingAlbums && !selectedAlbum && albums.length > 0 && (
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-300 mb-3">Select an Album</h3>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-96 overflow-y-auto">
+                        {albums.map((album) => (
+                          <button
+                            key={album.id}
+                            onClick={() => loadAlbumMedia(album)}
+                            className="flex flex-col items-center p-3 bg-gray-800 hover:bg-gray-700 rounded-lg transition border border-gray-700"
+                          >
+                            {album.coverPhotoBaseUrl ? (
+                              <img
+                                src={`${album.coverPhotoBaseUrl}=w200-h200-c`}
+                                alt={album.title}
+                                className="w-full aspect-square object-cover rounded-lg mb-2"
+                              />
+                            ) : (
+                              <div className="w-full aspect-square bg-gray-700 rounded-lg mb-2 flex items-center justify-center">
+                                <ImageIcon className="w-8 h-8 text-gray-500" />
+                              </div>
+                            )}
+                            <p className="text-white text-xs font-medium text-center line-clamp-2">{album.title}</p>
+                            <p className="text-gray-400 text-xs mt-1">{album.mediaItemsCount} items</p>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {googlePhotosConnected && !isLoadingAlbums && selectedAlbum && (
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <button
+                          onClick={() => {
+                            setSelectedAlbum(null);
+                            setGooglePhotosItems([]);
+                            setSelectedGooglePhotosItems(new Set());
+                          }}
+                          className="text-purple-400 hover:text-purple-300 text-sm"
+                        >
+                          ← Back to albums
+                        </button>
+                        <h3 className="text-sm font-semibold text-gray-300">{selectedAlbum.title}</h3>
+                      </div>
+                      <div className="grid grid-cols-3 md:grid-cols-4 gap-2 max-h-96 overflow-y-auto">
+                        {googlePhotosItems.map((item) => (
+                          <button
+                            key={item.id}
+                            onClick={() => toggleGooglePhotoSelection(item.id)}
+                            className={`relative aspect-square rounded-lg overflow-hidden border-2 transition ${
+                              selectedGooglePhotosItems.has(item.id)
+                                ? 'border-purple-500 ring-2 ring-purple-500/50'
+                                : 'border-gray-700 hover:border-gray-600'
+                            }`}
+                          >
+                            <img
+                              src={`${item.baseUrl}=w200-h200-c`}
+                              alt={item.filename}
+                              className="w-full h-full object-cover"
+                            />
+                            {selectedGooglePhotosItems.has(item.id) && (
+                              <div className="absolute top-1 right-1 bg-purple-500 rounded-full p-0.5">
+                                <CheckCircle className="w-4 h-4 text-white" />
+                              </div>
+                            )}
+                            {item.mimeType.startsWith('video/') && (
+                              <div className="absolute bottom-1 left-1 bg-black/70 px-1.5 py-0.5 rounded text-[10px] text-white">
+                                VIDEO
+                              </div>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                      <button
+                        onClick={() => {
+                          // Continue with Google Photos import
+                          setStep('upload');
+                          handleGooglePhotosUpload();
+                        }}
+                        disabled={selectedGooglePhotosItems.size === 0}
+                        className="w-full px-4 py-3 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors disabled:bg-gray-600 disabled:cursor-not-allowed font-medium text-sm mt-4"
+                      >
+                        Continue ({selectedGooglePhotosItems.size} selected)
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </>
         )}
