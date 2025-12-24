@@ -142,11 +142,17 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
     return Math.round(distance);
   };
 
+  const parseDateOnlyAsUTC = (dateStr: string) => {
+    // expects "YYYY-MM-DD"
+    const [y, m, d] = dateStr.split('-').map(Number);
+    return new Date(Date.UTC(y, m - 1, d));
+  };
+
   const getDaysUntil = (date: Date) => {
     const now = new Date();
-    now.setHours(0, 0, 0, 0);
-    const diff = date.getTime() - now.getTime();
-    return Math.ceil(diff / (1000 * 60 * 60 * 24));
+    const utcToday = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+    const utcEvent = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+    return Math.round((utcEvent - utcToday) / (1000 * 60 * 60 * 24));
   };
 
   const nextEvent: { event: string; date: Date; days: number; item: VisionItem } | null = useMemo(() => {
@@ -161,7 +167,7 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
     let minDays = Infinity;
 
     eventsWithDates.forEach(item => {
-      const eventDate = new Date(item.event_date!);
+      const eventDate = parseDateOnlyAsUTC(item.event_date!);
       const days = getDaysUntil(eventDate);
       if (days > 0 && days < minDays) {
         minDays = days;
@@ -406,7 +412,7 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
 
       {/* Event Detail Modal */}
       {selectedEvent && selectedEvent.event_date && (() => {
-        const eventDate = new Date(selectedEvent.event_date);
+        const eventDate = parseDateOnlyAsUTC(selectedEvent.event_date);
         const daysUntil = getDaysUntil(eventDate);
 
         return (
