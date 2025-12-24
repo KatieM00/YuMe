@@ -769,6 +769,7 @@ function DetailModal({
   formatDate: (date: string | null) => string;
   getDisplayRating: (item: WatchingItem) => { rating: number; source: 'user' | 'tmdb' };
 }) {
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const displayRating = getDisplayRating(item);
 
   return (
@@ -777,18 +778,27 @@ function DetailModal({
       onClick={onClose}
     >
       <div
-        className="bg-gray-900 rounded-lg max-w-4xl w-full border border-gray-700 overflow-hidden my-8"
+        className="bg-gray-900 rounded-lg max-w-2xl md:max-w-4xl w-full border border-gray-700 overflow-hidden my-8 max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="grid md:grid-cols-5">
           {/* Poster */}
-          <div className="md:col-span-2 aspect-[2/3] md:aspect-auto bg-gray-800">
+          <div className="md:col-span-2 aspect-[2/3] md:aspect-auto bg-gray-800 max-h-48 md:max-h-none">
             {item.poster_path ? (
-              <img
-                src={getPosterUrl(item.poster_path, 'w500')}
-                alt={item.title}
-                className="w-full h-full object-cover"
-              />
+              <>
+                {/* Mobile poster - w185 */}
+                <img
+                  src={getPosterUrl(item.poster_path, 'w185')}
+                  alt={item.title}
+                  className="md:hidden w-full h-full object-cover"
+                />
+                {/* Desktop poster - w500 */}
+                <img
+                  src={getPosterUrl(item.poster_path, 'w500')}
+                  alt={item.title}
+                  className="hidden md:block w-full h-full object-cover"
+                />
+              </>
             ) : (
               <div className="w-full h-full flex items-center justify-center">
                 {item.media_type === 'movie' ? (
@@ -801,7 +811,7 @@ function DetailModal({
           </div>
 
           {/* Details */}
-          <div className="md:col-span-3 p-4">
+          <div className="md:col-span-3 p-3 md:p-4">
             <div className="flex items-start justify-between mb-3">
               <div>
                 <h2 className="text-xl font-bold text-white mb-1">{item.title}</h2>
@@ -918,7 +928,19 @@ function DetailModal({
             {/* Description */}
             {item.overview && (
               <div className="mb-3">
-                <p className="text-gray-400 text-xs leading-relaxed">{item.overview}</p>
+                <p className={`text-gray-400 text-xs leading-relaxed ${
+                  !isDescriptionExpanded ? 'line-clamp-3' : ''
+                }`}>
+                  {item.overview}
+                </p>
+                {item.overview.length > 200 && (
+                  <button
+                    onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
+                    className="text-blue-400 text-xs hover:text-blue-300 transition mt-1 inline-block"
+                  >
+                    {isDescriptionExpanded ? 'less' : '...more'}
+                  </button>
+                )}
               </div>
             )}
 
@@ -926,7 +948,7 @@ function DetailModal({
             <div className="flex space-x-1.5 mb-3">
               <button
                 onClick={() => onUpdateStatus(item.id, 'watching')}
-                className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition ${
+                className={`flex-1 py-2 md:py-1.5 rounded-lg text-xs font-medium transition ${
                   item.status === 'watching'
                     ? 'bg-green-500 text-white'
                     : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
@@ -936,7 +958,7 @@ function DetailModal({
               </button>
               <button
                 onClick={() => onUpdateStatus(item.id, 'want_to_watch')}
-                className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition ${
+                className={`flex-1 py-2 md:py-1.5 rounded-lg text-xs font-medium transition ${
                   item.status === 'want_to_watch'
                     ? 'bg-yellow-500 text-white'
                     : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
@@ -946,7 +968,7 @@ function DetailModal({
               </button>
               <button
                 onClick={() => onUpdateStatus(item.id, 'watched')}
-                className={`flex-1 py-1.5 rounded-lg text-xs font-medium transition ${
+                className={`flex-1 py-2 md:py-1.5 rounded-lg text-xs font-medium transition ${
                   item.status === 'watched'
                     ? 'bg-blue-500 text-white'
                     : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
@@ -959,7 +981,7 @@ function DetailModal({
             {/* Delete Button */}
             <button
               onClick={() => onDelete(item.id)}
-              className="w-full py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg text-xs font-medium transition"
+              className="w-full py-2 md:py-1.5 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-lg text-xs font-medium transition"
             >
               Remove from List
             </button>
