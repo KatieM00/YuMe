@@ -23,7 +23,7 @@ import NotificationBell from '../components/NotificationBell';
 // =========================================================================
 
 type DashboardProps = {
-    setPage: (page: string) => void;
+  setPage: (page: string) => void;
 };
 
 const DashboardContent = ({ setPage }: DashboardProps) => {
@@ -332,8 +332,8 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
 
   const ButtonBox = ({ id, name, iconSrc }: typeof navButtons[0]) => (
     <button
-        onClick={() => setPage(id)}
-        className="block"
+      onClick={() => setPage(id)}
+      className="block"
     >
       <img
         src={iconSrc}
@@ -623,39 +623,75 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
       )}
     </>
   );
-}
+};
 
 // =========================================================================
 // MAIN DASHBOARD COMPONENT
 // =========================================================================
 
-export default function Dashboard({ setCurrentPage, onLogout }: { setCurrentPage: (page: string) => void; onLogout?: () => void }) {
-    return (
-        <div className="min-h-screen p-4 md:p-8">
-            {/* Notifications, Settings and Logout buttons - top right */}
-            <div className="fixed top-4 right-4 z-10 flex items-center space-x-2">
-                <div className="flex items-center justify-center bg-gray-800/80 backdrop-blur-sm rounded-lg border border-gray-700">
-                    <NotificationBell />
-                </div>
-                <button
-                    onClick={() => setCurrentPage('settings')}
-                    className="flex items-center justify-center p-2 bg-gray-800/80 backdrop-blur-sm hover:bg-gray-700 rounded-lg text-gray-400 hover:text-white transition border border-gray-700"
-                >
-                    <Settings className="w-5 h-5" />
-                </button>
-                {onLogout && (
-                    <button
-                        onClick={onLogout}
-                        className="flex items-center justify-center p-2 bg-gray-800/80 backdrop-blur-sm hover:bg-gray-700 rounded-lg text-gray-400 hover:text-white transition border border-gray-700"
-                    >
-                        <LogOut className="w-5 h-5" />
-                    </button>
-                )}
-            </div>
+export default function Dashboard({
+  setCurrentPage,
+  onLogout
+}: {
+  setCurrentPage: (page: string) => void;
+  onLogout?: () => void;
+}) {
+  const isDesktop = typeof window !== 'undefined' && window.innerWidth > 768;
+  const [showSplash, setShowSplash] = useState(isDesktop);
 
-            <div className="max-w-7xl mx-auto">
-                <DashboardContent setPage={setCurrentPage} />
-            </div>
+  // Fallback hide timer (avoids video autoplay issues)
+  useEffect(() => {
+    if (!isDesktop) return;
+    const timer = setTimeout(() => setShowSplash(false), 6000);
+    return () => clearTimeout(timer);
+  }, [isDesktop]);
+
+  return (
+    <div className="min-h-screen p-4 md:p-8 relative overflow-hidden">
+      {/* Desktop-Only Splash Screen Video */}
+      {isDesktop && showSplash && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black">
+          <video
+            src="/images/SplashScreen1.mp4"
+            autoPlay
+            muted
+            playsInline
+            onEnded={() => setShowSplash(false)}
+            className="w-full h-full object-cover"
+          />
+          <button
+            onClick={() => setShowSplash(false)}
+            className="absolute top-4 right-4 px-3 py-1.5 rounded-full bg-black/60 text-white text-xs"
+          >
+            Skip
+          </button>
         </div>
-    );
+      )}
+
+      {/* Notifications, Settings and Logout buttons - top right */}
+      <div className="fixed top-4 right-4 z-10 flex items-center space-x-2">
+        <div className="flex items-center justify-center bg-gray-800/80 backdrop-blur-sm rounded-lg border border-gray-700">
+          <NotificationBell />
+        </div>
+        <button
+          onClick={() => setCurrentPage('settings')}
+          className="flex items-center justify-center p-2 bg-gray-800/80 backdrop-blur-sm hover:bg-gray-700 rounded-lg text-gray-400 hover:text-white transition border border-gray-700"
+        >
+          <Settings className="w-5 h-5" />
+        </button>
+        {onLogout && (
+          <button
+            onClick={onLogout}
+            className="flex items-center justify-center p-2 bg-gray-800/80 backdrop-blur-sm hover:bg-gray-700 rounded-lg text-gray-400 hover:text-white transition border border-gray-700"
+          >
+            <LogOut className="w-5 h-5" />
+          </button>
+        )}
+      </div>
+
+      <div className="max-w-7xl mx-auto">
+        <DashboardContent setPage={setCurrentPage} />
+      </div>
+    </div>
+  );
 }
