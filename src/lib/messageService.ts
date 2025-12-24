@@ -258,8 +258,6 @@ export async function createMessage(messageData: CreateMessageData): Promise<Mes
     .from('messages')
     .insert({
       user_id: user.id,
-      from_user: messageData.from_user,
-      to_user: messageData.to_user,
       type: messageData.type,
       content: messageData.content,
       media_url: messageData.media_url || null,
