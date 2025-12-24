@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Plus, Search, X, Star, Clock, Calendar, Film, Tv, Loader, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Search, X, Star, Clock, Calendar, Film, Tv, Loader, ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import UserBadge from '../components/UserBadge';
 import {
   searchMulti,
@@ -8,8 +8,6 @@ import {
   getPosterUrl,
   getGenreNames,
   SearchResult,
-  TMDBMovie,
-  TMDBTVShow,
 } from '../lib/tmdbService';
 import {
   WatchingItem,
@@ -18,6 +16,8 @@ import {
   updateUserRating,
   updateWatchingStatus,
   deleteWatchingItem,
+  // NEW: progress updater (implement in watchingService.ts)
+  updateWatchingProgress,
 } from '../lib/watchingService';
 
 export default function Watching() {
@@ -132,6 +132,9 @@ export default function Watching() {
           tmdb_rating: Math.round(details.vote_average * 10) / 10,
           user_rating: null,
           status,
+          // NEW: initial progress (none)
+          currentSeason: null,
+          currentEpisode: null,
         };
       } else {
         const details = await getTVShowDetails(result.id);
@@ -156,6 +159,9 @@ export default function Watching() {
           tmdb_rating: Math.round(details.vote_average * 10) / 10,
           user_rating: null,
           status,
+          // NEW: initial progress (none)
+          currentSeason: null,
+          currentEpisode: null,
         };
       }
 
@@ -197,6 +203,24 @@ export default function Watching() {
     } catch (err) {
       console.error('Failed to update status:', err);
       alert('Failed to update status');
+    }
+  };
+
+  // NEW: Update season/episode progress for series
+  const handleUpdateProgress = async (id: string, season: number | null, episode: number | null) => {
+    try {
+      await updateWatchingProgress(id, season, episode);
+      await loadWatchingItems();
+      if (selectedItem?.id === id) {
+        setSelectedItem({
+          ...selectedItem,
+          currentSeason: season,
+          currentEpisode: episode,
+        });
+      }
+    } catch (err) {
+      console.error('Failed to update progress:', err);
+      alert('Failed to update progress');
     }
   };
 
@@ -261,7 +285,6 @@ export default function Watching() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
-
           <button
             onClick={() => setShowAddModal(true)}
             className="flex items-center space-x-1.5 px-3 py-1.5 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-lg text-sm font-medium hover:from-blue-600 hover:to-cyan-600 transition"
@@ -542,6 +565,7 @@ export default function Watching() {
             formatRuntime={formatRuntime}
             formatDate={formatDate}
             getDisplayRating={getDisplayRating}
+            onUpdateProgress={handleUpdateProgress}
           />
         )}
 
@@ -639,6 +663,16 @@ function WatchingCard({
             <p className="text-[10px] text-gray-300 mb-0.5">
               {item.media_type === 'movie' ? 'Movie' : 'Series'}
             </p>
+
+            {/* NEW: Series progress under "Series" label */}
+            {item.media_type === 'tv' && (
+              <p className="text-[10px] text-gray-300 mb-0.5">
+                {item.currentSeason && item.currentEpisode
+                  ? `Currently on: S${item.currentSeason} · E${item.currentEpisode}`
+                  : 'Start tracking progress'}
+              </p>
+            )}
+
             {item.runtime && (
               <div className="flex items-center justify-center space-x-0.5 mb-0.5">
                 <Clock className="w-2.5 h-2.5" />
@@ -759,6 +793,7 @@ function DetailModal({
   formatRuntime,
   formatDate,
   getDisplayRating,
+  onUpdateProgress,
 }: {
   item: WatchingItem;
   onClose: () => void;
@@ -768,9 +803,48 @@ function DetailModal({
   formatRuntime: (minutes: number | null) => string;
   formatDate: (date: string | null) => string;
   getDisplayRating: (item: WatchingItem) => { rating: number; source: 'user' | 'tmdb' };
+  onUpdateProgress: (id: string, season: number | null, episode: number | null) => void;
 }) {
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const displayRating = getDisplayRating(item);
+
+  // NEW: progress editing state
+  const [isEditingProgress, setIsEditingProgress] = useState(false);
+  const [seasonInput, setSeasonInput] = useState<string>(
+    item.currentSeason != null ? String(item.currentSeason) : ''
+  );
+  const [episodeInput, setEpisodeInput] = useState<string>(
+    item.currentEpisode != null ? String(item.currentEpisode) : ''
+  );
+  const [isSavingProgress, setIsSavingProgress] = useState(false);
+
+  // Reset edit fields when item changes
+  useEffect(() => {
+    setIsEditingProgress(false);
+    setSeasonInput(item.currentSeason != null ? String(item.currentSeason) : '');
+    setEpisodeInput(item.currentEpisode != null ? String(item.currentEpisode) : '');
+  }, [item.id, item.currentSeason, item.currentEpisode]);
+
+  const handleSaveProgress = async () => {
+    const season = seasonInput.trim() === '' ? null : Number(seasonInput);
+    const episode = episodeInput.trim() === '' ? null : Number(episodeInput);
+
+    if (
+      (season !== null && (!Number.isFinite(season) || season < 1)) ||
+      (episode !== null && (!Number.isFinite(episode) || episode < 1))
+    ) {
+      alert('Please enter valid positive numbers for season and episode, or leave blank.');
+      return;
+    }
+
+    try {
+      setIsSavingProgress(true);
+      await onUpdateProgress(item.id, season, episode);
+      setIsEditingProgress(false);
+    } finally {
+      setIsSavingProgress(false);
+    }
+  };
 
   return (
     <div
@@ -818,6 +892,69 @@ function DetailModal({
                 <span className="text-gray-400 text-xs">
                   {item.media_type === 'movie' ? 'Movie' : 'Series'}
                 </span>
+
+                {/* NEW: Series progress just under title/type */}
+                {item.media_type === 'tv' && (
+                  <div className="mt-1 text-xs text-gray-200">
+                    {!isEditingProgress ? (
+                      <button
+                        type="button"
+                        onClick={() => setIsEditingProgress(true)}
+                        className="inline-flex items-center gap-1 text-gray-200 hover:text-blue-400 transition underline decoration-dotted underline-offset-2"
+                      >
+                        <span className="text-gray-400">Currently on:</span>
+                        {item.currentSeason != null && item.currentEpisode != null ? (
+                          <span>
+                            Season {item.currentSeason} Episode {item.currentEpisode}
+                          </span>
+                        ) : (
+                          <span className="italic text-gray-300">Not set – click to update</span>
+                        )}
+                      </button>
+                    ) : (
+                      <div className="inline-flex flex-wrap items-center gap-1.5">
+                        <span className="text-gray-400">Currently on:</span>
+                        <span>Season</span>
+                        <input
+                          type="number"
+                          min={1}
+                          value={seasonInput}
+                          onChange={(e) => setSeasonInput(e.target.value)}
+                          className="w-14 px-2 py-1 rounded bg-gray-800 text-white text-xs border border-gray-600 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        />
+                        <span>Episode</span>
+                        <input
+                          type="number"
+                          min={1}
+                          value={episodeInput}
+                          onChange={(e) => setEpisodeInput(e.target.value)}
+                          className="w-14 px-2 py-1 rounded bg-gray-800 text-white text-xs border border-gray-600 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleSaveProgress}
+                          disabled={isSavingProgress}
+                          className="p-1 rounded-full bg-green-500 hover:bg-green-600 disabled:opacity-60 disabled:cursor-not-allowed text-white flex items-center justify-center transition"
+                          title="Save progress"
+                        >
+                          <Check className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsEditingProgress(false);
+                            setSeasonInput(item.currentSeason != null ? String(item.currentSeason) : '');
+                            setEpisodeInput(item.currentEpisode != null ? String(item.currentEpisode) : '');
+                          }}
+                          className="p-1 rounded-full bg-gray-700 hover:bg-gray-600 text-white flex items-center justify-center transition"
+                          title="Cancel"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
               <button
                 onClick={onClose}
@@ -827,10 +964,10 @@ function DetailModal({
               </button>
             </div>
 
-            {/* Ratings */}
-            <div className="mb-3 space-y-2">
+            {/* Ratings - NOW SIDE BY SIDE */}
+            <div className="mb-3 flex flex-col sm:flex-row gap-3">
               {/* TMDB Rating */}
-              <div>
+              <div className="flex-1">
                 <p className="text-gray-400 text-xs mb-1">TMDB Rating</p>
                 <div className="flex items-center space-x-1">
                   {Array.from({ length: 5 }).map((_, i) => (
@@ -850,7 +987,7 @@ function DetailModal({
               </div>
 
               {/* Our Rating */}
-              <div>
+              <div className="flex-1">
                 <p className="text-gray-400 text-xs mb-1">Our Rating</p>
                 <div className="flex items-center space-x-1">
                   {Array.from({ length: 5 }).map((_, i) => (
@@ -991,4 +1128,3 @@ function DetailModal({
     </div>
   );
 }
-
