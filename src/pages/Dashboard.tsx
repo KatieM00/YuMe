@@ -16,6 +16,7 @@ import * as Flags from 'country-flag-icons/react/3x2';
 import { getCurrentUserProfile, getPartnerInfo, type UserProfile, type PartnerInfo } from '../lib/partnerService';
 import { getAllVisionItems, type VisionItem } from '../lib/visionService';
 import { getAllMessages, type Message } from '../lib/messageService';
+import NotificationBell from '../components/NotificationBell';
 
 // =========================================================================
 // DASHBOARD CONTENT
@@ -604,8 +605,11 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
 export default function Dashboard({ setCurrentPage, onLogout }: { setCurrentPage: (page: string) => void; onLogout?: () => void }) {
     return (
         <div className="min-h-screen p-4 md:p-8">
-            {/* Settings and Logout buttons - top right */}
+            {/* Notifications, Settings and Logout buttons - top right */}
             <div className="fixed top-4 right-4 z-10 flex items-center space-x-2">
+                <div className="flex items-center justify-center bg-gray-800/80 backdrop-blur-sm rounded-lg border border-gray-700">
+                    <NotificationBell />
+                </div>
                 <button
                     onClick={() => setCurrentPage('settings')}
                     className="flex items-center justify-center p-2 bg-gray-800/80 backdrop-blur-sm hover:bg-gray-700 rounded-lg text-gray-400 hover:text-white transition border border-gray-700"
