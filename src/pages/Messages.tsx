@@ -160,8 +160,8 @@ export default function Messages() {
         }
 
         await createMessage({
-          from_user: currentUser.display_name || currentUser.email || 'You',
-          to_user: partner.display_name || partner.email || 'Partner',
+          from_user: currentUser.id,
+          to_user: partner.id,
           type: newMessageType,
           content: newMessageContent,
         });
@@ -357,8 +357,8 @@ export default function Messages() {
 
       // Create message with media URL
       await createMessage({
-        from_user: currentUser.display_name || currentUser.email || 'You',
-        to_user: partner.display_name || partner.email || 'Partner',
+        from_user: currentUser.id,
+        to_user: partner.id,
         type: newMessageType,
         content: `${newMessageType === 'video' ? 'Video' : 'Voice'} message`,
         media_url: url,
@@ -557,8 +557,8 @@ export default function Messages() {
 
       // Create message with image URL
       await createMessage({
-        from_user: currentUser.display_name || currentUser.email || 'You',
-        to_user: partner.display_name || partner.email || 'Partner',
+        from_user: currentUser.id,
+        to_user: partner.id,
         type: 'image',
         content: 'Photo message',
         media_url: url,

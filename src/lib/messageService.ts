@@ -25,8 +25,8 @@ export interface MessageReaction {
 }
 
 export interface CreateMessageData {
-  from_user: string;
-  to_user: string;
+  from_user: string; // UUID foreign key to users table
+  to_user: string;   // UUID foreign key to users table
   type: 'text' | 'voice' | 'video' | 'image';
   content: string;
   media_url?: string;
@@ -258,6 +258,8 @@ export async function createMessage(messageData: CreateMessageData): Promise<Mes
     .from('messages')
     .insert({
       user_id: user.id,
+      from_user: messageData.from_user,
+      to_user: messageData.to_user,
       type: messageData.type,
       content: messageData.content,
       media_url: messageData.media_url || null,
