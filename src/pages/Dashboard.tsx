@@ -23,7 +23,7 @@ import NotificationBell from '../components/NotificationBell';
 // =========================================================================
 
 type DashboardProps = {
-  setPage: (page: string) => void;
+    setPage: (page: string) => void;
 };
 
 const DashboardContent = ({ setPage }: DashboardProps) => {
@@ -142,17 +142,11 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
     return Math.round(distance);
   };
 
-  const parseDateOnlyAsUTC = (dateStr: string) => {
-    // expects "YYYY-MM-DD"
-    const [y, m, d] = dateStr.split('-').map(Number);
-    return new Date(Date.UTC(y, m - 1, d));
-  };
-
   const getDaysUntil = (date: Date) => {
     const now = new Date();
-    const utcToday = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
-    const utcEvent = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
-    return Math.round((utcEvent - utcToday) / (1000 * 60 * 60 * 24));
+    now.setHours(0, 0, 0, 0);
+    const diff = date.getTime() - now.getTime();
+    return Math.ceil(diff / (1000 * 60 * 60 * 24));
   };
 
   const nextEvent: { event: string; date: Date; days: number; item: VisionItem } | null = useMemo(() => {
@@ -167,7 +161,7 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
     let minDays = Infinity;
 
     eventsWithDates.forEach(item => {
-      const eventDate = parseDateOnlyAsUTC(item.event_date!);
+      const eventDate = new Date(item.event_date!);
       const days = getDaysUntil(eventDate);
       if (days > 0 && days < minDays) {
         minDays = days;
@@ -332,8 +326,8 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
 
   const ButtonBox = ({ id, name, iconSrc }: typeof navButtons[0]) => (
     <button
-      onClick={() => setPage(id)}
-      className="block"
+        onClick={() => setPage(id)}
+        className="block"
     >
       <img
         src={iconSrc}
@@ -412,7 +406,7 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
 
       {/* Event Detail Modal */}
       {selectedEvent && selectedEvent.event_date && (() => {
-        const eventDate = parseDateOnlyAsUTC(selectedEvent.event_date);
+        const eventDate = new Date(selectedEvent.event_date);
         const daysUntil = getDaysUntil(eventDate);
 
         return (
@@ -623,75 +617,39 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
       )}
     </>
   );
-};
+}
 
 // =========================================================================
 // MAIN DASHBOARD COMPONENT
 // =========================================================================
 
-export default function Dashboard({
-  setCurrentPage,
-  onLogout
-}: {
-  setCurrentPage: (page: string) => void;
-  onLogout?: () => void;
-}) {
-  const isDesktop = typeof window !== 'undefined' && window.innerWidth > 768;
-  const [showSplash, setShowSplash] = useState(isDesktop);
+export default function Dashboard({ setCurrentPage, onLogout }: { setCurrentPage: (page: string) => void; onLogout?: () => void }) {
+    return (
+        <div className="min-h-screen p-4 md:p-8">
+            {/* Notifications, Settings and Logout buttons - top right */}
+            <div className="fixed top-4 right-4 z-10 flex items-center space-x-2">
+                <div className="flex items-center justify-center bg-gray-800/80 backdrop-blur-sm rounded-lg border border-gray-700">
+                    <NotificationBell />
+                </div>
+                <button
+                    onClick={() => setCurrentPage('settings')}
+                    className="flex items-center justify-center p-2 bg-gray-800/80 backdrop-blur-sm hover:bg-gray-700 rounded-lg text-gray-400 hover:text-white transition border border-gray-700"
+                >
+                    <Settings className="w-5 h-5" />
+                </button>
+                {onLogout && (
+                    <button
+                        onClick={onLogout}
+                        className="flex items-center justify-center p-2 bg-gray-800/80 backdrop-blur-sm hover:bg-gray-700 rounded-lg text-gray-400 hover:text-white transition border border-gray-700"
+                    >
+                        <LogOut className="w-5 h-5" />
+                    </button>
+                )}
+            </div>
 
-  // Fallback hide timer (avoids video autoplay issues)
-  useEffect(() => {
-    if (!isDesktop) return;
-    const timer = setTimeout(() => setShowSplash(false), 6000);
-    return () => clearTimeout(timer);
-  }, [isDesktop]);
-
-  return (
-    <div className="min-h-screen p-4 md:p-8 relative overflow-hidden">
-      {/* Desktop-Only Splash Screen Video */}
-      {isDesktop && showSplash && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black">
-          <video
-            src="/images/SplashScreen1.mp4"
-            autoPlay
-            muted
-            playsInline
-            onEnded={() => setShowSplash(false)}
-            className="w-full h-full object-cover"
-          />
-          <button
-            onClick={() => setShowSplash(false)}
-            className="absolute top-4 right-4 px-3 py-1.5 rounded-full bg-black/60 text-white text-xs"
-          >
-            Skip
-          </button>
+            <div className="max-w-7xl mx-auto">
+                <DashboardContent setPage={setCurrentPage} />
+            </div>
         </div>
-      )}
-
-      {/* Notifications, Settings and Logout buttons - top right */}
-      <div className="fixed top-4 right-4 z-10 flex items-center space-x-2">
-        <div className="flex items-center justify-center bg-gray-800/80 backdrop-blur-sm rounded-lg border border-gray-700">
-          <NotificationBell />
-        </div>
-        <button
-          onClick={() => setCurrentPage('settings')}
-          className="flex items-center justify-center p-2 bg-gray-800/80 backdrop-blur-sm hover:bg-gray-700 rounded-lg text-gray-400 hover:text-white transition border border-gray-700"
-        >
-          <Settings className="w-5 h-5" />
-        </button>
-        {onLogout && (
-          <button
-            onClick={onLogout}
-            className="flex items-center justify-center p-2 bg-gray-800/80 backdrop-blur-sm hover:bg-gray-700 rounded-lg text-gray-400 hover:text-white transition border border-gray-700"
-          >
-            <LogOut className="w-5 h-5" />
-          </button>
-        )}
-      </div>
-
-      <div className="max-w-7xl mx-auto">
-        <DashboardContent setPage={setCurrentPage} />
-      </div>
-    </div>
-  );
+    );
 }
