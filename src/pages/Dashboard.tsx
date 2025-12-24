@@ -39,20 +39,22 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
   const [selectedEvent, setSelectedEvent] = useState<VisionItem | null>(null);
   const [selectedMessageForModal, setSelectedMessageForModal] = useState<Message | null>(null);
 
-  // ADDED: Resolve UUIDs to display names (avoid showing raw UUIDs in UI)
+  // Resolve user UUIDs to friendly display names for UI (avoid showing raw UUIDs)
   const getDisplayNameForUserId = (userId: string) => {
     if (!userId) return 'Unknown';
 
+    // Current user
     if (userProfile?.id && userId === userProfile.id) {
       return userProfile.display_name || (userProfile as any).email || 'You';
     }
 
+    // Partner (PartnerInfo may use id or user_id depending on partnerService)
     const partnerId = (partnerProfile as any)?.id || (partnerProfile as any)?.user_id;
     if (partnerId && userId === partnerId) {
-      return partnerProfile?.display_name || 'Partner';
+      return (partnerProfile as any)?.display_name || 'Partner';
     }
 
-    // Fallback: shorten UUID to avoid big “letters and numbers”
+    // Fallback: shorten UUID so it doesn't look ugly
     return `${userId.slice(0, 8)}…`;
   };
 
@@ -76,9 +78,8 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
       const profile = await getCurrentUserProfile();
       setUserProfile(profile);
 
-      let partner: PartnerInfo | null = null;
       if (profile?.partner_id) {
-        partner = await getPartnerInfo();
+        const partner = await getPartnerInfo();
         setPartnerProfile(partner);
       }
 
@@ -86,22 +87,17 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
       const items = await getAllVisionItems();
       setVisionItems(items);
 
-      // Load most recent message (FROM partner)
+      // Load most recent message (sent OR received) - always show newest overall
       const messages = await getAllMessages();
-      const partnerId = (partner as any)?.id || (partner as any)?.user_id;
 
-      const activeMessages = messages.filter(m =>
-        (m.status === 'active' || m.status === 'pinned') &&
-        // Only show the most recent message FROM partner on the dashboard
-        (!!partnerId ? m.from_user === partnerId : true)
-      );
-
-      if (activeMessages.length > 0) {
-        // Sort by created_at descending to get the most recent
-        const sorted = activeMessages.sort((a, b) =>
+      if (messages.length > 0) {
+        // Sort by created_at descending to get the most recent message overall (any status)
+        const sorted = [...messages].sort((a, b) =>
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         );
         setRecentMessage(sorted[0]);
+      } else {
+        setRecentMessage(null);
       }
     } catch (error) {
       console.error('Error loading dashboard data:', error);
