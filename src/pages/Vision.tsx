@@ -420,10 +420,6 @@ export default function Vision() {
     }
   };
 
-  const handleNudge = (itemId: string) => {
-    console.log('Nudge interaction for item:', itemId);
-    // Placeholder for future notification service integration
-  };
 
   const handleAddComment = async () => {
     if (!selectedItem || !newCommentText.trim()) return;
@@ -1104,19 +1100,8 @@ export default function Vision() {
                                 </button>
                               </div>
 
-                              {/* Action Buttons - Always visible for continuity */}
-                              <div className="flex items-center justify-between pt-1.5 border-t border-gray-700/30">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleNudge(item.id);
-                                  }}
-                                  className="p-1 hover:bg-pink-600/20 rounded-full transition"
-                                  title="Nudge partner"
-                                >
-                                  <Heart className="w-3.5 h-3.5 text-pink-400/70 hover:text-pink-400 transition" />
-                                </button>
-
+                              {/* Action Buttons - Edit and Delete */}
+                              <div className="flex items-center justify-end gap-2 pt-1.5 border-t border-gray-700/30">
                                 <button
                                   onClick={async (e) => {
                                     e.stopPropagation();
@@ -1171,32 +1156,17 @@ export default function Vision() {
                                 </p>
                               )}
 
-                              {/* Action Buttons - Always at bottom, with Edit button on mobile */}
-                              <div className="flex items-center justify-between mt-auto pt-1.5 border-t border-gray-700/30">
-                                {/* Mobile: Edit, Heart, Check, X */}
-                                {/* Desktop: Heart, Check, X (hover shows delete) */}
-
-                                {/* Edit button - Mobile only */}
+                              {/* Action Buttons - Edit, Complete, Delete */}
+                              <div className="flex items-center justify-end gap-2 mt-auto pt-1.5 border-t border-gray-700/30">
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     handleEditWish(item);
                                   }}
-                                  className="md:hidden p-1 hover:bg-blue-600/20 rounded-full transition"
+                                  className="p-1 hover:bg-blue-600/20 rounded-full transition"
                                   title="Edit"
                                 >
                                   <Edit2 className="w-3.5 h-3.5 text-blue-400" />
-                                </button>
-
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleNudge(item.id);
-                                  }}
-                                  className="p-1 hover:bg-pink-600/20 rounded-full transition"
-                                  title="Nudge partner"
-                                >
-                                  <Heart className="w-3.5 h-3.5 text-pink-400/70 hover:text-pink-400 transition" />
                                 </button>
 
                                 <button
@@ -1217,7 +1187,7 @@ export default function Vision() {
                                     e.stopPropagation();
                                     handleDeleteItem(item.id, null);
                                   }}
-                                  className="p-1 md:opacity-0 md:group-hover:opacity-100 hover:bg-red-600/20 rounded-full transition"
+                                  className="p-1 hover:bg-red-600/20 rounded-full transition"
                                   title="Delete"
                                 >
                                   <X className="w-3.5 h-3.5 text-red-400" />
