@@ -39,6 +39,23 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
   const [selectedEvent, setSelectedEvent] = useState<VisionItem | null>(null);
   const [selectedMessageForModal, setSelectedMessageForModal] = useState<Message | null>(null);
 
+  // ADDED: Resolve UUIDs to display names (avoid showing raw UUIDs in UI)
+  const getDisplayNameForUserId = (userId: string) => {
+    if (!userId) return 'Unknown';
+
+    if (userProfile?.id && userId === userProfile.id) {
+      return userProfile.display_name || (userProfile as any).email || 'You';
+    }
+
+    const partnerId = (partnerProfile as any)?.id || (partnerProfile as any)?.user_id;
+    if (partnerId && userId === partnerId) {
+      return partnerProfile?.display_name || 'Partner';
+    }
+
+    // Fallback: shorten UUID to avoid big “letters and numbers”
+    return `${userId.slice(0, 8)}…`;
+  };
+
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
@@ -59,8 +76,9 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
       const profile = await getCurrentUserProfile();
       setUserProfile(profile);
 
+      let partner: PartnerInfo | null = null;
       if (profile?.partner_id) {
-        const partner = await getPartnerInfo();
+        partner = await getPartnerInfo();
         setPartnerProfile(partner);
       }
 
@@ -68,9 +86,16 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
       const items = await getAllVisionItems();
       setVisionItems(items);
 
-      // Load most recent message
+      // Load most recent message (FROM partner)
       const messages = await getAllMessages();
-      const activeMessages = messages.filter(m => m.status === 'active' || m.status === 'pinned');
+      const partnerId = (partner as any)?.id || (partner as any)?.user_id;
+
+      const activeMessages = messages.filter(m =>
+        (m.status === 'active' || m.status === 'pinned') &&
+        // Only show the most recent message FROM partner on the dashboard
+        (!!partnerId ? m.from_user === partnerId : true)
+      );
+
       if (activeMessages.length > 0) {
         // Sort by created_at descending to get the most recent
         const sorted = activeMessages.sort((a, b) =>
@@ -248,8 +273,8 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
         </div>
         {recentMessage ? (
           <p className="text-gray-300 text-sm leading-tight line-clamp-2">
-            <span className="text-cyan-300 font-semibold">{recentMessage.from_user}</span> &gt;{' '}
-            <span className="text-blue-300 font-semibold">{recentMessage.to_user}</span>:
+            <span className="text-cyan-300 font-semibold">{getDisplayNameForUserId(recentMessage.from_user)}</span> &gt;{' '}
+            <span className="text-blue-300 font-semibold">{getDisplayNameForUserId(recentMessage.to_user)}</span>:
             <span className="ml-1 font-normal">
               {recentMessage.type === 'text'
                 ? recentMessage.content
@@ -517,11 +542,11 @@ const DashboardContent = ({ setPage }: DashboardProps) => {
                 <div className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg">
                   <div>
                     <p className="text-sm text-gray-400">From</p>
-                    <p className="text-white font-medium">{selectedMessageForModal.from_user}</p>
+                    <p className="text-white font-medium">{getDisplayNameForUserId(selectedMessageForModal.from_user)}</p>
                   </div>
                   <div className="text-right">
                     <p className="text-sm text-gray-400">To</p>
-                    <p className="text-white font-medium">{selectedMessageForModal.to_user}</p>
+                    <p className="text-white font-medium">{getDisplayNameForUserId(selectedMessageForModal.to_user)}</p>
                   </div>
                 </div>
 
