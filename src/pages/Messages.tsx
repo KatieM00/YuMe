@@ -154,9 +154,14 @@ export default function Messages() {
   const addNewMessage = async () => {
     if (newMessageContent.trim() && wordCount <= MAX_WORDS) {
       try {
+        if (!currentUser?.id || !partner?.id) {
+          alert('Unable to send message. User information not available.');
+          return;
+        }
+
         await createMessage({
-          from_user: 'You',
-          to_user: 'Them',
+          from_user: currentUser.id,
+          to_user: partner.id,
           type: newMessageType,
           content: newMessageContent,
         });
@@ -345,10 +350,15 @@ export default function Messages() {
       // Upload to Supabase Storage
       const { path, url } = await uploadMessageMedia(file);
 
+      if (!currentUser?.id || !partner?.id) {
+        alert('Unable to send message. User information not available.');
+        return;
+      }
+
       // Create message with media URL
       await createMessage({
-        from_user: 'You',
-        to_user: 'Them',
+        from_user: currentUser.id,
+        to_user: partner.id,
         type: newMessageType,
         content: `${newMessageType === 'video' ? 'Video' : 'Voice'} message`,
         media_url: url,
@@ -540,10 +550,15 @@ export default function Messages() {
       // Upload to Supabase Storage
       const { path, url } = await uploadMessageMedia(file);
 
+      if (!currentUser?.id || !partner?.id) {
+        alert('Unable to send message. User information not available.');
+        return;
+      }
+
       // Create message with image URL
       await createMessage({
-        from_user: 'You',
-        to_user: 'Them',
+        from_user: currentUser.id,
+        to_user: partner.id,
         type: 'image',
         content: 'Photo message',
         media_url: url,
