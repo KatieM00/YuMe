@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Loader, Eye, EyeOff } from 'lucide-react';
 import { signIn, signUp } from '../lib/authService';
-import { updateDisplayName, updateProfileEmoji, updateImportantDates, linkPartnerAccount } from '../lib/partnerService';
+import { linkPartnerAccount } from '../lib/partnerService';
+import { supabase } from '../lib/supabase';
 
 interface LoginPageProps {
   onLogin: () => void;
@@ -63,19 +64,34 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       // Create the auth account
       await signUp(email, password);
 
-      // Update profile with additional fields
-      if (displayName) {
-        await updateDisplayName(displayName);
+      // Get the user ID
+      const { data: { user } } = await supabase.auth.getUser();
+
+      if (!user) {
+        throw new Error('User creation failed');
       }
 
-      if (profileEmoji) {
-        await updateProfileEmoji(profileEmoji);
+      // Create profile with all signup data in one operation
+      const inviteCode = Math.random().toString(36).substring(2, 10);
+
+      const { error: profileError } = await supabase
+        .from('user_profiles')
+        .upsert({
+          id: user.id,
+          email: user.email || email,
+          invite_code: inviteCode,
+          timezone: 'Europe/London',
+          display_name: displayName || null,
+          profile_emoji: profileEmoji || null,
+          birthday_date: birthday || null,
+        });
+
+      if (profileError) {
+        console.error('Error creating profile:', profileError);
+        throw profileError;
       }
 
-      if (birthday) {
-        await updateImportantDates({ birthday_date: birthday });
-      }
-
+      // Link partner if code provided
       if (partnerCode) {
         const result = await linkPartnerAccount(partnerCode);
         if (!result.success) {
