@@ -1,4 +1,5 @@
 import { Handler, HandlerEvent, HandlerContext } from '@netlify/functions';
+import { createClient } from '@supabase/supabase-js';
 
 const SPOTIFY_CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
 const SPOTIFY_CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
@@ -47,16 +48,33 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
   }
 
   try {
-    // Get user_id from request body
-    const { user_id } = JSON.parse(event.body || '{}');
-
-    if (!user_id) {
+    // Extract and verify JWT token
+    const authHeader = event.headers.authorization || event.headers.Authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return {
-        statusCode: 400,
+        statusCode: 401,
         headers,
-        body: JSON.stringify({ error: 'user_id is required' }),
+        body: JSON.stringify({ error: 'Authorization header required' }),
       };
     }
+
+    const token = authHeader.replace('Bearer ', '');
+
+    // Verify token with Supabase
+    const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_KEY!);
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      console.error('Auth error:', authError);
+      return {
+        statusCode: 401,
+        headers,
+        body: JSON.stringify({ error: 'Invalid or expired token' }),
+      };
+    }
+
+    // Use verified user ID from token
+    const user_id = user.id;
 
     // Get current refresh token from database
     const tokenResponse = await fetch(`${SUPABASE_URL}/rest/v1/spotify_tokens?user_id=eq.${user_id}&select=refresh_token`, {

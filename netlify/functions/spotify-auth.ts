@@ -110,43 +110,6 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
     // The state parameter contains our YuMe user ID
     const yumeUserId = state;
 
-    // Check if user exists in users table
-    const existingUserResponse = await fetch(`${SUPABASE_URL}/rest/v1/users?id=eq.${yumeUserId}&select=*`, {
-      headers: {
-        'apikey': SUPABASE_SERVICE_KEY,
-        'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
-      },
-    });
-
-    let existingUser = null;
-    if (existingUserResponse.ok) {
-      const users = await existingUserResponse.json();
-      existingUser = users[0];
-    }
-
-    // Upsert user data with Spotify info
-    const upsertUserResponse = await fetch(`${SUPABASE_URL}/rest/v1/users`, {
-      method: 'POST',
-      headers: {
-        'apikey': SUPABASE_SERVICE_KEY,
-        'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
-        'Content-Type': 'application/json',
-        'Prefer': 'resolution=merge-duplicates',
-      },
-      body: JSON.stringify({
-        id: yumeUserId,
-        spotify_id: spotifyProfile.id,
-        display_name: spotifyProfile.display_name || spotifyProfile.id,
-        email: spotifyProfile.email || existingUser?.email,
-        avatar_url: spotifyProfile.images?.[0]?.url || null,
-      }),
-    });
-
-    if (!upsertUserResponse.ok) {
-      console.error('Error upserting user:', await upsertUserResponse.text());
-      throw new Error('Failed to update user profile');
-    }
-
     // Store tokens in spotify_tokens table
     const expiresAt = Date.now() + (expires_in * 1000);
 

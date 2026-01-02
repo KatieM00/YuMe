@@ -111,25 +111,6 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
     // The state parameter contains our YuMe user ID
     const yumeUserId = state;
 
-    // Update user_profiles table with Google Photos info
-    const updateProfileResponse = await fetch(`${SUPABASE_URL}/rest/v1/user_profiles?id=eq.${yumeUserId}`, {
-      method: 'PATCH',
-      headers: {
-        'apikey': SUPABASE_SERVICE_KEY,
-        'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        google_photos_id: googleProfile.id,
-        google_photos_display_name: googleProfile.name || googleProfile.email,
-      }),
-    });
-
-    if (!updateProfileResponse.ok) {
-      console.error('Error updating user profile:', await updateProfileResponse.text());
-      throw new Error('Failed to update user profile');
-    }
-
     // Store tokens in google_photos_tokens table
     const expiresAt = new Date(Date.now() + (expires_in * 1000)).toISOString();
 

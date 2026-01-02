@@ -1,4 +1,5 @@
 import { Handler, HandlerEvent, HandlerContext } from '@netlify/functions';
+import { createClient } from '@supabase/supabase-js';
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
@@ -38,18 +39,39 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
     };
   }
 
-  const { user_id, endpoint, method = 'GET', body: requestBody, ...queryParams } =
+  // Extract and verify JWT token
+  const authHeader = event.headers.authorization || event.headers.Authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return {
+      statusCode: 401,
+      headers,
+      body: JSON.stringify({ error: 'Authorization header required' }),
+    };
+  }
+
+  const token = authHeader.replace('Bearer ', '');
+
+  // Verify token with Supabase
+  const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_KEY!);
+  const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+  if (authError || !user) {
+    console.error('Auth error:', authError);
+    return {
+      statusCode: 401,
+      headers,
+      body: JSON.stringify({ error: 'Invalid or expired token' }),
+    };
+  }
+
+  // Use verified user ID from token
+  const user_id = user.id;
+
+  // Extract other parameters
+  const { endpoint, method = 'GET', body: requestBody, ...queryParams } =
     event.httpMethod === 'GET'
       ? event.queryStringParameters || {}
       : { ...event.queryStringParameters, ...(JSON.parse(event.body || '{}')) };
-
-  if (!user_id) {
-    return {
-      statusCode: 400,
-      headers,
-      body: JSON.stringify({ error: 'user_id parameter required' }),
-    };
-  }
 
   if (!endpoint) {
     return {

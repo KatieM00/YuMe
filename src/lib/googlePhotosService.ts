@@ -171,16 +171,16 @@ async function callGooglePhotosAPI(
   body?: any,
   queryParams?: Record<string, string>
 ): Promise<any> {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
+  // Get session token instead of just user
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
     throw new Error('User not authenticated');
   }
 
   const url = new URL(`${window.location.origin}${NETLIFY_FUNCTIONS_URL}/google-photos-api`);
 
   if (method === 'GET' && !body) {
-    // For simple GET requests, pass everything as query params
-    url.searchParams.append('user_id', user.id);
+    // For simple GET requests, pass everything as query params (except user_id)
     url.searchParams.append('endpoint', endpoint);
     url.searchParams.append('method', method);
 
@@ -190,7 +190,11 @@ async function callGooglePhotosAPI(
       });
     }
 
-    const response = await fetch(url.toString());
+    const response = await fetch(url.toString(), {
+      headers: {
+        'Authorization': `Bearer ${session.access_token}`,
+      },
+    });
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
@@ -199,9 +203,8 @@ async function callGooglePhotosAPI(
 
     return await response.json();
   } else {
-    // For POST or GET with body, send data in request body
+    // For POST or GET with body, send data in request body (without user_id)
     const requestBody = {
-      user_id: user.id,
       endpoint,
       method,
       body,
@@ -212,6 +215,7 @@ async function callGooglePhotosAPI(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`,
       },
       body: JSON.stringify(requestBody),
     });
